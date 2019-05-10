@@ -1,0 +1,8 @@
+ 
+add_executable(TestAuxModem TestAuxModem.cc)
+target_link_libraries(TestAuxModem falcon_meas)
+add_test(TestAuxModem TestAuxModem)
+
+add_executable(TestTrafficGenerator TestTrafficGenerator.cc)
+target_link_libraries(TestTrafficGenerator falcon_meas)
+add_test(TestTrafficGenerator TestTrafficGenerator)

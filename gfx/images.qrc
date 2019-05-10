@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/logo">
+        <file>Logo_FALCON_button.png</file>
+        <file>Logo_FALCON_full_button.png</file>
+        <file>Logo_FALCON.png</file>
+    </qresource>
+</RCC>

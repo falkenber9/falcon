@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>906</width>
+    <height>593</height>
+   </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>16777204</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>FALCON</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../gfx/images.qrc">
+    <normaloff>:/logo/Logo_FALCON_button.png</normaloff>:/logo/Logo_FALCON_button.png</iconset>
+  </property>
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonIconOnly</enum>
+  </property>
+  <property name="animated">
+   <bool>false</bool>
+  </property>
+  <property name="dockNestingEnabled">
+   <bool>true</bool>
+  </property>
+  <property name="dockOptions">
+   <set>QMainWindow::AllowNestedDocks</set>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QMdiArea" name="mdiArea">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>906</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>Fi&amp;le</string>
+    </property>
+    <addaction name="actionNew"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>Optio&amp;ns</string>
+    </property>
+    <widget class="QMenu" name="menuWindow_2">
+     <property name="title">
+      <string>&amp;Window</string>
+     </property>
+     <addaction name="actionSpectrum"/>
+     <addaction name="actionDifference"/>
+     <addaction name="actionUplink"/>
+     <addaction name="actionDownlink"/>
+     <addaction name="actionTile_Windows"/>
+     <addaction name="actionplot1"/>
+    </widget>
+    <widget class="QMenu" name="menuUtilities">
+     <property name="title">
+      <string>&amp;Utilities</string>
+     </property>
+     <addaction name="actionScrolling"/>
+     <addaction name="actionSave_Settings"/>
+    </widget>
+    <widget class="QMenu" name="menuRadio">
+     <property name="title">
+      <string>&amp;Radio</string>
+     </property>
+     <addaction name="actionUse_File_as_Source"/>
+     <addaction name="actionRadio_Settings"/>
+    </widget>
+    <addaction name="menuUtilities"/>
+    <addaction name="menuRadio"/>
+    <addaction name="menuWindow_2"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuOptions"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionNew"/>
+   <addaction name="actionStop"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QDockWidget" name="dockWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>260</width>
+     <height>50</height>
+    </size>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>110</y>
+       <width>251</width>
+       <height>311</height>
+      </rect>
+     </property>
+     <property name="tabPosition">
+      <enum>QTabWidget::South</enum>
+     </property>
+     <property name="tabShape">
+      <enum>QTabWidget::Rounded</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="rf_settings">
+      <attribute name="title">
+       <string>RF</string>
+      </attribute>
+      <widget class="QCheckBox" name="checkBox_FileAsSource">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>120</y>
+         <width>141</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Use File as Source</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_rf_freq">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>121</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="maximum">
+        <number>999999999</number>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_CellId">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>190</y>
+         <width>52</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="buttonSymbols">
+        <enum>QAbstractSpinBox::PlusMinus</enum>
+       </property>
+       <property name="accelerated">
+        <bool>true</bool>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+       <property name="value">
+        <number>50</number>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_Ports">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>190</y>
+         <width>52</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="buttonSymbols">
+        <enum>QAbstractSpinBox::PlusMinus</enum>
+       </property>
+       <property name="accelerated">
+        <bool>true</bool>
+       </property>
+       <property name="value">
+        <number>2</number>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_Prb">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>190</y>
+         <width>52</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="buttonSymbols">
+        <enum>QAbstractSpinBox::PlusMinus</enum>
+       </property>
+       <property name="accelerated">
+        <bool>true</bool>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+       <property name="value">
+        <number>50</number>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_2">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>220</y>
+         <width>58</width>
+         <height>18</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Cell ID</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_3">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>220</y>
+         <width>58</width>
+         <height>18</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Ports</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_4">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>220</y>
+         <width>58</width>
+         <height>18</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Prb</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_5">
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>10</y>
+         <width>58</width>
+         <height>18</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Hz</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="lineEdit_FileName">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>150</y>
+         <width>241</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="echoMode">
+        <enum>QLineEdit::Normal</enum>
+       </property>
+       <property name="dragEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>Path to File</string>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="Select_file_button">
+       <property name="geometry">
+        <rect>
+         <x>150</x>
+         <y>110</y>
+         <width>91</width>
+         <height>34</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Select File</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QLCDNumber" name="lcdNumber_rf_freq">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>181</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="midLineWidth">
+      <number>-2</number>
+     </property>
+     <property name="digitCount">
+      <number>10</number>
+     </property>
+     <property name="segmentStyle">
+      <enum>QLCDNumber::Flat</enum>
+     </property>
+     <property name="intValue" stdset="0">
+      <number>0</number>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>70</y>
+       <width>58</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Hz</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::AutoText</enum>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_6">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>-10</y>
+       <width>251</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="../../gfx/images.qrc">:/logo/Logo_FALCON.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <action name="actionNew">
+   <property name="text">
+    <string>&amp;New</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="text">
+    <string>&amp;Stop</string>
+   </property>
+   <property name="toolTip">
+    <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionSpectrum">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Spectrum</string>
+   </property>
+  </action>
+  <action name="actionDifference">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Difference</string>
+   </property>
+  </action>
+  <action name="actionUplink">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Uplink</string>
+   </property>
+  </action>
+  <action name="actionDownlink">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>D&amp;ownlink</string>
+   </property>
+  </action>
+  <action name="actionTile_Windows">
+   <property name="text">
+    <string>&amp;Tile Windows</string>
+   </property>
+  </action>
+  <action name="actionScrolling">
+   <property name="text">
+    <string>&amp;Scrolling</string>
+   </property>
+  </action>
+  <action name="actionUse_File_as_Source">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Use File as Source</string>
+   </property>
+  </action>
+  <action name="actionRadio_Settings">
+   <property name="text">
+    <string>&amp;Radio Settings</string>
+   </property>
+  </action>
+  <action name="actionSave_Settings">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Sa&amp;ve Settings</string>
+   </property>
+  </action>
+  <action name="actionPerformance_Plots">
+   <property name="text">
+    <string>Performance Plots</string>
+   </property>
+  </action>
+  <action name="actionplot1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;plot1</string>
+   </property>
+  </action>
+  <zorder>dockWidget</zorder>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="../../gfx/images.qrc"/>
+ </resources>
+ <connections/>
+</ui>

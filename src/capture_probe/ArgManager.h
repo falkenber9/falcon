@@ -22,6 +22,7 @@ struct Args {
   uint32_t backoff;
   // local params for client mode
   bool client_mode;
+  bool no_auxmodem;
   uint16_t port;
   // local/remote params
   std::string output_file_base_name;

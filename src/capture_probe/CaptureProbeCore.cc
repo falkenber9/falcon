@@ -196,24 +196,31 @@ bool CaptureProbeCore::run() {
 
   srslte_rf_set_master_clock_rate(&rf, 30.72e6);
 
-
-  /* read network information from modem */
-  NetworkInfo netinfoBefore(modem->getNetworkInfo());
-  if(!netinfoBefore.isValid()) {
-    *netsync << "Error: could not get network info from aux modem" << endl;
-    srslte_rf_kill_gain_thread(&rf);
-    srslte_rf_close(&rf);
-    return true;
-  }
+  NetworkInfo* netinfoBefore = nullptr;
   NetworkInfo* netinfoProbingStart = nullptr;
+  if(!args.no_auxmodem) {
+    /* read network information from modem */
+    //NetworkInfo netinfoBefore(modem->getNetworkInfo());
+    netinfoBefore = new NetworkInfo(modem->getNetworkInfo());
+    if(!netinfoBefore->isValid()) {
+      *netsync << "Error: could not get network info from aux modem" << endl;
+      srslte_rf_kill_gain_thread(&rf);
+      srslte_rf_close(&rf);
+      delete netinfoBefore;
+      return true;
+    }
+  }
 
   /* set receiver frequency */
   double rf_freq;
-  if(isZero(args.rf_freq)) {
-    rf_freq = netinfoBefore.rf_freq * 1e6;
+  int N_id_2;
+  if(isZero(args.rf_freq) && !args.no_auxmodem) {
+    rf_freq = netinfoBefore->rf_freq * 1e6;
+    N_id_2 = netinfoBefore->N_id_2;
   }
   else {
     rf_freq = args.rf_freq;
+    N_id_2 = -1;
     *netsync << "Receive frequency override to " << rf_freq << " Hz" << endl;
   }
   *netsync << "Tunning receiver to " << rf_freq << " Hz" << endl;
@@ -223,7 +230,7 @@ bool CaptureProbeCore::run() {
   uint32_t ntrial = 0;
   uint32_t max_trial = 3;
   do {
-    ret = rf_search_and_decode_mib(&rf, args.rf_nof_rx_ant, &cell_detect_config, netinfoBefore.N_id_2, &cell, &cfo);
+    ret = rf_search_and_decode_mib(&rf, args.rf_nof_rx_ant, &cell_detect_config, N_id_2, &cell, &cfo);
     if (ret < 0) {
       *netsync << "Error searching for cell" << endl;
       go_exit = true;
@@ -239,6 +246,7 @@ bool CaptureProbeCore::run() {
   if (go_exit) {
     srslte_rf_kill_gain_thread(&rf);
     srslte_rf_close(&rf);
+    delete netinfoBefore;
     return true;
   }
 
@@ -349,6 +357,15 @@ bool CaptureProbeCore::run() {
 
   srslte_pbch_decode_reset(&ue_mib.pbch);
 
+  // in case of no physical auxmodem, provide cell info to the dummy and refresh netinfoBefore
+  modem->inform(cell.nof_prb, static_cast<int>(cell.id), rf_freq);
+  if(args.no_auxmodem) {
+    delete netinfoBefore; // actually, netinfoBefore should always be nullptr here anyway
+    netinfoBefore = new NetworkInfo(modem->getNetworkInfo());
+  }
+  // in case of no probing, clone netinfoBefore into netinfoProbingStart
+  netinfoProbingStart = new NetworkInfo(*netinfoBefore);
+
   *netsync << "Entering main loop..." << endl;
   /* Main loop */
   while (!go_exit && (sf_cnt < args.nof_subframes || args.nof_subframes == 0)) {
@@ -383,8 +400,8 @@ bool CaptureProbeCore::run() {
                       "Recording started: SFN: " << sfn << ", offset " << sfn_offset << "\n" <<
                       "*************************\n" <<
                       "*************************\n" << endl;
-              if(netinfoBefore.nof_prb != cell.nof_prb && isZero(args.rf_freq)) {
-                *netsync << "Mismatching nof_prb in aux modem " << netinfoBefore.nof_prb <<
+              if(netinfoBefore->nof_prb != cell.nof_prb && isZero(args.rf_freq)) {
+                *netsync << "Mismatching nof_prb in aux modem " << netinfoBefore->nof_prb <<
                             " and sniffer " << cell.nof_prb << endl;
                 go_exit = true;
               }
@@ -484,8 +501,8 @@ bool CaptureProbeCore::run() {
   if(netinfoProbingStart != nullptr &&
      netinfoProbingStart->isValid() &&
      netinfoAfter.isValid()) {
-    if(netinfoAfter == netinfoBefore &&
-       *netinfoProbingStart == netinfoBefore) {
+    if(netinfoAfter == *netinfoBefore &&
+       *netinfoProbingStart == *netinfoBefore) {
       *netsync << "[OK] No cell change detected, assuming valid capture" << endl;
       ofstream netInfoFile;
       netInfoFile.open(cellInfoFileName);
@@ -504,7 +521,7 @@ bool CaptureProbeCore::run() {
     }
     else {
       *netsync << "[FAIL] Cell change detected, invalid capture" <<
-                  "\nBefore:    " << netinfoBefore.toCSV(',') <<
+                  "\nBefore:    " << netinfoBefore->toCSV(',') <<
                   "\nProbStart: " << netinfoProbingStart->toCSV(',') <<
                   "\nAfter:     " << netinfoAfter.toCSV(',') << endl;
     }
@@ -539,6 +556,7 @@ bool CaptureProbeCore::run() {
   srslte_rf_kill_gain_thread(&rf);
   srslte_rf_close(&rf);
 
+  delete netinfoBefore;
   delete netinfoProbingStart;
   cout << "\nBye" << endl;
   return true;

@@ -44,7 +44,7 @@ void ArgManager::defaultArgs(Args& args) {
 }
 
 void ArgManager::usage(Args& args, const std::string& prog) {
-  printf("Usage: %s [aAcCdfgilnoOpPtvyY] -f rx_frequency (in Hz) | -i input_file\n", prog.c_str());
+  printf("Usage: %s [aAcCdfgilnoOpPrtvyY] -f rx_frequency (in Hz) | -i input_file\n", prog.c_str());
 #ifndef DISABLE_RF
   printf("\t-a RF args [Default %s]\n", args.rf_args.c_str());
   printf("\t-A Number of RX antennas [Default %d]\n", args.rf_nof_rx_ant);
@@ -57,8 +57,8 @@ void ArgManager::usage(Args& args, const std::string& prog) {
   printf("\t   RF is disabled.\n");
 #endif
   printf("\t-i input_file [Default use RF board]\n");
-  printf("\t-D output filename for DCI [default stdout]");
-  printf("\t-E output filename for statistics [default stdout]");
+  printf("\t-D output filename for DCI [default stdout]\n");
+  printf("\t-E output filename for statistics [default stdout]\n");
   printf("\t-o offset frequency correction (in Hz) for input file [Default %.1f Hz]\n", args.file_offset_freq);
   printf("\t-O offset samples for input file [Default %d]\n", args.file_offset_time);
   printf("\t-p nof_prb for input file [Default %d]\n", args.file_nof_prb);
@@ -87,7 +87,7 @@ void ArgManager::usage(Args& args, const std::string& prog) {
 void ArgManager::parseArgs(Args& args, int argc, char **argv) {
   int opt;
   defaultArgs(args);
-  while ((opt = getopt(argc, argv, "aAcCdDEfgilnpPtvyY")) != -1) {
+  while ((opt = getopt(argc, argv, "aAcCdDEfgilnpPrtvyY")) != -1) {
     switch (opt) {
       case 'a':
         args.rf_args = argv[optind];

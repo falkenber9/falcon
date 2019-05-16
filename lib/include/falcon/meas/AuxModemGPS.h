@@ -10,8 +10,8 @@ public:
   AuxModemGPS(const AuxModemGPS&) = delete; //prevent copy
   AuxModemGPS& operator=(const AuxModemGPS&) = delete; //prevent copy
   virtual ~AuxModemGPS();
-  bool init(AuxModem* modem);
+  bool init(SierraWirelessAuxModem* modem);
   GPSFix getFix();
 private:
-  AuxModem* modem;
+  SierraWirelessAuxModem* modem;
 };

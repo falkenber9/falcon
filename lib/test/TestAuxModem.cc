@@ -7,7 +7,7 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-  AuxModem modem;
+  SierraWirelessAuxModem modem;
   assert(modem.init());
   assert(modem.configure());
   {

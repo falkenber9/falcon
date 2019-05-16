@@ -8,11 +8,49 @@
 
 using namespace std;
 
-
-
 AuxModem::AuxModem() :
+  informedNetworkInfo(),
+  operatorNameCache()
+{
+  //nothing
+}
+
+AuxModem::~AuxModem() {
+  //nothing
+}
+
+string AuxModem::getOperatorNameLUT(int mccX100mnc) {
+  switch(mccX100mnc) {
+    case 26201:
+      return "Telekom_";
+    case 26202:
+      return "Vodafone";
+    case 26203:
+    case 26207:
+      return "O2-DE___";
+    default:
+      return "";
+  }
+}
+
+void AuxModem::inform(uint32_t nof_prb, int pci, double rf_freq) {
+  informedNetworkInfo.nof_prb = nof_prb;
+  informedNetworkInfo.N_id_2 = pci % 3;
+  informedNetworkInfo.rf_freq = rf_freq;
+  informedNetworkInfo.lteinfo->pci = pci;
+  informedNetworkInfo.setValid(true);
+}
+
+string AuxModem::getOperatorNameCached() {
+  if(operatorNameCache.length() == 0) {
+    getOperatorName();
+  }
+  return operatorNameCache;
+}
+
+SierraWirelessAuxModem::SierraWirelessAuxModem() :
+  AuxModem(),
   hModem(nullptr),
-  operatorNameCache(),
   interval_us(0),
   txPowerSamples(nullptr),
   cancelTxPowerSampleThread(false),
@@ -21,7 +59,7 @@ AuxModem::AuxModem() :
   modem_enable_logger(false);
 }
 
-AuxModem::~AuxModem() {
+SierraWirelessAuxModem::~SierraWirelessAuxModem() {
   stopTXPowerSampling();
   if(txPowerSamples != nullptr) {
     delete txPowerSamples;
@@ -29,7 +67,7 @@ AuxModem::~AuxModem() {
   release_modem(hModem);
 }
 
-bool AuxModem::init() {
+bool SierraWirelessAuxModem::init() {
   if(hModem != nullptr) {
     release_modem(hModem);
     hModem = nullptr;
@@ -38,19 +76,19 @@ bool AuxModem::init() {
   return hModem != nullptr;
 }
 
-bool AuxModem::configure() {
+bool SierraWirelessAuxModem::configure() {
   return configure_modem(hModem);
 }
 
-bool AuxModem::isOnline() {
+bool SierraWirelessAuxModem::isOnline() {
   return is_online_modem(hModem);
 }
 
-bool AuxModem::setOnline(bool value) {
+bool SierraWirelessAuxModem::setOnline(bool value) {
   return set_online_modem(hModem, value);
 }
 
-bool AuxModem::configureTXPowerSampling(unsigned int interval_us, unsigned long prealloc) {
+bool SierraWirelessAuxModem::configureTXPowerSampling(unsigned int interval_us, unsigned long prealloc) {
   if(TxPowerSampleThreadActive) return false;
   this->interval_us = interval_us;
   if(txPowerSamples != nullptr) {
@@ -61,7 +99,7 @@ bool AuxModem::configureTXPowerSampling(unsigned int interval_us, unsigned long 
   return true;
 }
 
-void AuxModem::startTXPowerSampling() {
+void SierraWirelessAuxModem::startTXPowerSampling() {
   if(!TxPowerSampleThreadActive) {
     cancelTxPowerSampleThread = false;
     if(pthread_create(&txPowerSampleThread, nullptr, txPowerSamplingEntry, this)) {
@@ -74,7 +112,7 @@ void AuxModem::startTXPowerSampling() {
   }
 }
 
-void AuxModem::stopTXPowerSampling() {
+void SierraWirelessAuxModem::stopTXPowerSampling() {
   if(TxPowerSampleThreadActive) {
       cancelTxPowerSampleThread = true;
       pthread_join(txPowerSampleThread, nullptr);
@@ -82,12 +120,12 @@ void AuxModem::stopTXPowerSampling() {
   }
 }
 
-std::vector<int> AuxModem::getTXPowerSamples() {
+std::vector<int> SierraWirelessAuxModem::getTXPowerSamples() {
   stopTXPowerSampling();
   return *txPowerSamples;
 }
 
-NetworkInfo AuxModem::getNetworkInfo() {
+NetworkInfo SierraWirelessAuxModem::getNetworkInfo() {
   NetworkInfo result;
   bool valid = modem_get_network_info(hModem, &result);
   result.setValid(valid);
@@ -105,7 +143,7 @@ string sanitizeOperatorName(const string& inputName) {
   return result;
 }
 
-string AuxModem::getOperatorName() {
+string SierraWirelessAuxModem::getOperatorName() {
   string result;
 
   NetworkInfo info(getNetworkInfo());
@@ -127,29 +165,7 @@ string AuxModem::getOperatorName() {
   return result;
 }
 
-string AuxModem::getOperatorNameCached() {
-  if(operatorNameCache.length() == 0) {
-    getOperatorName();
-  }
-  return operatorNameCache;
-}
-
-string AuxModem::getOperatorNameLUT(int mccX100mnc) {
-  switch(mccX100mnc) {
-    case 26201:
-      return "Telekom_";
-    case 26202:
-      return "Vodafone";
-    case 26203:
-    case 26207:
-      return "O2-DE___";
-    default:
-      return "";
-  }
-}
-
-
-modem_t* AuxModem::getModemHandle() {
+modem_t* SierraWirelessAuxModem::getModemHandle() {
   return hModem;
 }
 
@@ -200,6 +216,34 @@ NetworkInfo::NetworkInfo(NetworkInfo&& other) {
   // further movement of derived object
   valid = other.valid;
   other.valid = false;
+}
+
+NetworkInfo::NetworkInfo(const NetworkInfo& other) {
+  // temporary object generation of base class
+  network_info_t* tmp = alloc_network_info();
+  // move tmp into the base object
+  *static_cast<network_info*>(this) = *tmp;
+  tmp->lteinfo = nullptr;
+  tmp->gstatus = nullptr;
+
+  // destroy tmp
+  release_network_info(tmp);
+
+  // further initialization of derived object
+  nof_prb = other.nof_prb;
+  N_id_2 = other.N_id_2;
+  rf_freq = other.rf_freq;
+
+  memcpy(lteinfo, other.lteinfo, sizeof(sw_em7565_lteinfo_response_t));
+  //TODO: Copy neighbours as well. Currently, only the number of neighbours is copied
+  //lteinfo->nof_intrafreq_neighbours = 0;
+  lteinfo->intrafreq_neighbours = nullptr;
+  //lteinfo->nof_interfreq_neighbours = 0;
+  lteinfo->interfreq_neighbours = nullptr;
+
+  memcpy(gstatus, other.gstatus, sizeof (sw_em7565_gstatus_response_t));
+
+  valid = other.valid;
 }
 
 NetworkInfo::~NetworkInfo() {
@@ -371,12 +415,12 @@ string NetworkInfo::fromCSV(const string& str, const char delim) {
   return rest;
 }
 
-void* AuxModem::txPowerSamplingEntry(void* obj) {
-  static_cast<AuxModem*>(obj)->txPowerSampling();
+void* SierraWirelessAuxModem::txPowerSamplingEntry(void* obj) {
+  static_cast<SierraWirelessAuxModem*>(obj)->txPowerSampling();
   return nullptr;
 }
 
-void AuxModem::txPowerSampling() {
+void SierraWirelessAuxModem::txPowerSampling() {
   sw_em7565_gstatus_response_t* gstatus = alloc_gstatus();
   Stopwatch stopwatch;
   timeval sleeptime;
@@ -405,4 +449,79 @@ void AuxModem::txPowerSampling() {
 //    }
   }
   release_gstatus(gstatus);
+}
+
+
+
+DummyAuxModem::DummyAuxModem() :
+  AuxModem(),
+  online(false),
+  txPowerSamples(nullptr)
+{
+  //nothing
+}
+
+DummyAuxModem::~DummyAuxModem() {
+  stopTXPowerSampling();
+  if(txPowerSamples != nullptr) {
+    delete txPowerSamples;
+  }
+}
+
+bool DummyAuxModem::init() {
+  return true;
+}
+
+bool DummyAuxModem::configure() {
+  return true;
+}
+
+bool DummyAuxModem::isOnline() {
+  return online;
+}
+
+bool DummyAuxModem::setOnline(bool value) {
+  online = value;
+  return true;
+}
+
+bool DummyAuxModem::configureTXPowerSampling(unsigned int interval_us, unsigned long prealloc) {
+  (void)interval_us;
+  (void)prealloc;
+  if(txPowerSamples != nullptr) {
+    delete txPowerSamples;
+  }
+  txPowerSamples = new std::vector<int>();
+  return true;
+}
+
+void DummyAuxModem::startTXPowerSampling() {
+  //nothing
+}
+
+void DummyAuxModem::stopTXPowerSampling() {
+  //nothing
+}
+
+std::vector<int> DummyAuxModem::getTXPowerSamples() {
+  stopTXPowerSampling();
+  return *txPowerSamples;
+}
+
+NetworkInfo DummyAuxModem::getNetworkInfo() {
+  return informedNetworkInfo;
+}
+
+string DummyAuxModem::getOperatorName() {
+  string result;
+
+  NetworkInfo info(getNetworkInfo());
+  result = getOperatorNameLUT(info.lteinfo->mcc * 100 + info.lteinfo->mnc);
+
+  if(result.length() == 0) {
+    result = "unknownOperator";
+  }
+
+  operatorNameCache = result;
+  return result;
 }

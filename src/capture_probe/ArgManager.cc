@@ -31,6 +31,7 @@ void ArgManager::defaultArgs(Args& args) {
   args.backoff = 0;
 
   args.client_mode = false;
+  args.no_auxmodem = false;
   args.port = DEFAULT_NETSYNC_PORT;
   args.output_file_base_name = "";
   args.nof_subframes = DEFAULT_NOF_SUBFRAMES_TO_CAPTURE;
@@ -42,11 +43,12 @@ void ArgManager::defaultArgs(Args& args) {
 }
 
 void ArgManager::usage(Args& args, const std::string& prog) {
-  printf("Usage: %s [aAbcCDfgIlLnNopvWXyZ] [-c | -o output_file_base_name]\n", prog.c_str());
+  printf("Usage: %s [aAbcCDfgIlLnNoprvWXyZ] [-c | -o output_file_base_name]\n", prog.c_str());
   printf("\t-a RF args [Default %s]\n", args.rf_args.c_str());
   printf("\t-A Number of RX antennas [Default %d]\n", args.rf_nof_rx_ant);
   printf("\t-b Backoff in integer multiples of probing_delay + probing timeout before each run (default: %d)\n", args.backoff);
   printf("\t-c Client mode, controlled by FalconCaptureWarden\n");
+  printf("\t-r No aux modem, capture only\n");
   printf("\t-C Disable CFO correction [Default %s]\n", args.disable_cfo?"Disabled":"Enabled");
   printf("\t-f Override rf_frequency [Default frequency from aux modem]\n");
 #ifdef ENABLE_AGC_DEFAULT
@@ -73,7 +75,7 @@ void ArgManager::usage(Args& args, const std::string& prog) {
 void ArgManager::parseArgs(Args& args, int argc, char **argv) {
   int opt;
   defaultArgs(args);
-  while ((opt = getopt(argc, argv, "aAbcCDfgIlLnNopTvWXyZ")) != -1) {
+  while ((opt = getopt(argc, argv, "aAbcCDfgIlLnNoprTvWXyZ")) != -1) {
     switch (opt) {
       //case 'p':
       //  args.nof_prb = atoi(argv[optind]);
@@ -144,6 +146,9 @@ void ArgManager::parseArgs(Args& args, int argc, char **argv) {
       case 'T':
         args.tx_power_sample_interval = static_cast<uint32_t>(strtoul(argv[optind], nullptr, 0));
         break;
+      case 'r':
+        args.no_auxmodem = true;
+        break;
       default:
         usage(args, argv[0]);
         exit(-1);
@@ -151,6 +156,11 @@ void ArgManager::parseArgs(Args& args, int argc, char **argv) {
   }
   if (!args.client_mode && args.output_file_base_name == "") {
     cerr << "Neither client-mode '-c' selected, nor output_file_base_name '-o' provided" << endl;
+    usage(args, argv[0]);
+    exit(-1);
+  }
+  if (args.no_auxmodem && args.rf_freq == 0.0) {
+    cerr << "Not using auxmodem and rf_freq is not specified. Please provide a frequency you wish to capture." << endl;
     usage(args, argv[0]);
     exit(-1);
   }

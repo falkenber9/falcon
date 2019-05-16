@@ -66,6 +66,8 @@ int falcon_ue_dl_init(falcon_ue_dl_t *q,
     rnti_histogram_init(&q->rnti_histogram[hst]);
   }
 
+  q->decoderthread = 0;
+
   q->rnti_manager = 0;
   if(dci_file_name != NULL && strlen(dci_file_name) > 0) {
     q->dci_file = fopen(dci_file_name, "w");
@@ -567,9 +569,16 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
 #endif
 
       // process the accepted DCI
-      srslte_dci_msg_to_trace_timestamp(&dci_msg_cand[hist_max_format_idx], rnti_cand[hist_max_format_idx], q->q->cell.nof_prb, q->q->cell.nof_ports,
+     /* srslte_dci_msg_to_trace_timestamp(&dci_msg_cand[hist_max_format_idx], rnti_cand[hist_max_format_idx], q->q->cell.nof_prb, q->q->cell.nof_ports,
                                         &dl_dci_unpacked, &ul_dci_unpacked, &dl_grant, &ul_grant, sf_idx, sfn, hist_max_format_value,
                                         ncce, L, dci_msg_cand[hist_max_format_idx].format, cfi, 0, timestamp, hist_max_format_value, q->dci_file);
+     */ //DEACTIVATED for MoHACKS //'######################### MO HACKS ################################################################################################################
+
+      srslte_dci_msg_to_trace_toTop(&dci_msg_cand[hist_max_format_idx], rnti_cand[hist_max_format_idx], q->q->cell.nof_prb, q->q->cell.nof_ports,
+                                        &dl_dci_unpacked, &ul_dci_unpacked, &dl_grant, &ul_grant, sf_idx, sfn, hist_max_format_value,
+                                        ncce, L, dci_msg_cand[hist_max_format_idx].format, cfi, 0, timestamp, hist_max_format_value, q->dci_file,q->decoderthread);
+
+      // ####################################################################################################################################################
 
       // check upload/download
       if (dl_grant.mcs[0].tbs>0) {

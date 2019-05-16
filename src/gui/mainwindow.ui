@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>906</width>
-    <height>593</height>
+    <width>979</width>
+    <height>677</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -57,7 +57,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>906</width>
+     <width>979</width>
      <height>30</height>
     </rect>
    </property>
@@ -83,9 +83,8 @@
      <addaction name="actionSpectrum"/>
      <addaction name="actionDifference"/>
      <addaction name="actionUplink"/>
-     <addaction name="actionDownlink"/>
-     <addaction name="actionTile_Windows"/>
      <addaction name="actionplot1"/>
+     <addaction name="actionDownlink"/>
     </widget>
     <widget class="QMenu" name="menuUtilities">
      <property name="title">
@@ -118,6 +117,14 @@
    </attribute>
    <addaction name="actionNew"/>
    <addaction name="actionStop"/>
+   <addaction name="actionTile_Windows"/>
+   <addaction name="separator"/>
+   <addaction name="actionSpectrum"/>
+   <addaction name="actionDownlink"/>
+   <addaction name="actionUplink"/>
+   <addaction name="actionDifference"/>
+   <addaction name="actionplot1"/>
+   <addaction name="separator"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockWidget">
@@ -149,7 +156,7 @@
        <x>0</x>
        <y>110</y>
        <width>251</width>
-       <height>311</height>
+       <height>201</height>
       </rect>
      </property>
      <property name="tabPosition">
@@ -159,17 +166,17 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="rf_settings">
       <attribute name="title">
-       <string>RF</string>
+       <string>RF Settings</string>
       </attribute>
       <widget class="QCheckBox" name="checkBox_FileAsSource">
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>120</y>
+         <y>40</y>
          <width>141</width>
          <height>22</height>
         </rect>
@@ -190,12 +197,15 @@
        <property name="maximum">
         <number>999999999</number>
        </property>
+       <property name="displayIntegerBase">
+        <number>10</number>
+       </property>
       </widget>
       <widget class="QSpinBox" name="spinBox_CellId">
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>190</y>
+         <y>110</y>
          <width>52</width>
          <height>32</height>
         </rect>
@@ -217,7 +227,7 @@
        <property name="geometry">
         <rect>
          <x>90</x>
-         <y>190</y>
+         <y>110</y>
          <width>52</width>
          <height>32</height>
         </rect>
@@ -236,7 +246,7 @@
        <property name="geometry">
         <rect>
          <x>180</x>
-         <y>190</y>
+         <y>110</y>
          <width>52</width>
          <height>32</height>
         </rect>
@@ -257,10 +267,10 @@
       <widget class="QLabel" name="label_2">
        <property name="geometry">
         <rect>
-         <x>0</x>
-         <y>220</y>
-         <width>58</width>
-         <height>18</height>
+         <x>7</x>
+         <y>140</y>
+         <width>61</width>
+         <height>20</height>
         </rect>
        </property>
        <property name="text">
@@ -270,8 +280,8 @@
       <widget class="QLabel" name="label_3">
        <property name="geometry">
         <rect>
-         <x>90</x>
-         <y>220</y>
+         <x>100</x>
+         <y>140</y>
          <width>58</width>
          <height>18</height>
         </rect>
@@ -283,14 +293,14 @@
       <widget class="QLabel" name="label_4">
        <property name="geometry">
         <rect>
-         <x>180</x>
-         <y>220</y>
+         <x>190</x>
+         <y>140</y>
          <width>58</width>
          <height>18</height>
         </rect>
        </property>
        <property name="text">
-        <string>Prb</string>
+        <string>PRB</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_5">
@@ -303,17 +313,20 @@
         </rect>
        </property>
        <property name="text">
-        <string>Hz</string>
+        <string>kHz</string>
        </property>
       </widget>
       <widget class="QLineEdit" name="lineEdit_FileName">
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>150</y>
+         <y>70</y>
          <width>241</width>
          <height>32</height>
         </rect>
+       </property>
+       <property name="acceptDrops">
+        <bool>false</bool>
        </property>
        <property name="echoMode">
         <enum>QLineEdit::Normal</enum>
@@ -331,14 +344,95 @@
       <widget class="QPushButton" name="Select_file_button">
        <property name="geometry">
         <rect>
-         <x>150</x>
-         <y>110</y>
+         <x>140</x>
+         <y>30</y>
          <width>91</width>
          <height>34</height>
         </rect>
        </property>
        <property name="text">
         <string>Select File</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="color_settings">
+      <attribute name="title">
+       <string>Color</string>
+      </attribute>
+      <widget class="QLabel" name="color_label_downlink">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>58</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="midLineWidth">
+        <number>4</number>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_downlink_color">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>0</y>
+         <width>131</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Downlink Color</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="color_label_uplink">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>30</y>
+         <width>58</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="midLineWidth">
+        <number>4</number>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_uplink_color">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>30</y>
+         <width>131</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Uplink Color</string>
        </property>
       </widget>
      </widget>
@@ -407,7 +501,7 @@
   </widget>
   <action name="actionNew">
    <property name="text">
-    <string>&amp;New</string>
+    <string>&amp;Start</string>
    </property>
   </action>
   <action name="actionStop">
@@ -500,7 +594,15 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;plot1</string>
+    <string>&amp;Performance Plots</string>
+   </property>
+  </action>
+  <action name="actionDownlink_Plots">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Do&amp;wnlink Plots</string>
    </property>
   </action>
   <zorder>dockWidget</zorder>

@@ -45,6 +45,8 @@
 #include "cni_cc_decoder.h"
 
 
+#include "falcon/phy/falcon_phch/falcon_dci.h"
+
 
 float uplink_data[SPECTROGRAM_LINE_WIDTH];
 float downlink_data[SPECTROGRAM_LINE_WIDTH];
@@ -53,9 +55,6 @@ volatile prog_args_t prog_args;
 
 
 //#MO_HACKS
-
-
-#include "cni_cc_decoder.h"
 
 #include "srslte/common/crash_handler.h"
 #include "srslte/srslte.h"
@@ -88,7 +87,7 @@ float* current_colored_rb_map_up = NULL;
 #include "srslte/phy/rf/rf.h"
 #include "srslte/phy/rf/rf_utils.h"
 
-cell_search_cfg_t cell_detect_config = {
+cell_search_cfg_t cell_detect_config_cni = {
   SRSLTE_DEFAULT_MAX_FRAMES_PBCH,
   SRSLTE_DEFAULT_MAX_FRAMES_PSS,
   SRSLTE_DEFAULT_NOF_VALID_PSS_FRAMES,
@@ -131,7 +130,7 @@ typedef struct {
   int decimate;
 }prog_args_t;
 */
-void args_default(prog_args_t *args) {
+void args_default_cni(prog_args_t *args) {
   args->disable_plots = false;
   args->nof_subframes = -1;
   args->force_N_id_2 = -1; // Pick the best
@@ -161,7 +160,7 @@ void args_default(prog_args_t *args) {
   args->cpu_affinity = -1;
 }
 
-void usage(prog_args_t *args, char *prog) {
+void usage_cni(prog_args_t *args, char *prog) {
   printf("Usage: %s [aAgpPoOcildDnuvyYzZ] -f rx_frequency (in Hz) | -i input_file\n", prog);
 #ifndef DISABLE_RF
   printf("\t-a RF args [Default %s]\n", args->rf_args);
@@ -200,9 +199,9 @@ void usage(prog_args_t *args, char *prog) {
   printf("\t-Z filename of the input reporting one int per rnti (tot length 64k entries)\n");
 }
 
-bool parse_args(prog_args_t *args, int argc, char **argv) {
+bool parse_args_cni(prog_args_t *args, int argc, char **argv) {
   int opt;
-  args_default(args);
+  args_default_cni(args);
   while ((opt = getopt(argc, argv, "aAoglipPcOCtdnvfuUsSyYzZ")) != -1) {
     switch (opt) {
       case 'i':
@@ -278,12 +277,12 @@ bool parse_args(prog_args_t *args, int argc, char **argv) {
         args->rnti_list_file = argv[optind];
         break;
       default:
-        usage(args, argv[0]);
+        usage_cni(args, argv[0]);
         return false;
     }
   }
   if (args->rf_freq < 0 && args->input_file_name == NULL) {
-    usage(args, argv[0]);
+    usage_cni(args, argv[0]);
     return false;
   }
   return true;
@@ -294,7 +293,7 @@ bool parse_args(prog_args_t *args, int argc, char **argv) {
 uint8_t *data[SRSLTE_MAX_CODEWORDS];
 
 //bool go_exit = false;
-void sig_int_handler(int signo)
+void sig_int_handler_cni(int signo)
 {
   printf("SIGINT received. Exiting...\n");
   if (signo == SIGINT) {
@@ -305,7 +304,7 @@ void sig_int_handler(int signo)
 cf_t *sf_buffer[SRSLTE_MAX_PORTS] = {NULL};
 
 #ifndef DISABLE_RF
-int falcon_rf_recv_wrapper(void *h, cf_t *data[SRSLTE_MAX_PORTS], uint32_t nsamples, srslte_timestamp_t *t) {
+int falcon_rf_recv_wrapper_cni(void *h, cf_t *data[SRSLTE_MAX_PORTS], uint32_t nsamples, srslte_timestamp_t *t) {
   DEBUG(" ----  Receive %d samples  ---- \n", nsamples);
   void *ptr[SRSLTE_MAX_PORTS];
   for (int i=0;i<SRSLTE_MAX_PORTS;i++) {
@@ -314,7 +313,7 @@ int falcon_rf_recv_wrapper(void *h, cf_t *data[SRSLTE_MAX_PORTS], uint32_t nsamp
   return srslte_rf_recv_with_time_multi(h, ptr, nsamples, true, NULL, NULL);
 }
 
-double falcon_rf_set_rx_gain_th_wrapper(void *h, double f) {
+double falcon_rf_set_rx_gain_th_wrapper_cni(void *h, double f) {
   return srslte_rf_set_rx_gain_th((srslte_rf_t*) h, f);
 }
 
@@ -338,6 +337,7 @@ srslte_netsink_t net_sink, net_sink_signal;
 #define PRINT_LINE_ADVANCE_CURSOR() printf("\033[%dB", prev_nof_lines + 1)
 
 int start_cni_decoder() {
+
   int ret;
   int decimate = 1;
   srslte_cell_t cell;
@@ -359,8 +359,7 @@ int start_cni_decoder() {
   //srslte_debug_handle_crash(argc, argv);
 
   //parse_args(&prog_args, argc, argv);
-args_default(&prog_args);
-//  printf("Filepath:%s", prog_args.input_file_name);
+  args_default_cni(&prog_args);
 
   for (int i = 0; i< SRSLTE_MAX_CODEWORDS; i++) {
     data[i] = srslte_vec_malloc(sizeof(uint8_t)*1500*8);
@@ -422,14 +421,14 @@ args_default(&prog_args);
         return false;
       }
       srslte_rf_set_rx_gain(&rf, srslte_rf_get_rx_gain(&rf));
-      cell_detect_config.init_agc = srslte_rf_get_rx_gain(&rf);
+      cell_detect_config_cni.init_agc = srslte_rf_get_rx_gain(&rf);
     }
 
     sigset_t sigset;
     sigemptyset(&sigset);
     sigaddset(&sigset, SIGINT);
     sigprocmask(SIG_UNBLOCK, &sigset, NULL);
-    signal(SIGINT, sig_int_handler);
+    signal(SIGINT, sig_int_handler_cni);
 
     srslte_rf_set_master_clock_rate(&rf, 30.72e6);
 
@@ -440,7 +439,7 @@ args_default(&prog_args);
 
     uint32_t ntrial=0;
     do {
-      ret = rf_search_and_decode_mib(&rf, prog_args.rf_nof_rx_ant, &cell_detect_config, prog_args.force_N_id_2, &cell, &cfo);
+      ret = rf_search_and_decode_mib(&rf, prog_args.rf_nof_rx_ant, &cell_detect_config_cni, prog_args.force_N_id_2, &cell, &cfo);
       if (ret < 0) {
         fprintf(stderr, "Error searching for cell\n");
         return false;
@@ -515,7 +514,7 @@ args_default(&prog_args);
     if (srslte_ue_sync_init_multi_decim(&ue_sync,
                                         cell.nof_prb,
                                         cell.id==1000,
-                                        falcon_rf_recv_wrapper,
+                                        falcon_rf_recv_wrapper_cni,
                                         prog_args.rf_nof_rx_ant,
                                         (void*) &rf, decimate)) {
       fprintf(stderr, "Error initiating ue_sync\n");
@@ -546,6 +545,12 @@ args_default(&prog_args);
     fprintf(stderr, "Error initiating UE downlink processing module\n");
     return false;
   }
+  //########################## MO HACKS ####################
+
+  falcon_ue_dl.decoderthread = decoderthread;
+
+  //########################## MO HACKS ####################
+
   if (srslte_ue_dl_set_cell(&ue_dl, cell)) {
     fprintf(stderr, "Error initiating UE downlink processing module\n");
     return false;
@@ -585,10 +590,10 @@ args_default(&prog_args);
   if (prog_args.rf_gain < 0 && !prog_args.input_file_name) {
     srslte_rf_info_t *rf_info = srslte_rf_get_info(&rf);
     srslte_ue_sync_start_agc(&ue_sync,
-                             falcon_rf_set_rx_gain_th_wrapper,
+                             falcon_rf_set_rx_gain_th_wrapper_cni,
                              rf_info->min_rx_gain,
                              rf_info->max_rx_gain,
-                             cell_detect_config.init_agc);
+                             cell_detect_config_cni.init_agc);
   }
 #endif
 
@@ -886,176 +891,3 @@ args_default(&prog_args);
   return true;
 }
 
-
-/**********************************************************************
- *  Plotting Functions
- ***********************************************************************/
-/*#define GUI_ENABLE_SPECTROGRAM
-//#define GUI_ENABLE_PERFORMANCEPLOTS
-#define GUI_ENABLE_RBALLOC_PLOT
-#define GUI_ENABLE_HISTOGRAMPLOT
-
-#define NUM_HIST 1
-
-plot_waterfall_t poutfft, rb_allocs_dw, rb_allocs_up;
-plot_real_t p_rb_up, p_rb_dw, p_bw_up, p_bw_dw, hist[NUM_HIST];
-
-float tmp_plot[1024],tmp_plot2[1024],tmp_plot3[1024],tmp_plot4[1024], tmp_plot_wf[2048*110*15];
-float tmp_hist[65536];
-
-
-
-
-void *plot_thread_run(void *arg) {
-    int i, j;
-    sdrgui_init();
-
-#ifdef GUI_ENABLE_SPECTROGRAM
-    plot_waterfall_init(&poutfft, SRSLTE_NRE * ue_dl.cell.nof_prb, 100);
-    plot_waterfall_setTitle(&poutfft, "Output FFT - Magnitude");
-    plot_waterfall_setPlotYAxisScale(&poutfft, -40, 40);
-    plot_waterfall_setSpectrogramZAxisScale(&poutfft, -40, 20);
-#endif
-
-#ifdef GUI_ENABLE_RBALLOC_PLOT
-    plot_waterfall_init(&rb_allocs_dw, (int)ue_dl.cell.nof_prb, 100);
-    plot_waterfall_setTitle(&rb_allocs_dw, "Resource Allocations (Downlink)");
-    plot_waterfall_setPlotYAxisScale(&rb_allocs_dw, 0, 65536);
-    plot_waterfall_setSpectrogramZAxisScale(&rb_allocs_dw, 0, 65536);
-
-    plot_waterfall_init(&rb_allocs_up, (int)ue_dl.cell.nof_prb, 100);
-    plot_waterfall_setTitle(&rb_allocs_up, "Resource Allocations (Uplink)");
-    plot_waterfall_setPlotYAxisScale(&rb_allocs_up, 0, 65536);
-    plot_waterfall_setSpectrogramZAxisScale(&rb_allocs_up, 0, 65536);
-#endif
-
-    //    int plot_waterfall_init(plot_waterfall_t *h, int numDataPoints, int numRows);
-    //    void plot_waterfall_setTitle(plot_waterfall_t *h, char *title);
-    //    void plot_waterfall_appendNewData(plot_waterfall_t *h, float *data, int num_points);
-    //    void plot_complex_setPlotXLabel(plot_waterfall_t *h, char *xLabel);
-    //    void plot_complex_setPlotYLabel(plot_waterfall_t *h, char *yLabel);
-    //    void plot_waterfall_setPlotXAxisRange(plot_waterfall_t *h, double xMin, double xMax);
-    //    void plot_waterfall_setPlotXAxisScale(plot_waterfall_t *h, double xMin, double xMax);
-    //    void plot_waterfall_setPlotYAxisScale(plot_waterfall_t *h, double yMin, double yMax);
-    //    void plot_waterfall_setSpectrogramXLabel(plot_waterfall_t *h, char* xLabel);
-    //    void plot_waterfall_setSpectrogramYLabel(plot_waterfall_t *h, char* yLabel);
-    //    void plot_waterfall_setSpectrogramXAxisRange(plot_waterfall_t *h, double xMin, double xMax);
-    //    void plot_waterfall_setSpectrogramYAxisRange(plot_waterfall_t *h, double yMin, double yMax);
-    //    void plot_waterfall_setSpectrogramZAxisScale(plot_waterfall_t *h, double zMin, double zMax);
-    //    void plot_waterfall_addToWindow(plot_waterfall_t *h, char *window);
-    //    void plot_waterfall_addToWindowGrid(plot_waterfall_t *h, char *window, int row, int column);
-
-#ifdef GUI_ENABLE_PERFORMANCEPLOTS
-    plot_real_init(&p_rb_up);
-    plot_real_init(&p_rb_dw);
-    plot_real_init(&p_bw_up);
-    plot_real_init(&p_bw_dw);
-    plot_real_setTitle(&p_rb_up, "Uplink Resource Block Usage");
-    plot_real_setTitle(&p_rb_dw, "Downlink Resource Block Usage");
-    plot_real_setTitle(&p_bw_up, "Uplink Throughput [kbps]");
-    plot_real_setTitle(&p_bw_dw, "Downlink Throughput [kbps]");
-    plot_real_setYAxisScale(&p_rb_up, 0, ue_dl.cell.nof_prb);
-    plot_real_setYAxisScale(&p_rb_dw, 0, ue_dl.cell.nof_prb);
-    plot_real_setYAxisScale(&p_bw_up, 0, 1000*ue_dl.cell.nof_prb);
-    plot_real_setYAxisScale(&p_bw_dw, 0, 1000*ue_dl.cell.nof_prb);
-#endif
-
-#ifdef GUI_ENABLE_HISTOGRAMPLOT
-    for(int hidx=0; hidx<NUM_HIST; hidx++) {
-        plot_real_init(&hist[hidx]);
-        plot_real_setTitle(&hist[hidx], "RNTI Histogram");
-        plot_real_setYAxisScale(&hist[hidx], 0, 100);
-    }
-#endif
-
-
-    bzero(falcon_ue_dl.colored_rb_map_dw, sizeof(((falcon_ue_dl_t *)0)->colored_rb_map_dw));
-    bzero(falcon_ue_dl.colored_rb_map_up, sizeof(((falcon_ue_dl_t *)0)->colored_rb_map_up));
-
-    while(1) {
-        sem_wait(&plot_sem);
-
-#ifdef GUI_ENABLE_PERFORMANCEPLOTS
-        for (i = 0; i < 1024; i++) {
-            tmp_plot[1023-i] = rb_up[(1024+plot_sf_idx-i)%1024];
-            tmp_plot2[1023-i] = rb_dw[(1024+plot_sf_idx-i)%1024];
-            tmp_plot3[1023-i] = bw_up[(1024+plot_sf_idx-i)%1024];
-            tmp_plot4[1023-i] = bw_dw[(1024+plot_sf_idx-i)%1024];
-        }
-#endif
-#ifdef GUI_ENABLE_SPECTROGRAM
-        bzero(tmp_plot_wf,12*ue_dl.cell.nof_prb*sizeof(float));
-        for (j = 0; j < 14; j++) {
-            for (i = 0; i < 12*ue_dl.cell.nof_prb; i++) {
-                tmp_plot_wf[i] += 20 * log10f(cabsf(ue_dl.sf_symbols[i+j*(12*ue_dl.cell.nof_prb)]))/14;
-            }
-        }
-#endif
-
-#ifdef GUI_ENABLE_PERFORMANCEPLOTS
-        plot_real_setNewData(&p_rb_up, tmp_plot, 1024);
-        plot_real_setNewData(&p_rb_dw, tmp_plot2, 1024);
-        plot_real_setNewData(&p_bw_up, tmp_plot3, 1024);
-        plot_real_setNewData(&p_bw_dw, tmp_plot4, 1024);
-#endif
-#ifdef GUI_ENABLE_SPECTROGRAM
-        plot_waterfall_appendNewData(&poutfft, tmp_plot_wf, 12*ue_dl.cell.nof_prb);
-#endif
-#ifdef GUI_ENABLE_RBALLOC_PLOT
-        if(current_colored_rb_map_dw != NULL)
-            plot_waterfall_appendNewData(&rb_allocs_dw, current_colored_rb_map_dw, ue_dl.cell.nof_prb);
-        if(current_colored_rb_map_up != NULL)
-            plot_waterfall_appendNewData(&rb_allocs_up, current_colored_rb_map_up, ue_dl.cell.nof_prb);
-#endif
-#ifdef GUI_ENABLE_HISTOGRAMPLOT
-        for(int hidx=0; hidx<NUM_HIST; hidx++) {
-#ifndef __NEW_HISTOGRAM__
-            for(j = 0; j < 65536; j++) tmp_hist[j] = falcon_ue_dl.rnti_histogram[hidx].rnti_histogram[j];
-            plot_real_setNewData(&hist[hidx], tmp_hist, 65536);
-#else
-            uint32_t hist_int[65536];
-            uint64_t sum = 0;
-            rnti_manager_get_histogram_summary(falcon_ue_dl.rnti_manager, hist_int);
-            for(j = 0; j < 65536; j++) {
-              tmp_hist[j] = hist_int[j];
-              //sum += hist_int[j];
-            }
-            //ERROR("Sum: %d\n", sum);
-            plot_real_setNewData(&hist[hidx], tmp_hist, 65536);
-#endif
-        }
-#endif
-
-#ifdef GUI_ENABLE_NETSINK
-        if (plot_sf_idx == 1) {
-            if (prog_args.net_port_signal > 0) {
-                srslte_netsink_write(&net_sink_signal, &sf_buffer[srslte_ue_sync_sf_len(&ue_sync)/7],
-                        srslte_ue_sync_sf_len(&ue_sync));
-            }
-        }
-#endif
-
-    }
-
-    return NULL;
-}
-
-void init_plots() {
-
-    if (sem_init(&plot_sem, 0, 0)) {
-        perror("sem_init");
-        return false;
-    }
-
-    pthread_attr_t attr;
-    struct sched_param param;
-    param.sched_priority = 0;
-    pthread_attr_init(&attr);
-    pthread_attr_setschedpolicy(&attr, SCHED_OTHER);
-    pthread_attr_setschedparam(&attr, &param);
-    if (pthread_create(&plot_thread, NULL, plot_thread_run, NULL)) {
-        perror("pthread_create");
-        return false;
-    }
-}
-*/

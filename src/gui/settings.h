@@ -16,9 +16,19 @@ typedef struct{
     bool show_diff;
     bool show_uplink;
     bool show_downlink;
+    bool show_performance_plot;
+    //bool show_plot_downlink;
 
     //String settings:
     QString path_to_file;
+
+    //Colors:
+    QColor downlink_plot_color;
+    QColor uplink_plot_color;
+
+    //Int Values:
+    int spectrum_color_start;
+    int spectrum_color_stop;
 
 }Gui_SettingsType_t;
 
@@ -39,29 +49,6 @@ typedef struct {
     prog_args_t             decoder_args;
 
 }Global_SettingsType_t;
-
-
-/*
-
-typedef enum{
-
-    //bool settings:
-
-    SAVE_SETTINGS           = 0,
-    USE_FILE_AS_SOURCE      = 1,
-    SHOW_SPECTRUM           = 2,
-    SHOW_DIFF               = 3,
-    SHOW_UPLINK             = 4,
-    SHOW_DOWNLINK           = 5,
-    MOUSE_WHEEL_SENS        = 6,
-    SPECTRUM_LINE_COUNT     = 7,
-    SPECTRUM_LINE_WIDTH     = 8,
-    SPECTRUM_LINE_SHOWN     = 9,
-    RF_FREQ                 = 10,
-    PATH_TO_FILE            = 11
-
-}SettingsType_t;
-*/
 
 class Settings
 {

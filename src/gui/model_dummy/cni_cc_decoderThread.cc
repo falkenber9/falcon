@@ -1,6 +1,7 @@
 #include "cni_cc_decoderThread.h"
 #include "cni_cc_decoder.h"
 #include "ScanThread.h"
+//#include "src/gui/plot_data.h"
 
 #include <unistd.h>
 #include <iostream>
@@ -96,7 +97,7 @@ extern "C" void call_function(void *f_pointer, float *data_ul, float *data_dl, f
     //RNTI Data:
 
     for(int i = 0; i < 65536; i++){
-        scanline_rnti_hist->rnti_hist[i] = rnti_hist[i];
+      scanline_rnti_hist->rnti_hist[i] = rnti_hist[i];
     }
 
     inst->pushToSubscribers(scanline_ul);
@@ -107,4 +108,44 @@ extern "C" void call_function(void *f_pointer, float *data_ul, float *data_dl, f
 
   }
 
+}
+
+extern "C" void call_function_2(void* goal, uint16_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb){
+
+  DecoderThread* inst = static_cast<DecoderThread*>(goal);
+  if(inst != NULL) {
+
+    ScanLineLegacy *scanline_perf_plots = new ScanLineLegacy;
+
+    scanline_perf_plots->type = SCAN_LINE_PERF_PLOT_A;
+
+    scanline_perf_plots->sf_idx   = sf_idx;
+    scanline_perf_plots->sfn      = sfn;
+    scanline_perf_plots->mcs_tbs  = mcs_tbs;
+    scanline_perf_plots->mcs_idx  = mcs_idx;
+    scanline_perf_plots->l_prb    = l_prb;
+
+    inst->pushToSubscribers(scanline_perf_plots);
+
+  }
+}
+
+extern "C" void call_function_3(void* goal, uint16_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb){
+
+  DecoderThread* inst = static_cast<DecoderThread*>(goal);
+  if(inst != NULL) {
+
+    ScanLineLegacy *scanline_perf_plots = new ScanLineLegacy;
+
+    scanline_perf_plots->type = SCAN_LINE_PERF_PLOT_B;
+
+    scanline_perf_plots->sf_idx   = sf_idx;
+    scanline_perf_plots->sfn      = sfn;
+    scanline_perf_plots->mcs_tbs  = mcs_tbs;
+    scanline_perf_plots->mcs_idx  = mcs_idx;
+    scanline_perf_plots->l_prb    = l_prb;
+
+    inst->pushToSubscribers(scanline_perf_plots);
+
+  }
 }

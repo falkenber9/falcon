@@ -58,10 +58,11 @@ typedef struct SRSLTE_API {
   uint16_t nof_rnti;
   uint32_t last_n_cce;
 
-  rnti_histogram_t* rnti_histogram;
+  rnti_histogram_t* rnti_histogram;  
   //srslte_dci_format_t rnti_format[RNTI_HISTOGRAM_ELEMENT_COUNT];
 
   void* rnti_manager;
+  void* decoderthread;
 
   FILE* dci_file;
   FILE* stats_file;

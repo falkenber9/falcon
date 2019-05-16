@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
   parseArgs(argc, argv, args);
 
 
-  AuxModem modem;
+  SierraWirelessAuxModem modem;
   AuxModemGPS gps;
   GPS* gpsRef = nullptr;
   if(args.gpsEnabled) {

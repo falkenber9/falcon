@@ -15,4 +15,6 @@ target_link_libraries(falcon_phy
   ${SRSLTE_LIBRARIES}
   ${FFT_LIBRARIES}
   pthread
-)
+  ${Boost_LIBRARIES}
+  model_dummy
+  )

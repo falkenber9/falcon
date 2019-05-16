@@ -531,7 +531,7 @@ int main(int argc, char **argv) {
   //if (srslte_ue_dl_init(&ue_dl, sf_buffer, cell.nof_prb, prog_args.rf_nof_rx_ant)) {
     fprintf(stderr, "Error initiating UE downlink processing module\n");
     exit(-1);
-  }
+  }  
   if (srslte_ue_dl_set_cell(&ue_dl, cell)) {
     fprintf(stderr, "Error initiating UE downlink processing module\n");
     exit(-1);

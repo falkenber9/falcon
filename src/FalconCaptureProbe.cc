@@ -32,27 +32,37 @@ int main(int argc, char** argv) {
   //netsync.attachExtraStopFlag(&go_exit);
   netsync.launchReceiver();
 
-  AuxModem modem;
+  SierraWirelessAuxModem swModem;
   AuxModemGPS gps;
+
+  DummyAuxModem dummyModem;
   DummyGPS gpsDummy;
+
+  AuxModem* modem = &dummyModem;
   GPS* gpsRef = &gpsDummy;
 
-  if(!modem.init()) {
-    cout << "Could not initialize AuxModem" << endl;
-    return EXIT_FAILURE;
+  if(!swModem.init()) {
+    cout << "Could not initialize SierraWirelessAuxModem, continue without AuxModem" << endl;
+    args.no_auxmodem = true;
   }
-  if(!modem.configure()) {
-    cout << "Could not configure AuxModem" << endl;
-    return EXIT_FAILURE;
-  }
-  if(!gps.init(&modem)) {
-    cout << "Warning: Could not initialize GPS from AuxModem - continue without GPS" << endl;
+  else if(!swModem.configure()) {
+    cout << "Could not configure SierraWirelessAuxModem, continue without AuxModem" << endl;
+    args.no_auxmodem = true;
   }
   else {
+    // use the SierraWirelessAuxModem as modem instead of dummy
+    modem = &swModem;
+  }
+
+  if(!gps.init(&swModem)) {
+    cout << "Warning: Could not initialize GPS from SierraWirelessAuxModem - continue without GPS" << endl;
+  }
+  else {
+    // use the GPS from SierraWirelessAuxModem instead of dummy
     gpsRef = &gps;
   }
 
-  netsync.init(&modem);
+  netsync.init(modem);
 
   TrafficGenerator trafficGenerator;
 
@@ -75,7 +85,7 @@ int main(int argc, char** argv) {
   int nof_runs = 1;
   do {
     CaptureProbeCore core(args);
-    core.init(&netsync, &modem, &trafficGenerator, &sink, gpsRef);
+    core.init(&netsync, modem, &trafficGenerator, &sink, gpsRef);
     signalGate.attach(core);
     runSuccess = core.run();
     signalGate.detach(core);

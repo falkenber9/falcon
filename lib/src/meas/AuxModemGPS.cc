@@ -8,7 +8,7 @@ AuxModemGPS::~AuxModemGPS() {
 
 }
 
-bool AuxModemGPS::init(AuxModem* modem) {
+bool AuxModemGPS::init(SierraWirelessAuxModem* modem) {
   this->modem = modem;
   if(modem == nullptr) return false;
   if(modem->getModemHandle() == nullptr) return false;

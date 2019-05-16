@@ -43,12 +43,20 @@ void Spectrum::initializeTextureBuffer() {
 }
 
 void Spectrum::intensityToRGB(float intensity, GLubyte *rgbaOut) {
-  double map_pos = (intensity / (float)USHRT_MAX) * (float)UCHAR_MAX;
-  double n = (4.0 * map_pos) / UCHAR_MAX;
+  //Mo HAcks:
+
+ /* double map_pos = (intensity / (float)USHRT_MAX) * (float)UCHAR_MAX;
+  double n = (4.0 * map_pos) / UCHAR_MAX;*/
+
+  if(intensity > max_intensity) intensity = max_intensity;
+  double n = intensity_factor * 4.0 *((intensity - min_intensity) / (float)USHRT_MAX);   //Added dynamic range: intensity factor = 4.5 * USHRT_MAX / (MAX - MIN) [Factor is calculated outside of Spectrum] // * 4.0
+
   rgbaOut[0] = ((float)UCHAR_MAX)*std::min(std::max(std::min(n-1.5,-n+4.5),0.0),1.0);
   rgbaOut[1] = ((float)UCHAR_MAX)*std::min(std::max(std::min(n-0.5,-n+3.5),0.0),1.0);
   rgbaOut[2] = ((float)UCHAR_MAX)*std::min(std::max(std::min(n+0.5,-n+2.5),0.0),1.0);
-  rgbaOut[3] = 0xFF;
+  rgbaOut[3] = 0xFF;                                                                  //Transparenz immer 0.
+
+  //if(intensity != 0)qDebug() << "Float Value:"<< intensity << " R:" << rgbaOut[0] << " G:" << rgbaOut[1] << "B:"<< rgbaOut[2] << " N:" << n;
 }
 
 void Spectrum::addLine(const float *data) {
@@ -182,25 +190,27 @@ void Spectrum::drawSpectrogram() {
   }
 }
 
-
 void Spectrum::paintGL() {
   loadTexture();
   drawSpectrogram();
 }
-/*
+
 void Spectrum::mousePressEvent(QMouseEvent * event){
-  paused = !paused;
+
+   emit subwindow_click();
+
+  /*paused = !paused;
   pos_y_buff = event->y();
-  view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1;
+  view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1;*/
 }
 
-void Spectrum::wheelEvent(QWheelEvent *event){
+/*void Spectrum::wheelEvent(QWheelEvent *event){
 
   if(paused){
     if(event->delta() > 0) scroll_up();
     else scroll_down();
   }
-} */
+}*/
 
 void Spectrum::scroll_up(){
 

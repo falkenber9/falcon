@@ -31,6 +31,7 @@ set(gui
     settings.cpp   
     plots.cpp
     setting_slots.cpp
+    dynamic_options.cpp
     ${IMAGES}
   )
 
@@ -50,6 +51,7 @@ target_link_libraries(gui
   falcon_common
   falcon_meas
   qcustomplot
+  rangewidget
   ${SRSLTE_LIBRARIES}
   ${FFT_LIBRARIES}  
   )

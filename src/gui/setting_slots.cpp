@@ -12,7 +12,7 @@
 
 void MainWindow::on_spinBox_rf_freq_editingFinished()//RF-Freq changed:
 {
-    glob_settings.glob_args.decoder_args.rf_freq = ui->spinBox_rf_freq->value();   //Save Value to glob_args
+    glob_settings.glob_args.decoder_args.rf_freq = ui->spinBox_rf_freq->value() * 1000;   //Save Value to glob_args
     ui->lcdNumber_rf_freq->display(glob_settings.glob_args.decoder_args.rf_freq);  //Display rf_freq
 
     if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();  //If save_settings = true, save to file.
@@ -45,29 +45,30 @@ void MainWindow::on_actionUse_File_as_Source_changed()
 void MainWindow::on_actionSpectrum_changed()
 {
     glob_settings.glob_args.gui_args.show_spectrum = ui->actionSpectrum->isChecked();
-
     if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();  //If save_settings = true, save to file.
+    spectrum_start(glob_settings.glob_args.gui_args.show_spectrum);
 }
 
 void MainWindow::on_actionDifference_changed()
 {
     glob_settings.glob_args.gui_args.show_diff = ui->actionDifference->isChecked();
-
     if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();  //If save_settings = true, save to file.
+    diff_start(glob_settings.glob_args.gui_args.show_diff);
 }
 
 void MainWindow::on_actionUplink_changed()
 {
     glob_settings.glob_args.gui_args.show_uplink = ui->actionUplink->isChecked();
-
     if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();  //If save_settings = true, save to file.
+    uplink_start(glob_settings.glob_args.gui_args.show_uplink);
 }
 
 void MainWindow::on_actionDownlink_changed()
 {
     glob_settings.glob_args.gui_args.show_downlink = ui->actionDownlink->isChecked();
-
     if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();  //If save_settings = true, save to file.
+    downlink_start(glob_settings.glob_args.gui_args.show_downlink);
+
 }
 
 void MainWindow::on_actionSave_Settings_changed()
@@ -77,9 +78,13 @@ void MainWindow::on_actionSave_Settings_changed()
     glob_settings.store_settings();  //save to file once.
 }
 
-void MainWindow::on_actionplot1_changed()
-{
-    show_plot1 = ui->actionplot1->isChecked();
+void MainWindow::on_actionplot1_changed(){
+    glob_settings.glob_args.gui_args.show_performance_plot = ui->actionplot1->isChecked();
+    if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();
+    performance_plots_start(glob_settings.glob_args.gui_args.show_performance_plot);
 }
 
-
+void MainWindow::on_actionDownlink_Plots_changed(){
+ /* glob_settings.glob_args.gui_args.show_plot_downlink = ui->actionDownlink_Plots->isChecked();
+  if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();*/
+}

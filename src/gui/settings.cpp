@@ -20,17 +20,20 @@ Settings::Settings(){
         //Default Settings:
         //GUI args:
 
-        glob_args.gui_args.path_to_file         = "";
+        glob_args.gui_args.path_to_file         = nullptr;
         glob_args.gui_args.save_settings        = true;
-        glob_args.gui_args.show_diff            = true;
+        glob_args.gui_args.show_diff            = false;
         glob_args.gui_args.show_downlink        = true;
-        glob_args.gui_args.show_spectrum        = true;
+        glob_args.gui_args.show_spectrum        = false;
         glob_args.gui_args.show_uplink          = true;
         glob_args.gui_args.use_file_as_source   = true;
+        glob_args.gui_args.show_performance_plot= false;
+       // glob_args.gui_args.show_plot_downlink   = false;
 
         //Decode args:
 
-        glob_args.decoder_args.rf_freq = 0;
+        glob_args.decoder_args.rf_freq         = 0;
+        glob_args.decoder_args.input_file_name = nullptr;
 
         //Spectrum args:
 
@@ -61,7 +64,8 @@ void Settings::load_settings(){
     glob_args.gui_args.show_spectrum        = settings->value("SHOW_SPECTRUM").toBool();
     glob_args.gui_args.show_uplink          = settings->value("SHOW_UPLINK").toBool();
     glob_args.gui_args.use_file_as_source   = settings->value("USE_FILE_AS_SOURCE").toBool();
-
+    glob_args.gui_args.show_performance_plot= settings->value("SHOW_PERFORMANCE_PLOT").toBool();
+    //glob_args.gui_args.show_plot_downlink   = settings->value("SHOW_DOWNLINK_PLOT").toBool();
     settings->endGroup();
 
     //Load Spectrum Settings:
@@ -80,7 +84,7 @@ void Settings::load_settings(){
     settings->beginGroup("EYE");
 
     glob_args.decoder_args.rf_freq          = settings->value("RF_FREQ").toDouble();
-    //glob_args.decoder_args.input_file_name  = settings->value("PATH_TO_FILE").toString().toLocal8Bit();
+    glob_args.gui_args.path_to_file         = settings->value("PATH_TO_FILE").toString().toLocal8Bit();
 
     settings->endGroup();
 
@@ -92,12 +96,14 @@ void Settings::store_settings(){
 
     settings->beginGroup("GUI");
 
-    settings->setValue("SAVE_TO_FILE"       , glob_args.gui_args.save_settings);
-    settings->setValue("SHOW_DIFF"          , glob_args.gui_args.show_diff);
-    settings->setValue("SHOW_DOWNLINK"      , glob_args.gui_args.show_downlink);
-    settings->setValue("SHOW_SPECTRUM"      , glob_args.gui_args.show_spectrum);
-    settings->setValue("SHOW_UPLINK"        , glob_args.gui_args.show_uplink);
-    settings->setValue("USE_FILE_AS_SOURCE" , glob_args.gui_args.use_file_as_source);
+    settings->setValue("SAVE_TO_FILE"         , glob_args.gui_args.save_settings);
+    settings->setValue("SHOW_DIFF"            , glob_args.gui_args.show_diff);
+    settings->setValue("SHOW_DOWNLINK"        , glob_args.gui_args.show_downlink);
+    settings->setValue("SHOW_SPECTRUM"        , glob_args.gui_args.show_spectrum);
+    settings->setValue("SHOW_UPLINK"          , glob_args.gui_args.show_uplink);
+    settings->setValue("USE_FILE_AS_SOURCE"   , glob_args.gui_args.use_file_as_source);
+    settings->setValue("SHOW_PERFORMANCE_PLOT", glob_args.gui_args.show_performance_plot);
+    //settings->setValue("SHOW_DOWNLINK_PLOT" , glob_args.gui_args.show_plot_downlink);
 
     settings->endGroup();
 
@@ -117,7 +123,7 @@ void Settings::store_settings(){
     settings->beginGroup("EYE");
 
     settings->setValue("RF_FREQ"            , glob_args.decoder_args.rf_freq);
-    settings->setValue("PATH_TO_FILE"       , glob_args.decoder_args.input_file_name);
+    settings->setValue("PATH_TO_FILE"       , glob_args.gui_args.path_to_file);
 
     settings->endGroup();
 

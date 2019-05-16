@@ -169,7 +169,7 @@ NetsyncSlave& operator<<(NetsyncSlave &s, NetsyncSlave& (*f)(NetsyncSlave&)) {
 
 NetsyncSlave& endl(NetsyncSlave& s) {
   std::cout << endl;
-  s.replyText(s.modem->getOperatorNameCached() + ": " + s.textstream.str());
+  s.replyText((s.modem == nullptr ? "No modem" : s.modem->getOperatorNameCached()) + ": " + s.textstream.str());
   //erase textstream
   s.textstream.str(string()); // put empty string
   s.textstream.clear(); // affects error state, only

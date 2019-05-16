@@ -16,6 +16,9 @@ public:
   void scroll_up();
   void scroll_down();
 
+  float intensity_factor = 1.0; // MoHAcks
+  float min_intensity = 0.0;
+  float max_intensity = 500000.0;
   bool paused = false;
   int pos_y_buff = 0;  // Position Buffer for scrolling
   int view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1; // Position for scrolling
@@ -24,8 +27,8 @@ protected:
   void initializeGL();
   void resizeGL(int width, int height);
   void paintGL();
- // void mousePressEvent(QMouseEvent *event) override;    // Klick and scroll per mousewheel
- // void wheelEvent(QWheelEvent *event) override;         //
+  void mousePressEvent(QMouseEvent *event) override;    // Klick and scroll per mousewheel
+  //void wheelEvent(QWheelEvent *event) override;         //
 
 private:
   GLuint textureHandles[2] = {0,0};
@@ -33,14 +36,17 @@ private:
   GLubyte *textureBuffer;
 
 
+
   int nextLine = SPECTROGRAM_LINE_COUNT - 1; //0
-
-
 
   void initializeTextureBuffer();
   void loadTexture();
   void drawSpectrogram();
   void intensityToRGB(float intensity, GLubyte *rgbaOut);  
+
+signals:
+  void subwindow_click();
+  //void subwindow_scroll(QMouseEvent *event);
 
 };
 

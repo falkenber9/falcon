@@ -20,7 +20,9 @@ public:
   bool emit_difference  = false;
   bool emit_downlink    = false;
   bool emit_uplink      = false;
-  bool emit_plot1       = false;
+  bool emit_rnti_hist   = false;
+  bool emit_perf_plot_a = false;
+  bool emit_perf_plot_b = false;
 
 signals:
   void update_ul(const ScanLineLegacy* line);
@@ -29,5 +31,7 @@ signals:
   void signal_update();
   void update_spectrum_diff(const ScanLineLegacy* line);
   void update_rnti_hist(const ScanLineLegacy* line);
+  void update_perf_plot_a(const ScanLineLegacy* line);
+  void update_perf_plot_b(const ScanLineLegacy* line);
 
 };

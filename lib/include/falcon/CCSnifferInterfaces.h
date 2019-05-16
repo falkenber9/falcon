@@ -69,11 +69,13 @@ protected:
 };
 
 typedef enum {
-  SCAN_LINE_UPLINK = 0,
-  SCAN_LINE_DOWNLINK = 1,
-  SCAN_LINE_SPECTRUM = 2,
+  SCAN_LINE_UPLINK        = 0,
+  SCAN_LINE_DOWNLINK      = 1,
+  SCAN_LINE_SPECTRUM      = 2,
   SCAN_LINE_SPECTRUM_DIFF = 3,
-  SCAN_LINE_RNTI_HIST = 4
+  SCAN_LINE_RNTI_HIST     = 4,
+  SCAN_LINE_PERF_PLOT_A   = 5,
+  SCAN_LINE_PERF_PLOT_B   = 6
 } ScanLineType_t;
 
 class ScanLineLegacy : public LineData, public PushData {
@@ -82,6 +84,12 @@ public:
   ScanLineType_t type;
   float linebuf[SPECTROGRAM_LINE_WIDTH];
   uint32_t rnti_hist[65536];
+
+  uint32_t sf_idx;
+  uint32_t mcs_idx;
+  int      mcs_tbs;
+  uint32_t l_prb;
+  uint16_t sfn;
 };
 
 class ScanLine {

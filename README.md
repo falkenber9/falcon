@@ -45,6 +45,14 @@ $ sudo apt-get update
 $ sudo apt-get install libuhd-dev libuhd003 uhd-host
 ```
 
+For LimeSDR support:
+```sh
+$ sudo add-apt-repository -y ppa:myriadrf/drivers
+$ sudo apt-get update
+$ sudo apt-get install limesuite limesuite-udev limesuite-images
+$ sudo apt-get install soapysdr soapysdr-module-lms7
+```
+
 For FALCON:
 ```sh
 $ sudo apt-get install libglib2.0-dev libudev-dev libcurl4-gnutls-dev libboost-all-dev qtdeclarative5-dev libqt5charts5-dev

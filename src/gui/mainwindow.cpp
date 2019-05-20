@@ -578,6 +578,7 @@ bool MainWindow::get_infos_from_file(QString filename, volatile prog_args_t& arg
   if(!no_proberesult){
     args.file_nof_prb = networkInfo.nof_prb;
     ui->spinBox_Prb->setValue(networkInfo.nof_prb);
+    glob_settings.glob_args.decoder_args.file_nof_prb = networkInfo.nof_prb;
   }
 
   return true;
@@ -675,4 +676,9 @@ void MainWindow::dropEvent(QDropEvent *e)
 void MainWindow::on_actionTile_Windows_triggered()
 {
   ui->mdiArea->tileSubWindows();
+}
+
+void MainWindow::on_spinBox_Prb_valueChanged(int arg1)
+{
+    glob_settings.glob_args.decoder_args.file_nof_prb = ui->spinBox_Prb->value();
 }

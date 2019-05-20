@@ -77,7 +77,12 @@ Enter the center frequency of the target LTE cell or select a recording from a f
 Press 'Start' and the decoder immediately starts to synchronize to the cell and decodes the PDCCH.
 The GUI will display waterfall plots of the spectrum and resource allocations (uplink and downlink) in real-time. The color of the displayed resource allocations is derived from the individual RNTIs of the particular subscribers.
 
+**Please note:** The current version of FALCON Decoder GUI is **highly experimental**. We apologize for any inconvenience.
+
 ![FALCON Screenshot](gfx/Screenshot.png "Screenshot")
+
+#### Known bugs
+* After starting the decoder, waterfall plots are blank but other plots report cell activity: Resize the main window a bit and the waterfall plots will appear.
 
 ### FALCON Eye
 Command line version of FALCON Decoder. (Instructions and Examples will follow soon.)

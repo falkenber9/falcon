@@ -98,6 +98,11 @@ cell_search_cfg_t cell_detect_config_cni = {
 #warning Compiling pdsch_ue with no RF support
 #endif
 
+static bool isEqual(double a, double b, double epsilon) {
+    double diff = a - b;
+    return (diff < epsilon) && (diff > -epsilon);
+}
+
 //#define STDOUT_COMPACT
 
 /**********************************************************************
@@ -455,7 +460,7 @@ int start_cni_decoder() {
     }
 
     srslte_rf_stop_rx_stream(&rf);
-    srslte_rf_flush_buffer(&rf);
+    //srslte_rf_flush_buffer(&rf);
 
     /* set sampling frequency */
     int srate = srslte_sampling_freq_hz(cell.nof_prb);
@@ -467,7 +472,7 @@ int start_cni_decoder() {
       }
       printf("Setting sampling rate %.2f MHz\n", (float) srate/1000000);
       float srate_rf = srslte_rf_set_rx_srate(&rf, (double) srate);
-      if (srate_rf != srate) {
+      if (!isEqual(srate_rf, srate, 1.0)) {
         fprintf(stderr, "Could not set sampling rate\n");
         return false;
       }

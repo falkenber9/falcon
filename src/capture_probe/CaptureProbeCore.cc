@@ -21,6 +21,11 @@ bool isZero(double value) {
   return (value < epsilon) && (value > -epsilon);
 }
 
+bool isEqual(double a, double b, double epsilon) {
+    double diff = a - b;
+    return (diff < epsilon) && (diff > -epsilon);
+}
+
 //int falcon_rf_recv_wrapper(void *h, cf_t *data[SRSLTE_MAX_PORTS], uint32_t nsamples, srslte_timestamp_t *t) {
 //  (void)t;  //unused
 //  DEBUG(" ----  Receive %d samples  ---- \n", nsamples);
@@ -241,7 +246,7 @@ bool CaptureProbeCore::run() {
   } while (ret == 0 && !go_exit);
 
   srslte_rf_stop_rx_stream(&rf);
-  srslte_rf_flush_buffer(&rf);
+  //srslte_rf_flush_buffer(&rf);
 
   if (go_exit) {
     srslte_rf_kill_gain_thread(&rf);
@@ -265,7 +270,7 @@ bool CaptureProbeCore::run() {
     }
     *netsync << "Setting sampling rate " << (srate)/1000000 << " MHz" << endl;
     double srate_rf = srslte_rf_set_rx_srate(&rf, static_cast<double>(srate));
-    if (static_cast<int>(srate_rf) != srate) {
+    if (!isEqual(srate_rf, srate, 1.0)) {
       *netsync << "Could not set sampling rate" << endl;
       return true;
     }

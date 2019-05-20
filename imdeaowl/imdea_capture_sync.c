@@ -60,6 +60,11 @@ static cell_search_cfg_t cell_detect_config = {
 #warning Compiling pdsch_ue with no RF support
 #endif
 
+bool isEqual(double a, double b, double epsilon) {
+    double diff = a - b;
+    return (diff < epsilon) && (diff > -epsilon);
+}
+
 //#define STDOUT_COMPACT
 
 #ifndef DISABLE_GRAPHICS
@@ -321,7 +326,7 @@ int main(int argc, char **argv) {
     }
     printf("Setting sampling rate %.2f MHz\n", (float) srate/1000000);
     float srate_rf = srslte_rf_set_rx_srate(&rf, (double) srate);
-    if (srate_rf != srate) {
+    if (!isEqual(srate_rf, srate, 1.0)) {
       fprintf(stderr, "Could not set sampling rate\n");
       exit(-1);
     }

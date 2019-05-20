@@ -19,6 +19,8 @@ public:
   {}
   virtual ~ScanThread();
 
+  int spectrogram_line_width = 50;
+
   void init();
   void start();
   void stop();

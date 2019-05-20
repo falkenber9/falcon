@@ -120,7 +120,7 @@ void MainWindow::setupPlot(PlotsType_t plottype, QCustomPlot *plot){
     plot->xAxis->setTicker(timeTicker);
     plot->xAxis2->setLabel("Resourceblocks/Subframe");
     plot->axisRect()->setupFullAxesBox();
-    plot->yAxis->setRange(0, 500);
+    plot->yAxis->setRange(0, glob_settings.glob_args.decoder_args.file_nof_prb);
 
     // make left and bottom axes transfer their ranges to right and top axes:
     // connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), plot->xAxis2, SLOT(setRange(QCPRange)));
@@ -207,7 +207,7 @@ void MainWindow::draw_plot(const ScanLineLegacy *line){
 
           mcs_idx_plot_a->graph(0)->addData(key,mcs_idx_sum_sum_a / sum_sum_counter_a);
           mcs_tbs_plot_a->graph(0)->addData(key,mcs_tbs_sum_sum_a / sum_sum_counter_a);
-          prb_plot_a    ->graph(0)->addData(key,(l_prb_sum_sum_a   / sum_sum_counter_a));
+          prb_plot_a    ->graph(0)->addData(key,(l_prb_sum_sum_a  / (sum_sum_counter_a * 10)));
 
           mcs_idx_sum_sum_a = 0;
           mcs_tbs_sum_sum_a = 0;
@@ -216,7 +216,7 @@ void MainWindow::draw_plot(const ScanLineLegacy *line){
 
           mcs_idx_plot_a->yAxis->rescale(true);
           //mcs_tbs_plot_a->yAxis->rescale(true);
-          prb_plot_a->yAxis->    rescale(true);
+          //prb_plot_a->yAxis->    rescale(true);
 
           // make key axis range scroll with the data (at a constant range size of 10 sec):
           mcs_idx_plot_a->xAxis->setRange(key, 10, Qt::AlignRight);
@@ -282,7 +282,7 @@ void MainWindow::draw_plot(const ScanLineLegacy *line){
 
           mcs_idx_plot_a->graph(1)->addData(key,mcs_idx_sum_sum_b / sum_sum_counter_b);
           mcs_tbs_plot_a->graph(1)->addData(key,mcs_tbs_sum_sum_b / sum_sum_counter_b);
-          prb_plot_a    ->graph(1)->addData(key,(l_prb_sum_sum_b   / sum_sum_counter_b));
+          prb_plot_a    ->graph(1)->addData(key,(l_prb_sum_sum_b  / (sum_sum_counter_b * 10)));
 
           mcs_idx_sum_sum_b = 0;
           mcs_tbs_sum_sum_b = 0;
@@ -332,169 +332,11 @@ void MainWindow::draw_plot(const ScanLineLegacy *line){
   delete line;
 }
 
-/*void MainWindow::draw_plot_a(const ScanLineLegacy *line){
-
-
-  if(line->type == SCAN_LINE_PERF_PLOT_A){
-
-    if(line->sfn != sfn_old_a){
-
-      if(mcs_idx_sum_counter_a != 0){
-
-
-        //qDebug() <<"\nMCS_IDX mean: "<< mcs_idx_sum / mcs_idx_sum_counter <<", TBS_SUM:" << mcs_tbs_sum << ", L_PRB_SUM:"<< l_prb_sum ;
-
-        static QTime time(QTime::currentTime());
-        double key = time.elapsed(); // time elapsed since start of demo, in seconds
-        static double last_key = 0;        
-
-        mcs_idx_sum_sum_a += mcs_idx_sum_a / mcs_idx_sum_counter_a;
-        mcs_tbs_sum_sum_a += mcs_tbs_sum_a;
-        l_prb_sum_sum_a   += l_prb_sum_a;
-
-        //qDebug() << "key: " << key << " last key: " << last_key << " Diff: " << key- last_key;
-
-        if(key - last_key > plot_mean_slider_a->value()){
-
-         //qDebug() << "Taken";
-
-          mcs_idx_plot_a->graph(0)->addData(key,mcs_idx_sum_sum_a / sum_sum_counter_a);
-          mcs_tbs_plot_a->graph(0)->addData(key,mcs_tbs_sum_sum_a / sum_sum_counter_a);
-          prb_plot_a->graph(0)->addData(key,(l_prb_sum_sum_a   / sum_sum_counter_a));
-
-          mcs_idx_sum_sum_a = 0;
-          mcs_tbs_sum_sum_a = 0;
-          l_prb_sum_sum_a   = 0;
-          sum_sum_counter_a = 0;
-
-          // make key axis range scroll with the data (at a constant range size of 1000):
-          mcs_idx_plot_a->xAxis->setRange(key, 5000, Qt::AlignRight);
-          mcs_idx_plot_a       ->replot();
-          mcs_tbs_plot_a->xAxis->setRange(key, 5000, Qt::AlignRight);
-          mcs_tbs_plot_a       ->replot();
-          prb_plot_a    ->xAxis->setRange(key, 5000, Qt::AlignRight);
-          prb_plot_a           ->replot();
-
-          last_key = key;
-
-
-        }
-
-        sum_sum_counter_a++;
-
-      }
-
-      mcs_idx_sum_a = line->mcs_idx; // Save new value for next round.
-      mcs_idx_sum_counter_a = 1;
-
-      mcs_tbs_sum_a = line->mcs_tbs; //Save Values for next round.
-      l_prb_sum_a   = line->l_prb;
-
-      //qDebug() <<"\n New Subframe: \n";
-
-      sfn_old_a = line->sfn;
-    }
-    else{
-
-      mcs_tbs_sum_a += line->mcs_tbs;   //Sum all values.
-      l_prb_sum_a   += line->l_prb;
-      mcs_idx_sum_a += line->mcs_idx;
-      mcs_idx_sum_counter_a++;
-    }
-
-    //qDebug() << "SF_ID:"<< line->sf_idx << ", SFN:"<< line->sfn << ", MCS_IDX:"<< line->mcs_idx << ", MCS_TBS:"<< line->mcs_tbs << ", L_PRB:"<< line->l_prb;
-
-
-  }
-  delete line;
-}
-*/
-/*void MainWindow::draw_plot_b(const ScanLineLegacy *line){
-
-  if(line->type == SCAN_LINE_PERF_PLOT_B){
-
-    if(line->sfn != sfn_old_b){
-
-      if(mcs_idx_sum_counter_b != 0){
-
-
-        //qDebug() <<"\nMCS_IDX mean: "<< mcs_idx_sum / mcs_idx_sum_counter <<", TBS_SUM:" << mcs_tbs_sum << ", L_PRB_SUM:"<< l_prb_sum ;
-
-        static QTime time(QTime::currentTime());
-        double key = time.elapsed(); // time elapsed since start of demo, in milliseconds
-        static double last_key = 0;
-
-        mcs_idx_sum_sum_b += mcs_idx_sum_b / mcs_idx_sum_counter_b;
-        mcs_tbs_sum_sum_b += mcs_tbs_sum_b;
-        l_prb_sum_sum_b   += l_prb_sum_b;
-
-        //qDebug() << "key: " << key << " last key: " << last_key << " Diff: " << key- last_key;
-
-        if(key - last_key > plot_mean_slider_b->value()){
-
-          //qDebug() << "Taken";
-
-          mcs_idx_plot_b->graph(0)->addData(key,mcs_idx_sum_sum_b / sum_sum_counter_b);
-          mcs_tbs_plot_b->graph(0)->addData(key,mcs_tbs_sum_sum_b / sum_sum_counter_b);
-          prb_plot_b    ->graph(0)->addData(key,(l_prb_sum_sum_b   / sum_sum_counter_b));
-
-          mcs_idx_sum_sum_b = 0;
-          mcs_tbs_sum_sum_b = 0;
-          l_prb_sum_sum_b   = 0;
-          sum_sum_counter_b = 0;
-
-          // make key axis range scroll with the data (at a constant range size of 1000):
-          mcs_idx_plot_b->xAxis->setRange(key, 5000, Qt::AlignRight);
-          mcs_idx_plot_b       ->replot();
-          mcs_tbs_plot_b->xAxis->setRange(key, 5000, Qt::AlignRight);
-          mcs_tbs_plot_b       ->replot();
-          prb_plot_b    ->xAxis->setRange(key, 5000, Qt::AlignRight);
-          prb_plot_b           ->replot();
-
-          last_key = key;
-
-
-        }
-
-        sum_sum_counter_b++;
-
-      }
-
-      mcs_idx_sum_b = line->mcs_idx; // Save new value for next round.
-      mcs_idx_sum_counter_b = 1;
-
-      mcs_tbs_sum_b = line->mcs_tbs; //Save Values for next round.
-      l_prb_sum_b   = line->l_prb;
-
-      //qDebug() <<"\n New Subframe: \n";
-
-      sfn_old_b = line->sfn;
-    }
-    else{
-
-      mcs_tbs_sum_b += line->mcs_tbs;   //Sum all values.
-      l_prb_sum_b   += line->l_prb;
-      mcs_idx_sum_b += line->mcs_idx;
-      mcs_idx_sum_counter_b++;
-    }
-
-    //qDebug() << "SF_ID:"<< line->sf_idx << ", SFN:"<< line->sfn << ", MCS_IDX:"<< line->mcs_idx << ", MCS_TBS:"<< line->mcs_tbs << ", L_PRB:"<< line->l_prb;
-
-  }
-  delete line;
-}*/
-
 void MainWindow::draw_rnti_hist(const ScanLineLegacy *line){
 
   addData(RNTI_HIST, rnti_hist_plot_a, line);
   delete line;
 }
-
-/*void MainWindow::draw_rnti_hist_b(const ScanLineLegacy *line){
-
-  addData(RNTI_HIST, rnti_hist_plot_b, line);
-  delete line;
-}*/
 
 void MainWindow::update_plot_color(){
 

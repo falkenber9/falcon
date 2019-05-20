@@ -1,4 +1,5 @@
 #include "spectrum.h"
+#include "settings.h"
 
 #include <math.h>
 #include <climits>
@@ -8,12 +9,13 @@
 #define speed 4   // EVtl into options (Mousewheel)
 
 
-Spectrum::Spectrum(QWidget *parent) :
+Spectrum::Spectrum(QWidget *parent, Settings *glob_settings) :
   QOpenGLWidget(parent),
   hasTextures(0),
-  textureBuffer(new GLubyte[SPECTROGRAM_LINE_COUNT * SPECTROGRAM_LINE_WIDTH * 4])
+  textureBuffer(new GLubyte[SPECTROGRAM_LINE_COUNT * glob_settings->glob_args.spectrum_args.spectrum_line_width * 4])
 
 {
+    settings = glob_settings;
 }
 
 Spectrum::~Spectrum() {
@@ -36,7 +38,7 @@ void Spectrum::resizeGL(int width, int height) {
 void Spectrum::initializeTextureBuffer() {
   // Init Texture with 0
 
-  for(int i = 0; i < SPECTROGRAM_LINE_COUNT * SPECTROGRAM_LINE_WIDTH * 4; i++){
+  for(int i = 0; i < SPECTROGRAM_LINE_COUNT * settings->glob_args.spectrum_args.spectrum_line_width * 4; i++){
     textureBuffer[i] = 0;
   }
   loadTexture();
@@ -62,8 +64,8 @@ void Spectrum::intensityToRGB(float intensity, GLubyte *rgbaOut) {
 void Spectrum::addLine(const float *data) {
 
   if(!paused){
-    GLubyte *buffer = textureBuffer + nextLine * SPECTROGRAM_LINE_WIDTH * 4;
-    for (unsigned int col = 0; col < SPECTROGRAM_LINE_WIDTH; ++col)
+    GLubyte *buffer = textureBuffer + nextLine * settings->glob_args.spectrum_args.spectrum_line_width * 4;
+    for (unsigned int col = 0; col < settings->glob_args.spectrum_args.spectrum_line_width; ++col)
     {
       intensityToRGB(data[col], buffer);
       buffer += 4;
@@ -88,10 +90,10 @@ void Spectrum::loadTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D,
                  0,  GL_RGBA,
-                 SPECTROGRAM_LINE_WIDTH, SPECTROGRAM_LINE_SHOWN,
+                 settings->glob_args.spectrum_args.spectrum_line_width, SPECTROGRAM_LINE_SHOWN,
                  0, GL_RGBA,
                  GL_UNSIGNED_BYTE,
-                 textureBuffer + (nextLine - (view_port + SPECTROGRAM_LINE_SHOWN)) * SPECTROGRAM_LINE_WIDTH * 4);
+                 textureBuffer + (nextLine - (view_port + SPECTROGRAM_LINE_SHOWN)) * settings->glob_args.spectrum_args.spectrum_line_width * 4);
   }
   else if(view_port >= nextLine){
 
@@ -101,10 +103,10 @@ void Spectrum::loadTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D,
                  0,  GL_RGBA,
-                 SPECTROGRAM_LINE_WIDTH, SPECTROGRAM_LINE_SHOWN,
+                 settings->glob_args.spectrum_args.spectrum_line_width, SPECTROGRAM_LINE_SHOWN,
                  0, GL_RGBA,
                  GL_UNSIGNED_BYTE,
-                 textureBuffer + (SPECTROGRAM_LINE_COUNT - (view_port - nextLine) - SPECTROGRAM_LINE_SHOWN) * SPECTROGRAM_LINE_WIDTH * 4);
+                 textureBuffer + (SPECTROGRAM_LINE_COUNT - (view_port - nextLine) - SPECTROGRAM_LINE_SHOWN) * settings->glob_args.spectrum_args.spectrum_line_width * 4);
   }
   else if(SPECTROGRAM_LINE_SHOWN + view_port > nextLine && view_port < nextLine){  // evtl withour && view_port < nextLine
     // Newer Buffer
@@ -113,7 +115,7 @@ void Spectrum::loadTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D,
                  0,  GL_RGBA,
-                 SPECTROGRAM_LINE_WIDTH, nextLine - view_port,
+                 settings->glob_args.spectrum_args.spectrum_line_width, nextLine - view_port,
                  0, GL_RGBA,
                  GL_UNSIGNED_BYTE,
                  textureBuffer);
@@ -123,10 +125,10 @@ void Spectrum::loadTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D,
                  0,  GL_RGBA,
-                 SPECTROGRAM_LINE_WIDTH, SPECTROGRAM_LINE_SHOWN - (nextLine - view_port),
+                 settings->glob_args.spectrum_args.spectrum_line_width, SPECTROGRAM_LINE_SHOWN - (nextLine - view_port),
                  0, GL_RGBA,
                  GL_UNSIGNED_BYTE,
-                 textureBuffer + (SPECTROGRAM_LINE_COUNT - (SPECTROGRAM_LINE_SHOWN - (nextLine - view_port))) * SPECTROGRAM_LINE_WIDTH * 4);
+                 textureBuffer + (SPECTROGRAM_LINE_COUNT - (SPECTROGRAM_LINE_SHOWN - (nextLine - view_port))) * settings->glob_args.spectrum_args.spectrum_line_width * 4);
   }
 }
 

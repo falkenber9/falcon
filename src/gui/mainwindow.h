@@ -62,21 +62,12 @@ private slots:
   void on_actionDownlink_Plots_changed();
   void on_pushButton_downlink_color_clicked();
   void SubWindow_mousePressEvent();
+  void on_spinBox_Prb_valueChanged(int arg1);
 
-  //Color test:
-
+  //Color:
+  void on_pushButton_uplink_color_clicked();
   void set_color(const QColor &color);
-  void range_slider_value_changed(int value);
-
-  //##
-
-  /*// [SUBWINDOW]_destroyed slots:
-  void downlink_destroyed();
-  void uplink_destroyed();
-  void diff_destroyed();
-  void spectrum_destroyed();
-  void plots_uplink_destroyed();
-  void plots_downlink_destroyed();*/
+  void range_slider_value_changed(int value);  
 
 protected:
   //void mousePressEvent(QMouseEvent *event) override;    // Klick and scroll per mousewheel
@@ -84,10 +75,6 @@ protected:
 
   void dropEvent(QDropEvent *event) override;
   void dragEnterEvent(QDragEnterEvent *e) override;
-
-
-private slots:
-  void on_pushButton_uplink_color_clicked();
 
 private:
 
@@ -123,28 +110,15 @@ private:
   void update_plot_color();
 
   QCustomPlot *mcs_idx_plot_a;
- // QCustomPlot *mcs_idx_plot_b;
-
   QCustomPlot *mcs_tbs_plot_a;
- // QCustomPlot *mcs_tbs_plot_b;
-
   QCustomPlot *prb_plot_a;
- // QCustomPlot *prb_plot_b;
-
   QCustomPlot *rnti_hist_plot_a;
- // QCustomPlot *rnti_hist_plot_b;
-
   QWidget *plot_a_window;
- // QWidget *plot_b_window;
-
   QMdiSubWindow *plot_a_subwindow = NULL;
- // QMdiSubWindow *plot_b_subwindow = NULL;
-
   QSlider *plot_mean_slider_a;
- // QSlider *plot_mean_slider_b;
-
   QLabel  *plot_mean_slider_label_a;
- // QLabel  *plot_mean_slider_label_b;
+  QLabel  *plot_mean_slider_label_b;
+
 
   //Variables for plots:
 

@@ -1,33 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-//#include "dynamic_options.h"
 
-/*//   [SUBWINDOW]_destroyed() slots:
-
-void MainWindow::downlink_destroyed(){
-  downlink_start(false);
-}
-
-void MainWindow::uplink_destroyed(){
-  uplink_start(false);
-}
-
-void MainWindow::spectrum_destroyed(){
-  spectrum_start(false);
-}
-
-void MainWindow::diff_destroyed(){
-  diff_start(false);
-}
-
-void MainWindow::plots_uplink_destroyed(){
-  plots_uplink_start(false);
-}
-
-void MainWindow::plots_downlink_destroyed(){
-  plots_downlink_start(false);
-}
-*/
 //   [SUBWINDOW]_start(bool) functions. true = start, false = stop
 
 void MainWindow::downlink_start(bool start){
@@ -39,7 +12,7 @@ void MainWindow::downlink_start(bool start){
       b_window->setWindowTitle("Downlink RB Allocations");
       b_window->setGeometry(0,0,100,100);
 
-      spectrum_view_dl = new Spectrum(b_window);
+      spectrum_view_dl = new Spectrum(b_window, &glob_settings);
       spectrum_view_dl->setObjectName("Spectrum View DL");
       spectrum_view_dl->setGeometry(0,0,100,100);
 
@@ -87,7 +60,7 @@ void MainWindow::uplink_start(bool start){
       a_window->setWindowTitle("Uplink RB Allocations");
       a_window->setGeometry(0,0,100,100);
 
-      spectrum_view_ul = new Spectrum(a_window);
+      spectrum_view_ul = new Spectrum(a_window, &glob_settings);
       spectrum_view_ul->setObjectName("Spectrum View UL");
       spectrum_view_ul->setGeometry(0,0,100,100);
 
@@ -129,7 +102,7 @@ void MainWindow::spectrum_start(bool start){
       c_window->setWindowTitle("Downlink Spectrum");
       c_window->setGeometry(0,0,100,100);
 
-      spectrum_view = new Spectrum(c_window);
+      spectrum_view = new Spectrum(c_window, &glob_settings);
       spectrum_view->setObjectName("Spectrum View");
       spectrum_view->setGeometry(0,0,100,100);
 
@@ -172,7 +145,7 @@ void MainWindow::diff_start(bool start){
       d_window->setWindowTitle("Spectrum Difference");
       d_window->setGeometry(0,0,100,100);
 
-      spectrum_view_diff = new Spectrum(d_window);
+      spectrum_view_diff = new Spectrum(d_window, &glob_settings);
       spectrum_view_diff->setObjectName("Spectrum View Diff");
       spectrum_view_diff->setGeometry(0,0,100,100);
 
@@ -204,11 +177,6 @@ void MainWindow::diff_start(bool start){
   }
 }
 
-/*void MainWindow::plots_downlink_start(bool start){
-
-
-}*/
-
 void MainWindow::performance_plots_start(bool start){
   if(spectrum_view_on){
     if(start){
@@ -225,7 +193,7 @@ void MainWindow::performance_plots_start(bool start){
       gridLayout_a->setContentsMargins(0, 0, 0, 0);
 
       gridLayout_a->setColumnStretch(0,1);     //Set Stretchfactor 0 = no scaling, 1 = full scaling
-      gridLayout_a->setColumnStretch(1,1);
+      gridLayout_a->setColumnStretch(1,1);          
       gridLayout_a->setRowStretch(0,0);
       gridLayout_a->setRowStretch(1,1);
       gridLayout_a->setRowStretch(2,1);
@@ -263,12 +231,17 @@ void MainWindow::performance_plots_start(bool start){
       plot_mean_slider_label_a->setGeometry(180, 600, 160, 20);
       plot_mean_slider_label_a->setNum(plot_mean_slider_a->value());
 
-      gridLayout_a->addWidget(mcs_idx_plot_a            , 1, 0);  //Place Widgets into specific grid-segments
+      plot_mean_slider_label_b = new QLabel(plot_a_window);
+      plot_mean_slider_label_b->setGeometry(180, 600, 160, 20);
+      plot_mean_slider_label_b->setText("           Average (ms)");
+
+      gridLayout_a->addWidget(mcs_idx_plot_a            , 1, 0);  //Place Widgets into specific grid-segments: row, column
       gridLayout_a->addWidget(mcs_tbs_plot_a            , 1, 1);
       gridLayout_a->addWidget(prb_plot_a                , 2, 0);
       gridLayout_a->addWidget(rnti_hist_plot_a          , 2, 1);
       gridLayout_a->addWidget(plot_mean_slider_a        , 0, 0);
       gridLayout_a->addWidget(plot_mean_slider_label_a  , 0, 1);
+      gridLayout_a->addWidget(plot_mean_slider_label_b  , 0, 1);
 
       connect (plot_mean_slider_a, SIGNAL(valueChanged(int)),plot_mean_slider_label_a,SLOT(setNum(int)));
 
@@ -287,18 +260,19 @@ void MainWindow::performance_plots_start(bool start){
       connect (&spectrumAdapter, SIGNAL(update_rnti_hist(const ScanLineLegacy*)),SLOT(draw_rnti_hist(const ScanLineLegacy*)));
       spectrumAdapter.emit_perf_plot_a = true;
       spectrumAdapter.emit_perf_plot_b = true;
-      spectrumAdapter.emit_rnti_hist = true;
+      spectrumAdapter.emit_rnti_hist   = true;
 
     }else{
 
       //Deactivate Signals:
 
       disconnect (&spectrumAdapter, SIGNAL(update_perf_plot_a(const ScanLineLegacy*)),this,SLOT(draw_plot(const ScanLineLegacy*)));
+      disconnect (&spectrumAdapter, SIGNAL(update_perf_plot_b(const ScanLineLegacy*)),this,SLOT(draw_plot(const ScanLineLegacy*)));
       disconnect (&spectrumAdapter, SIGNAL(update_rnti_hist(const ScanLineLegacy*)),this,SLOT(draw_rnti_hist(const ScanLineLegacy*)));
 
       spectrumAdapter.emit_perf_plot_a = false;
       spectrumAdapter.emit_perf_plot_b = false;
-      spectrumAdapter.emit_rnti_hist = false;
+      spectrumAdapter.emit_rnti_hist   = false;
 
       plot_a_window->disconnect();
       plot_mean_slider_a->disconnect();
@@ -307,8 +281,6 @@ void MainWindow::performance_plots_start(bool start){
       ui->mdiArea->setActiveSubWindow(plot_a_subwindow);
       ui->mdiArea->closeActiveSubWindow();
       ui->mdiArea->removeSubWindow(plot_a_window);
-
-
 
     }
     ui->mdiArea->tileSubWindows();

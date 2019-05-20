@@ -48,8 +48,8 @@
 #include "falcon/phy/falcon_phch/falcon_dci.h"
 
 
-float uplink_data[SPECTROGRAM_LINE_WIDTH];
-float downlink_data[SPECTROGRAM_LINE_WIDTH];
+//float uplink_data[200];     //200 to be safe
+//float downlink_data[200];
 void *decoderthread;
 volatile prog_args_t prog_args;
 
@@ -68,7 +68,7 @@ volatile prog_args_t prog_args;
 
 volatile bool go_exit = false;
 
- float tmp_plot_wf[2048*110*15];
+float tmp_plot_wf[2048*110*15];
 
 
 //void init_plots();
@@ -376,7 +376,7 @@ int start_cni_decoder() {
 
   if(prog_args.cpu_affinity > -1) {
 
-  /* // cpu_set_t cpuset;
+    /* // cpu_set_t cpuset;
    // pthread_t thread;
 
     thread = pthread_self();
@@ -546,7 +546,7 @@ int start_cni_decoder() {
   }
 
   if (falcon_ue_dl_init(&falcon_ue_dl, &ue_dl, sf_buffer, cell.nof_prb, prog_args.rf_nof_rx_ant, "", "")) {
-  //if (srslte_ue_dl_init(&ue_dl, sf_buffer, cell.nof_prb, prog_args.rf_nof_rx_ant)) {
+    //if (srslte_ue_dl_init(&ue_dl, sf_buffer, cell.nof_prb, prog_args.rf_nof_rx_ant)) {
     fprintf(stderr, "Error initiating UE downlink processing module\n");
     return false;
   }
@@ -578,7 +578,7 @@ int start_cni_decoder() {
   sf_cnt = 0;
 
   if (!prog_args.disable_plots) {
-//    init_plots(cell);                                         //MO_HACKS
+    //    init_plots(cell);                                         //MO_HACKS
     bzero(rb_up, 1024*sizeof(float));
     bzero(rb_dw, 1024*sizeof(float));
     bzero(bw_up, 1024*sizeof(float));
@@ -621,10 +621,10 @@ int start_cni_decoder() {
 
   srslte_pbch_decode_reset(&ue_mib.pbch);
 
-// moved to falcon_ue_dl_init()
-//  // Initialize Histogram
-//  for(int hst=0; hst<NOF_UE_ALL_FORMATS; hst++)
-//      rnti_histogram_init(&falcon_ue_dl.rnti_histogram[hst]);
+  // moved to falcon_ue_dl_init()
+  //  // Initialize Histogram
+  //  for(int hst=0; hst<NOF_UE_ALL_FORMATS; hst++)
+  //      rnti_histogram_init(&falcon_ue_dl.rnti_histogram[hst]);
 
   INFO("\nEntering main loop...\n\n", 0);
   /* Main loop */
@@ -635,7 +635,7 @@ int start_cni_decoder() {
     if (ret < 0) {
       fprintf(stderr, "Error calling srslte_ue_sync_work()\n");
     }
-/* TODO: Add return value 7 for controlled shutdown after reading whole file in file mode */
+    /* TODO: Add return value 7 for controlled shutdown after reading whole file in file mode */
     if (ret == 7) {
       if (!prog_args.disable_plots) {
         plot_sf_idx = sfn % 1024;
@@ -792,22 +792,18 @@ int start_cni_decoder() {
 
           bzero(tmp_plot_wf,12*ue_dl.cell.nof_prb*sizeof(float));
           for (int j = 0; j < 14; j++) {
-              for (int i = 0; i < 12*ue_dl.cell.nof_prb; i++) { // 12*
-                  tmp_plot_wf[i] += 20 * log10f(cabsf(ue_dl.sf_symbols[i+j*(12*ue_dl.cell.nof_prb)]))/14;
-                 // if(ue_dl == NULL) tmp_plot_wf[i] = 0;
-                 // printf(": %f",ue_dl.sf_symbols[i+j*12*ue_dl.cell.nof_prb]);
-
-              }
+            for (int i = 0; i < 12*ue_dl.cell.nof_prb; i++) {
+              tmp_plot_wf[i] += 20 * log10f(cabsf(ue_dl.sf_symbols[i+j*(12*ue_dl.cell.nof_prb)]))/14;
+            }
           }
 
-          float tmp_linebuffer[100];
+          float tmp_linebuffer[200]; //200 should be sufficient
           float tmp_buff = 0;
 
-          for(int i = 0; i < 100; i++){
+          for(int i = 0; i < ue_dl.cell.nof_prb; i++){
 
             for(int ii = 0; ii < 12; ii++){
 
-              if((i*12)+ii >= 600)break;
               tmp_buff += tmp_plot_wf[(i*12)+ii];
             }
 
@@ -820,7 +816,7 @@ int start_cni_decoder() {
           uint32_t hist_int[65536];
           //uint64_t sum = 0;
           rnti_manager_get_histogram_summary(falcon_ue_dl.rnti_manager, hist_int);
-        /*  for(j = 0; j < 65536; j++) {
+          /*  for(j = 0; j < 65536; j++) {
             tmp_hist[j] = hist_int[j];
             //sum += hist_int[j];
           }*/
@@ -828,7 +824,7 @@ int start_cni_decoder() {
 
 
 
-         call_function(decoderthread,falcon_ue_dl.colored_rb_map_up_last, falcon_ue_dl.colored_rb_map_dw_last,tmp_linebuffer,hist_int);
+          call_function(decoderthread,falcon_ue_dl.colored_rb_map_up_last, falcon_ue_dl.colored_rb_map_dw_last,tmp_linebuffer,hist_int);
 
           //sem_post(&plot_sem);
         }
@@ -853,7 +849,7 @@ int start_cni_decoder() {
     }
     // Some delay when playing
     if (prog_args.input_file_name) {
-        //usleep(10000);
+      //usleep(10000);
     }
     sf_cnt++;
   } // Main loop

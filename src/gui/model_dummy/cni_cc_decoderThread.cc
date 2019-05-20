@@ -7,13 +7,13 @@
 #include <iostream>
 
 
-
 void DecoderThread::init() {
   // setup dependencies of this instance
   initialized = true;
+
 }
 
-void DecoderThread::start() {
+void DecoderThread::start(int width) {
   if(!isInitialized()) {
     std::cerr << "Error in " << __func__ << ": not initialized." << std::endl;
     return;
@@ -26,7 +26,7 @@ void DecoderThread::start() {
   go_exit = false;
 
   //setvariables;
-
+  scanline_width = width;
   theThread = new boost::thread(boost::bind(&DecoderThread::run, this));
 }
 
@@ -76,7 +76,7 @@ extern "C" void call_function(void *f_pointer, float *data_ul, float *data_dl, f
 
     //ScanLine Data:
 
-    for(int i = 0; i < SPECTROGRAM_LINE_WIDTH; i++)
+    for(int i = 0; i < inst->scanline_width; i++)
     {
       scanline_ul->linebuf[i] = data_ul[i];
       scanline_dl->linebuf[i] = data_dl[i];

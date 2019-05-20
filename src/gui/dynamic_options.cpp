@@ -12,7 +12,7 @@ void MainWindow::downlink_start(bool start){
       b_window->setWindowTitle("Downlink RB Allocations");
       b_window->setGeometry(0,0,100,100);
 
-      spectrum_view_dl = new Spectrum(b_window);
+      spectrum_view_dl = new Spectrum(b_window, &glob_settings);
       spectrum_view_dl->setObjectName("Spectrum View DL");
       spectrum_view_dl->setGeometry(0,0,100,100);
 
@@ -60,7 +60,7 @@ void MainWindow::uplink_start(bool start){
       a_window->setWindowTitle("Uplink RB Allocations");
       a_window->setGeometry(0,0,100,100);
 
-      spectrum_view_ul = new Spectrum(a_window);
+      spectrum_view_ul = new Spectrum(a_window, &glob_settings);
       spectrum_view_ul->setObjectName("Spectrum View UL");
       spectrum_view_ul->setGeometry(0,0,100,100);
 
@@ -102,7 +102,7 @@ void MainWindow::spectrum_start(bool start){
       c_window->setWindowTitle("Downlink Spectrum");
       c_window->setGeometry(0,0,100,100);
 
-      spectrum_view = new Spectrum(c_window);
+      spectrum_view = new Spectrum(c_window, &glob_settings);
       spectrum_view->setObjectName("Spectrum View");
       spectrum_view->setGeometry(0,0,100,100);
 
@@ -145,7 +145,7 @@ void MainWindow::diff_start(bool start){
       d_window->setWindowTitle("Spectrum Difference");
       d_window->setGeometry(0,0,100,100);
 
-      spectrum_view_diff = new Spectrum(d_window);
+      spectrum_view_diff = new Spectrum(d_window, &glob_settings);
       spectrum_view_diff->setObjectName("Spectrum View Diff");
       spectrum_view_diff->setGeometry(0,0,100,100);
 

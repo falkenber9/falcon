@@ -27,15 +27,15 @@ MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::MainWindow)
 {
+  ui->setupUi(this);
+  ui->mdiArea->tileSubWindows();
+
   //Create layers
   //spectrumAdapter already exists on stack
-  decoderThread = new DecoderThread();  // ScanThread
+  decoderThread = new DecoderThread();  // DecoderThread
   decoderThread->init();
   //Connect layers
   decoderThread->subscribe(&spectrumAdapter);
-
-  ui->setupUi(this);
-  ui->mdiArea->tileSubWindows();
 
   //if store settings true: load settings
   if(glob_settings.glob_args.gui_args.save_settings)glob_settings.load_settings();
@@ -66,12 +66,12 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::~MainWindow() {
-  delete ui;
   if(decoderThread != nullptr) {
-    decoderThread->stop();
-    decoderThread->unsubscribe(&spectrumAdapter);
-    delete decoderThread;
-    decoderThread = nullptr;
+      decoderThread->stop();
+      decoderThread->unsubscribe(&spectrumAdapter);
+      delete decoderThread;
+      decoderThread = nullptr;
+  delete ui;
   }
 }
 
@@ -461,7 +461,7 @@ void MainWindow::on_actionNew_triggered() {
     //connect (a_window, SIGNAL(destroyed()),SLOT(spectrum_window_destroyed()));
     //connect (b_window, SIGNAL(destroyed()),SLOT(spectrum_window_destroyed()));
 
-    decoderThread->start();
+    decoderThread->start(glob_settings.glob_args.decoder_args.file_nof_prb);
 
     qDebug() << "Spectrum View on";
   }
@@ -473,7 +473,7 @@ void MainWindow::on_actionNew_triggered() {
 
 void MainWindow::on_actionStop_triggered()
 {
-  decoderThread->stop();
+  decoderThread->stop();  
   ui->mdiArea->closeAllSubWindows();
   spectrum_view_on = false;
   spectrumAdapter.disconnect();  //Disconnect all Signals
@@ -574,11 +574,15 @@ bool MainWindow::get_infos_from_file(QString filename, volatile prog_args_t& arg
     glob_settings.glob_args.decoder_args.rf_freq = args.rf_freq;
     ui->lcdNumber_rf_freq->display(glob_settings.glob_args.decoder_args.rf_freq);
     ui->spinBox_rf_freq->setValue(glob_settings.glob_args.decoder_args.rf_freq);
-  }
-  if(!no_proberesult){
     args.file_nof_prb = networkInfo.nof_prb;
     ui->spinBox_Prb->setValue(networkInfo.nof_prb);
     glob_settings.glob_args.decoder_args.file_nof_prb = networkInfo.nof_prb;
+    glob_settings.glob_args.spectrum_args.spectrum_line_width = glob_settings.glob_args.decoder_args.file_nof_prb;
+  }
+  if(!no_proberesult){
+//    args.file_nof_prb = networkInfo.nof_prb;
+//    ui->spinBox_Prb->setValue(networkInfo.nof_prb);
+//    glob_settings.glob_args.decoder_args.file_nof_prb = networkInfo.nof_prb;
   }
 
   return true;
@@ -681,4 +685,5 @@ void MainWindow::on_actionTile_Windows_triggered()
 void MainWindow::on_spinBox_Prb_valueChanged(int arg1)
 {
     glob_settings.glob_args.decoder_args.file_nof_prb = ui->spinBox_Prb->value();
+    glob_settings.glob_args.spectrum_args.spectrum_line_width = glob_settings.glob_args.decoder_args.file_nof_prb;
 }

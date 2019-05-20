@@ -32,7 +32,7 @@ void ScanThread::run() {
   while(!cancel) {
     usleep(SPECTROGRAM_INTERVAL_US);
 
-    for (unsigned int col = 0; col < SPECTROGRAM_LINE_WIDTH; ++col) {
+    for (unsigned int col = 0; col < spectrogram_line_width; ++col) {
       line_ul.linebuf[col]= static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/100000));
       line_dl.linebuf[col]= static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/100000));
     }

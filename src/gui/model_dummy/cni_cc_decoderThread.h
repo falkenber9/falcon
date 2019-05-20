@@ -34,12 +34,13 @@ public:
   virtual ~DecoderThread();
 
   void init();
-  void start();
+  void start(int width);
   void stop();
   bool isInitialized();
-
+  int scanline_width = 50;
   void test();
-private:
+
+private: 
   void run();
   volatile bool cancel;
   bool initialized;

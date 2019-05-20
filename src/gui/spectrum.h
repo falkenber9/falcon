@@ -6,11 +6,12 @@
 #include "QMouseEvent"
 #include "QWheelEvent"
 #include <qopengl.h>
+#include "settings.h"
 
 class Spectrum : public QOpenGLWidget {
   Q_OBJECT
 public:
-  explicit Spectrum(QWidget *parent = 0);
+  explicit Spectrum(QWidget *parent = 0, Settings *glob_settings = 0);
   virtual ~Spectrum();
   void addLine(const float* data);
   void scroll_up();
@@ -21,7 +22,7 @@ public:
   float max_intensity = 500000.0;
   bool paused = false;
   int pos_y_buff = 0;  // Position Buffer for scrolling
-  int view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1; // Position for scrolling
+  int view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1; // Position for scrolling    
 
 protected:
   void initializeGL();
@@ -33,8 +34,8 @@ protected:
 private:
   GLuint textureHandles[2] = {0,0};
   unsigned int hasTextures;
-  GLubyte *textureBuffer;
-
+  GLubyte *textureBuffer;  
+  Settings *settings;
 
 
   int nextLine = SPECTROGRAM_LINE_COUNT - 1; //0

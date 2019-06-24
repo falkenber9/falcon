@@ -5,7 +5,7 @@ FALCON
 
 *Fast Analysis of LTE Control channels* (FALCON) is an open-source software collection for real-time analysis of radio resources in private or commercial LTE/LTE-A networks. Based on srsLTE library v18.12 (https://github.com/srsLTE/srsLTE), the software can be run on a plain x86 general purpose PCs with any compatible SDR.
 
-The software is an alternative to IMDEA OWL (https://git.networks.imdea.org/nicola_bui/imdeaowl) which provides comparable functionalities for long-term monitoring of LTE cells. Other than OWL, FALCON additionally targets use cases which require short-term monitoring, mobility or non-ideal radio conditions. For conveniance purposes, the interface is mostly kept compatible to OWL and an updated port of OWL is also included into the framework.
+The software is an alternative to IMDEA OWL (https://git.networks.imdea.org/nicola_bui/imdeaowl) which provides comparable functionalities for long-term monitoring of LTE cells. Other than OWL, FALCON additionally targets use cases which require short-term monitoring, mobility or non-ideal radio conditions. For convenience purposes, the interface is mostly kept compatible with OWL and an updated port of OWL is also included in the framework.
 
 
 FALCON is released under the AGPLv3 license.
@@ -72,14 +72,14 @@ $ make
 This section provides brief usage instructions for FALCON's software components:
 
 * Falcon Decoder GUI: A visualization for online/offline PDCCH decoding
-* FalconEye: A commmand line version of the PDCCH decoder for automated/batch processing
+* FalconEye: A command line version of the PDCCH decoder for automated/batch processing
 * FalconCaptureProbe: Signal recorder with optional network probing
 * FalconCaptureWarden: Command line controller for synchronized recordings by multiple instances of FalconCaptureProbe
 * imdea_cc_decoder: Port of IMDEA OWL's PDCCH decoder
 * imdea_capture_sync: Port of IMDEA OWL's signal recorder
 
 ### FALCON Decoder GUI
-The GUI version of FALCON's decoder is located in ``build/src/gui/gui``. Simply launch the executable from terminal or from your preferred graphical file manager.
+The GUI version of FALCON's decoder is located in ``build/src/gui/gui``. Simply launch the executable from a terminal or from your preferred graphical file manager.
 Enter the center frequency of the target LTE cell or select a recording from a file using the file chooser or drag & drop. Example files are provided in a separate repository (https://github.com/falkenber9/falcon-examples).
 
 Press 'Start' and the decoder immediately starts to synchronize to the cell and decodes the PDCCH.
@@ -96,10 +96,10 @@ The GUI will display waterfall plots of the spectrum and resource allocations (u
 Command line version of FALCON Decoder. (Instructions and Examples will follow soon.)
 
 ### FALCON Capture Probe and Capture Warden
-Command line tools for capturing LTE signals and optinal cell probing by an auxiliary modem.
+Command line tools for capturing LTE signals and optional cell probing by an auxiliary modem.
 For synchronized recordings by multiple instances of the recorder, Capture Warden provides a test-based command prompt.
 
-Note: In order to reduce the IO-load of the capturing system, FalconCaptureProbe will store the captured samples in RAM and write the to file after the capturing has ended.
+Note: In order to reduce the IO-load of the capturing system, FalconCaptureProbe will store the captured samples in RAM and write them to file after the capturing has ended.
 For this purpose, the application allocates all available RAM (minus 500MB as a reserve) for the internal sample buffer.
 The capturing process stops if the allocated buffer size is exceeded.
 
@@ -125,14 +125,14 @@ If it succeeds, the current working directory will contain the following files:
 
 ## Comparison with IMDEA OWL
 
-The interface of FALCON's recorder and decoder is mostly compatible to IMDEA OWL (https://git.networks.imdea.org/nicola_bui/imdeaowl).
+The interface of FALCON's recorder and decoder is mostly compatible with IMDEA OWL (https://git.networks.imdea.org/nicola_bui/imdeaowl).
 FALCON inherits OWL's approach of tracking C-RNTI assignments from PRACH for any UE that joins the cell during the observation time.
-However, the method to discover already active C-RNTIs from earlier assignments differ significantly.
+However, the method to discover already active C-RNTIs from earlier assignments differs significantly.
 FALCON uses RNTI histograms and shortcut decoding to validate unseen RNTIs during the blind decoding procedure.
 In contrast to OWL's re-encoding approach, this method is significantly less sensitive to non-ideal radio conditions. This makes FALCON suitable for robust and reliable short-term monitoring, e.g. for mobile applications.
 
 ### Port of IMDEA OWL
-The original version of IMDEA OWL is hard coded into a fork of SRSLTE v1.3.
+The original version of IMDEA OWL is hardcoded into a fork of SRSLTE v1.3.
 In order to provide a fair comparison of FALCON and OWL and their underlying methods, we extracted and ported OWL with its extensions of the SRSLTE library into the FALCON project as separated modules and applications.
 By this, both applications benefit from future advancements of SRSLTE library.
 
@@ -145,9 +145,9 @@ We validated the functionality of the IMDEA OWL port against its original implem
 
 This required the following precautions:
 
-- **Switch Viterbi decoder to 8 bit**: SRSLTE uses 16 bit viterbi decoder if AVX2 is available, whereas the version underlying IMDEA OWL uses 8 bit viterbi decoder. This circumvents direct comparison, since spurious (false) DCI are decoded to different sequences of bits. Therefore, ``#undef VITERBI_16`` in file ``dci.c`` of SRSLTE library even if ``LV_HAVE_AVX2`` is defined to achieve the same behaviour.
+- **Switch Viterbi decoder to 8 bit**: SRSLTE uses 16-bit Viterbi decoder if AVX2 is available, whereas the version underlying IMDEA OWL uses 8-bit Viterbi decoder. This circumvents direct comparison since spurious (false) DCI are decoded to different sequences of bits. Therefore, ``#undef VITERBI_16`` in file ``dci.c`` of SRSLTE library even if ``LV_HAVE_AVX2`` is defined to achieve the same behavior.
 
-With these precautions, both versions decoded and processed the exactly same set of DCI candidates (whether true or spurious). All candidates were classified identically.
+With these precautions, both versions decoded and processed exactly the same set of DCI candidates (whether true or spurious). All candidates were classified identically.
 However, we noticed the following (minor) differences:
 
 - **DCI scrambled with RA/P/SI-RNTI**: MCS is provided by the updated version. In such cases the old version always reports MCS=0.

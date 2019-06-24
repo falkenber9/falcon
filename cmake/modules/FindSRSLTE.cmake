@@ -135,16 +135,24 @@ IF(DEFINED SRSLTE_SRCDIR)
                             ${SRSLTE_SRCDIR}/asn1)
 ENDIF(DEFINED SRSLTE_SRCDIR)
 
-SET(SRSLTE_LIBRARIES    ${SRSLTE_LIBRARY_RF}
-                        ${SRSLTE_LIBRARY_RF_UTILS}
-                        ${SRSLTE_LIBRARY}
-                        ${SRSLTE_LIBRARY_PHY}
-                        ${SRSLTE_LIBRARY_UPPER}
-                        ${SRSLTE_LIBRARY_RADIO}
-                        ${SRSLTE_LIBRARY_ASN1}
-                        )
+#                            ${SRSLTE_LIBRARY_RF}
+#                            ${SRSLTE_LIBRARY_RADIO}
+set(SRSLTE_LIBRARIES        ${SRSLTE_LIBRARY}
+                            ${SRSLTE_LIBRARY_RF_UTILS}
+                            ${SRSLTE_LIBRARY_PHY}
+                            ${SRSLTE_LIBRARY_UPPER}
+                            ${SRSLTE_LIBRARY_ASN1}
+)
 
-message(STATUS "SRSLTE LIBRARIES: " ${SRSLTE_LIBRARIES})
+if(SRSLTE_LIBRARY_RF)
+    list(APPEND SRSLTE_LIBRARIES ${SRSLTE_LIBRARY_RF})
+endif(SRSLTE_LIBRARY_RF)
+
+if(SRSLTE_LIBRARY_RADIO)
+    list(APPEND SRSLTE_LIBRARIES ${SRSLTE_LIBRARY_RADIO})
+endif(SRSLTE_LIBRARY_RADIO)
+
+message(STATUS "SRSLTE LIBRARIES are: " ${SRSLTE_LIBRARIES})
 message(STATUS "SRSLTE INCLUDE DIRS: " ${SRSLTE_INCLUDE_DIRS})
 
 INCLUDE(FindPackageHandleStandardArgs)

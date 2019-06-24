@@ -155,3 +155,4 @@ However, we noticed the following (minor) differences:
 - **Invalid RB allocation**: If the library detects an illegal RB allocation (i.e. spurious DCI carrying an illegal resource block group assignment), a nulled line is printed. The old version prints arbitrary values.
 
 
+

@@ -3,7 +3,7 @@
 #
 # Once done this will define
 #  CMNALIB_FOUND        - System has srslte
-#  CMNALIBE_INCLUDE_DIRS - The srslte include directories
+#  CMNALIB_INCLUDE_DIRS - The srslte include directories
 #  CMNALIB_LIBRARIES    - The srslte libraries
 #
 # The following variables are used:

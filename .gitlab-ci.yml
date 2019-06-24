@@ -1,0 +1,117 @@
+stages:
+  - environment_base
+  - environment_variants
+  - build_variants
+  - unit_test
+#  - integration_test
+  - system_test
+
+before_script:
+  - docker info
+
+base_ubuntu:
+  stage: environment_base
+  script:
+    #- pwd
+    #- export
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/base-ubuntu
+    - docker build -t base_ubuntu --target base_ubuntu .
+    
+base_ubuntu_srsgui:
+  stage: environment_base
+  script:
+    #- docker build -t $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}_base_ubuntu .
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/base-ubuntu
+    - docker build -t base_ubuntu_srsgui --target base_ubuntu_srsgui .
+
+variant_minimal:
+  stage: environment_variants
+  script:
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
+    - docker build -t variant_minimal:${CI_COMMIT_REF_SLUG} .
+    
+variant_cmnalib:
+  stage: environment_variants
+  script:
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
+    - docker build -t variant_cmnalib:${CI_COMMIT_REF_SLUG} --build-arg INCLUDE_CMNALIB=true .
+    
+variant_cmnalib_uhd:
+  stage: environment_variants
+  script:
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
+    - docker build -t variant_cmnalib_uhd:${CI_COMMIT_REF_SLUG} --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true .
+    
+variant_uhd:
+  stage: environment_variants
+  script:
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
+    - docker build -t variant_uhd:${CI_COMMIT_REF_SLUG} --build-arg INCLUDE_UHD=true .
+    
+variant_full:
+  stage: environment_variants
+  script:
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
+    - docker build -t variant_full:${CI_COMMIT_REF_SLUG} --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true --build-arg INCLUDE_LIMESDR=true .
+    
+#variant_noradio:
+  #stage: environment_variants
+  #script:
+    #- cd $CI_PROJECT_DIR/_gitlab-ci/docker/variant-noradio
+    #- docker build -t variant_noradio .
+    
+#variant_uhd:
+  #stage: environment_variants
+  #script:
+    #- cd $CI_PROJECT_DIR/_gitlab-ci/docker/variant-uhd
+    #- docker build -t variant_uhd .
+    
+#variant_allradio:
+  #stage: environment_variants
+  #script:
+    #- cd $CI_PROJECT_DIR/_gitlab-ci/docker/variant-allradio
+    #- docker build -t variant_allradio .
+  
+#build_environment_image:
+  #stage: setup
+  #script:
+     #- cd _gitlab-ci
+     #- docker build -t falcon-test .
+    #- docker run -v `pwd`/.:/test -i falcon-test /test/testscripts/./test_all.sh /falcon/build /tmp
+   #- echo "Tapa Tapa"
+   #- docker run hello-world
+
+sys_minimal:
+  stage: system_test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    - docker run -v `pwd`/.:/falcon -i variant_minimal:${CI_COMMIT_REF_SLUG} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    
+sys_cmnalib:
+  stage: system_test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    - docker run -v `pwd`/.:/falcon -i variant_cmnalib:${CI_COMMIT_REF_SLUG} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    
+sys_cmnalib_uhd:
+  stage: system_test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    - docker run -v `pwd`/.:/falcon -i variant_cmnalib_uhd:${CI_COMMIT_REF_SLUG} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+
+sys_uhd:
+  stage: system_test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    - docker run -v `pwd`/.:/falcon -i variant_uhd:${CI_COMMIT_REF_SLUG} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    
+sys_full:
+  stage: system_test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    - docker run -v `pwd`/.:/falcon -i variant_full:${CI_COMMIT_REF_SLUG} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp

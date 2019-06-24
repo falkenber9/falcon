@@ -1,0 +1,9 @@
+
+# Ignore all hidden files
+.*
+# Hidden files exceptions
+!/.gitignore
+
+# Ignore private files
+_*
+

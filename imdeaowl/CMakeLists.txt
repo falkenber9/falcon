@@ -50,7 +50,9 @@ target_link_libraries(cni_cc_decoder
 # Compile options (compatibility)
 #################################################################
 
-target_compile_options(imdea_capture_sync PUBLIC "-std=gnu99")
+if(RF_FOUND)
+    target_compile_options(imdea_capture_sync PUBLIC "-std=gnu99")
+endif(RF_FOUND)
 target_compile_options(imdea_cc_decoder PUBLIC "-std=gnu99")
 target_compile_options(cni_cc_decoder PUBLIC "-std=gnu99")
 

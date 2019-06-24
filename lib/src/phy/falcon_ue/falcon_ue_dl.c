@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2019 Robert Falkenberg.
+ *
+ * This file is part of FALCON 
+ * (see https://github.com/falkenber9/falcon).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * A copy of the GNU Affero General Public License can be found in
+ * the LICENSE file in the top-level directory of this distribution
+ * and at http://www.gnu.org/licenses/.
+ */
 
 #include <math.h>
 #include "falcon/phy/falcon_ue/falcon_ue_dl.h"
@@ -390,6 +410,9 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
       //gettimeofday(&t[1], NULL);
       int result = srslte_pdcch_decode_msg_limit_avg_llr_power(&q->q->pdcch, &dci_msg_cand[format_idx], cce_map[ncce].location[L], formats[format_idx], cfi, &rnti_cand[format_idx], 0);
       q->stats.nof_decoded_locations++;
+#ifdef PRINT_ALL_CANDIDATES
+      printf("Cand. %d (sfn %d.%d, ncce %d, L %d, f_idx %d)\n", &rnti_cand[format_idx], sfn, sf_idx, ncce, L, format_idx);
+#endif
       if(result != SRSLTE_SUCCESS) {
         ERROR("Error calling srslte_pdcch_decode_msg_limit_avg_llr_power\n");
       }

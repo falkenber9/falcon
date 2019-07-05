@@ -34,6 +34,6 @@ Interval::Interval(uint16_t start, uint16_t end) :
 
 }
 
-bool Interval::matches(uint16_t value) {
+bool Interval::matches(uint16_t value) const {
   return (value >= start && value <= end);
 }

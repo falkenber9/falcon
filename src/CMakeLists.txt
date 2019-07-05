@@ -2,6 +2,7 @@
 add_subdirectory(capture_probe)
 add_subdirectory(eye)
 add_subdirectory(gui)
+add_subdirectory(misc)
 #...
 
 # Link libstdc++ and libgcc

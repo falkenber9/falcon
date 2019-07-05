@@ -70,6 +70,8 @@ const uint32_t nof_falcon_ue_all_formats = 7;
 
 
 
+
+
 int falcon_ue_dl_init(falcon_ue_dl_t *q,
                       srslte_ue_dl_t *qq,
                       cf_t *in_buffer[SRSLTE_MAX_PORTS],
@@ -137,6 +139,15 @@ void falcon_ue_dl_free(falcon_ue_dl_t *q) {
     free(q->rnti_histogram);
     q->rnti_histogram = 0;
   }
+}
+
+dci_candidate_t* falcon_alloc_candidates(uint32_t nof_candidates) {
+  dci_candidate_t* result = calloc(nof_candidates, sizeof(dci_candidate_t));
+  return result;
+}
+
+void falcon_free_candidates(dci_candidate_t* candidates) {
+  free(candidates);
 }
 
 void srslte_ue_dl_reset_rnti_list(falcon_ue_dl_t *q) {
@@ -214,12 +225,6 @@ int srslte_ue_dl_find_dci_cc(falcon_ue_dl_t *q, srslte_dci_msg_t *dci_msg, uint3
 #ifdef CNI_TIMESTAMP
   struct timeval timestamp;
   gettimeofday(&timestamp, NULL);
-#endif
-
-#ifndef __NO_DEDICATED_BREAKPOINT__
-  if(sfn == 1089 && sf_idx == 5) {   /* only for a quick breakpoint */
-    printf("TTT\n");
-  }
 #endif
 
   /* Generate PDCCH candidates allowing all possible control channel locations in which something is sensed */
@@ -387,9 +392,10 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
                                                   uint32_t L,
                                                   srslte_dci_format_t const *formats,
                                                   uint32_t nof_formats,
-                                                  const uint16_t parent_rnti_cand[]) {
-  uint16_t rnti_cand[nof_formats];
-  srslte_dci_msg_t dci_msg_cand[nof_formats];
+                                                  uint32_t enable_shortcut,
+                                                  const dci_candidate_t parent_cand[]) {
+  //uint16_t rnti_cand[nof_formats];
+  //srslte_dci_msg_t dci_msg_cand[nof_formats];
   int hist_max_format_idx = -1;
   unsigned int hist_max_format_value = 0;
   unsigned int nof_cand_above_threshold = 0;
@@ -398,6 +404,8 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
   srslte_ra_ul_dci_t ul_dci_unpacked;
   srslte_ra_dl_grant_t dl_grant;
   srslte_ra_ul_grant_t ul_grant;
+
+  dci_candidate_t* cand = falcon_alloc_candidates(nof_formats);
 
   //struct timeval t[3];
 
@@ -408,18 +416,18 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
     // Decode candidate for each format (CRC and DCI)
     for(uint32_t format_idx=0; format_idx<nof_formats; format_idx++) {
       //gettimeofday(&t[1], NULL);
-      int result = srslte_pdcch_decode_msg_limit_avg_llr_power(&q->q->pdcch, &dci_msg_cand[format_idx], cce_map[ncce].location[L], formats[format_idx], cfi, &rnti_cand[format_idx], 0);
+      int result = srslte_pdcch_decode_msg_limit_avg_llr_power(&q->q->pdcch, &cand[format_idx].dci_msg, cce_map[ncce].location[L], formats[format_idx], cfi, &cand[format_idx].rnti, 0);
       q->stats.nof_decoded_locations++;
 #ifdef PRINT_ALL_CANDIDATES
-      printf("Cand. %d (sfn %d.%d, ncce %d, L %d, f_idx %d)\n", &rnti_cand[format_idx], sfn, sf_idx, ncce, L, format_idx);
+      printf("Cand. %d (sfn %d.%d, ncce %d, L %d, f_idx %d)\n", &cand[format_idx].rnti, sfn, sf_idx, ncce, L, format_idx);
 #endif
       if(result != SRSLTE_SUCCESS) {
         ERROR("Error calling srslte_pdcch_decode_msg_limit_avg_llr_power\n");
       }
-      if(formats[format_idx] != dci_msg_cand[format_idx].format) {
+      if(formats[format_idx] != cand[format_idx].dci_msg.format) {
         //format 0/1A format mismatch
-        INFO("Dropped DCI cand. %d (format_idx %d) L%d ncce %d (format 0/1A mismatch)\n", rnti_cand[format_idx], format_idx, L, ncce);
-        rnti_cand[format_idx] = FALCON_ILLEGAL_RNTI;
+        INFO("Dropped DCI cand. %d (format_idx %d) L%d ncce %d (format 0/1A mismatch)\n", cand[format_idx].rnti, format_idx, L, ncce);
+        cand[format_idx].rnti = FALCON_ILLEGAL_RNTI;
         continue;
       }
       //gettimeofday(&t[2], NULL);
@@ -427,52 +435,58 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
       //printf("Decoding time: %d us (sfn %d, ncce %d, L %d)\n", t[0].tv_usec, sfn, ncce, L);
 
       // Filter 1a: Disallowed RNTI values for format 1C
-      if ((formats[format_idx]==SRSLTE_DCI_FORMAT1C) && (rnti_cand[format_idx] > SRSLTE_RARNTI_END) && (rnti_cand[format_idx] < SRSLTE_PRNTI)) {
-        //DEBUG("Dropped DCI 1C cand. by illegal RNTI: 0x%x\n", rnti_cand[format_idx]);
-        INFO("Dropped DCI cand. %d (format_idx %d) L%d ncce %d (RNTI not allowed in format1C)\n", rnti_cand[format_idx], format_idx, L, ncce);
-        rnti_cand[format_idx] = FALCON_ILLEGAL_RNTI;
+      if ((formats[format_idx]==SRSLTE_DCI_FORMAT1C) && (cand[format_idx].rnti > SRSLTE_RARNTI_END) && (cand[format_idx].rnti < SRSLTE_PRNTI)) {
+        //DEBUG("Dropped DCI 1C cand. by illegal RNTI: 0x%x\n", cand[format_idx].rnti);
+        INFO("Dropped DCI cand. %d (format_idx %d) L%d ncce %d (RNTI not allowed in format1C)\n", cand[format_idx].rnti, format_idx, L, ncce);
+        cand[format_idx].rnti = FALCON_ILLEGAL_RNTI;
         continue;
       }
       // Filter 1a-RA: Disallowed formats for RA-RNTI
-      if ((rnti_cand[format_idx] > SRSLTE_RARNTI_START) &&
-          (rnti_cand[format_idx] < SRSLTE_RARNTI_END)) {
+      if ((cand[format_idx].rnti > SRSLTE_RARNTI_START) &&
+          (cand[format_idx].rnti < SRSLTE_RARNTI_END)) {
         if(formats[format_idx]==SRSLTE_DCI_FORMAT1A) {
-          INFO("Found RA-RNTI: 0x%x\n", rnti_cand[format_idx]);
-          q->q->current_rnti = rnti_cand[format_idx];
+          INFO("Found RA-RNTI: 0x%x\n", cand[format_idx].rnti);
+          q->q->current_rnti = cand[format_idx].rnti;
         }
         else {
-          //DEBUG("Dropped DCI cand.: RA-RNTI only with format 1A: 0x%x\n", rnti_cand[format_idx]);
-          INFO("Dropped DCI cand. %d (format_idx %d) L%d ncce %d (RA-RNTI only format 1A)\n", rnti_cand[format_idx], format_idx, L, ncce);
-          rnti_cand[format_idx] = FALCON_ILLEGAL_RNTI;
+          //DEBUG("Dropped DCI cand.: RA-RNTI only with format 1A: 0x%x\n", cand[format_idx].rnti);
+          INFO("Dropped DCI cand. %d (format_idx %d) L%d ncce %d (RA-RNTI only format 1A)\n", cand[format_idx].rnti, format_idx, L, ncce);
+          cand[format_idx].rnti = FALCON_ILLEGAL_RNTI;
           continue;
         }
       }
       // Shortcut: Decoding at smaller aggregation level still results in the same RNTI as parent.
       // This is a very strong indicator, that the parent DCI is valid.
-      if(parent_rnti_cand != NULL && parent_rnti_cand[format_idx] == rnti_cand[format_idx]) {
-        INFO("RNTI matches to parent DCI cand. %d (format_idx %d), this: L%d ncce %d\n", rnti_cand[format_idx], format_idx, L, ncce);
+      if(enable_shortcut &&
+         parent_cand != NULL &&
+         parent_cand[format_idx].rnti == cand[format_idx].rnti &&
+         !rnti_manager_is_forbidden(q->rnti_manager, cand[format_idx].rnti, format_idx))
+      {
+        INFO("RNTI matches to parent DCI cand. %d (format_idx %d), this: L%d ncce %d\n", cand[format_idx].rnti, format_idx, L, ncce);
+        falcon_free_candidates(cand);
         return -((int)format_idx+1);
       }
 
       // Filter 1b: Illegal DCI positions
-      if (!srslte_pdcch_validate_location(srslte_pdcch_nof_cce(&q->q->pdcch, cfi), ncce, L, sf_idx, rnti_cand[format_idx])) {
-        //DEBUG("Dropped DCI cand. by illegal position: 0x%x\n", rnti_cand[format_idx]);
-        INFO("Dropped DCI cand. %d (format_idx %d) L%d ncce %d (illegal position)\n", rnti_cand[format_idx], format_idx, L, ncce);
-        rnti_cand[format_idx] = FALCON_ILLEGAL_RNTI;
+      cand[format_idx].search_space_match_result = srslte_pdcch_validate_location(srslte_pdcch_nof_cce(&q->q->pdcch, cfi), ncce, L, sf_idx, cand[format_idx].rnti);
+      if (cand[format_idx].search_space_match_result == 0) {
+        //DEBUG("Dropped DCI cand. by illegal position: 0x%x\n", cand[format_idx].rnti);
+        INFO("Dropped DCI cand. %d (format_idx %d) L%d ncce %d (illegal position)\n", cand[format_idx].rnti, format_idx, L, ncce);
+        cand[format_idx].rnti = FALCON_ILLEGAL_RNTI;
         continue;
       }
 
 #ifndef __NEW_HISTOGRAM__
-      unsigned int occurence = rnti_histogram_get_occurence(&q->rnti_histogram[format_idx], rnti_cand[format_idx]);
+      unsigned int occurence = rnti_histogram_get_occurence(&q->rnti_histogram[format_idx], cand[format_idx].rnti);
       // Online max-search
       if(occurence > RNTI_HISTOGRAM_THRESHOLD) {
 
 #ifdef __DISABLED_FOR_TESTING__
         // Filter 2a (part2): Matches DCI-Format to recent DCI-Format for this RNTI
-        if(dci_msg_cand[format_idx].format != SRSLTE_DCI_FORMAT0 &&
-           dci_msg_cand[format_idx].format != q->rnti_format[rnti_cand[format_idx]]) {
-          INFO("Dropped DCI cand. by mismatching format: 0x%x\n", rnti_cand[format_idx]);
-          rnti_cand[format_idx] = FALCON_ILLEGAL_RNTI;
+        if(cand[format_idx].dci_msg.format != SRSLTE_DCI_FORMAT0 &&
+           cand[format_idx].dci_msg.format != q->rnti_format[cand[format_idx].rnti]) {
+          INFO("Dropped DCI cand. by mismatching format: 0x%x\n", cand[format_idx].rnti);
+          cand[format_idx].rnti = FALCON_ILLEGAL_RNTI;
           continue;
         }
 #endif
@@ -484,10 +498,10 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
         }
       }
 #else
-      if(rnti_manager_validate_and_refresh(q->rnti_manager, rnti_cand[format_idx], format_idx)) {
+      if(rnti_manager_validate_and_refresh(q->rnti_manager, cand[format_idx].rnti, format_idx)) {
         nof_cand_above_threshold++;
         hist_max_format_idx = (int)format_idx;
-        hist_max_format_value = rnti_manager_getFrequency(q->rnti_manager, rnti_cand[format_idx], format_idx);
+        hist_max_format_value = rnti_manager_getFrequency(q->rnti_manager, cand[format_idx].rnti, format_idx);
       }
 #endif
     }
@@ -499,13 +513,13 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
       uint32_t hist_max = 0;
       uint32_t hist = 0;
       for(uint32_t format_idx=0; format_idx<nof_formats; format_idx++) {
-        if(rnti_cand[format_idx] != FALCON_ILLEGAL_RNTI) {
-          hist = rnti_manager_getFrequency(q->rnti_manager, rnti_cand[format_idx], format_idx);
-          INFO("\t DCI cand. %d (format_idx %d) L%d ncce %d freq %d\n", rnti_cand[format_idx], format_idx, L, ncce, hist);
+        if(cand[format_idx].rnti != FALCON_ILLEGAL_RNTI) {
+          hist = rnti_manager_getFrequency(q->rnti_manager, cand[format_idx].rnti, format_idx);
+          INFO("\t DCI cand. %d (format_idx %d) L%d ncce %d freq %d\n", cand[format_idx].rnti, format_idx, L, ncce, hist);
           if(hist > hist_max) {
             hist_max = hist;
             hist_max_format_idx = (int)format_idx;
-            hist_max_format_value = rnti_manager_getFrequency(q->rnti_manager, rnti_cand[format_idx], format_idx);
+            hist_max_format_value = rnti_manager_getFrequency(q->rnti_manager, cand[format_idx].rnti, format_idx);
           }
         }
       }
@@ -514,30 +528,45 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
         nof_cand_above_threshold = 0;
       }
       else {
-        INFO("\t Selected DCI cand. %d (format_idx %d)\n", rnti_cand[hist_max_format_idx], hist_max_format_idx);
+        INFO("\t Selected DCI cand. %d (format_idx %d)\n", cand[hist_max_format_idx].rnti, hist_max_format_idx);
       }
     }
 
     cce_map[ncce].location[L]->checked = 1;
 
+    int disambiguation_count = 0;
+#ifdef ENABLE_DCI_DISAMBIGUATION
+    // check, if the location of the preferred DCI is ambiguous with L-1
+    // to prevent overshadowing of neighbouring DCI with L-1 in the right half
+    if(nof_cand_above_threshold > 0 &&
+       cand[hist_max_format_idx].search_space_match_result == SEARCH_SPACE_MATCH_RESULT_AMBIGUOUS ) {
+
+      //descend only right half; pass NULL as parent_rnti_cands
+      disambiguation_count = srslte_ue_dl_inspect_dci_location_recursively(q, dci_msg, cfi, sf_idx, sfn, cce_map, location_list, ncce + (1 << (L-1)), L-1, formats, nof_formats, 0, NULL);
+      if(disambiguation_count > 0) {
+        INFO("Disambiguation discovered %d additional DCI\n", disambiguation_count);
+      }
+    }
+    else
+#endif
     // if no candidates were found, descend covered CCEs recursively
     if(nof_cand_above_threshold == 0) {
       // found nothing - recursion, if applicable
       int recursion_result = 0;
       if(L > 0) {
         //descend left half; pass parent_rnti_cands for shortcuts...
-        recursion_result += srslte_ue_dl_inspect_dci_location_recursively(q, dci_msg, cfi, sf_idx, sfn, cce_map, location_list, ncce, L-1, formats, nof_formats, rnti_cand);
+        recursion_result += srslte_ue_dl_inspect_dci_location_recursively(q, dci_msg, cfi, sf_idx, sfn, cce_map, location_list, ncce, L-1, formats, nof_formats, enable_shortcut, cand);
         if(recursion_result < 0) {
           //shortcut taken, activate RNTI
-          INFO("Shortcut detected: RNTI: %d (format_idx %d)!\n", rnti_cand[-recursion_result - 1], -recursion_result - 1);
+          INFO("Shortcut detected: RNTI: %d (format_idx %d)!\n", cand[-recursion_result - 1].rnti, -recursion_result - 1);
           hist_max_format_idx = -recursion_result - 1;
-          hist_max_format_value = rnti_manager_getFrequency(q->rnti_manager, rnti_cand[hist_max_format_idx], (uint32_t)hist_max_format_idx);
+          hist_max_format_value = rnti_manager_getFrequency(q->rnti_manager, cand[hist_max_format_idx].rnti, (uint32_t)hist_max_format_idx);
           nof_cand_above_threshold = 1;
-          rnti_manager_activate_and_refresh(q->rnti_manager, rnti_cand[hist_max_format_idx], (uint32_t)hist_max_format_idx, RM_ACT_SHORTCUT);
+          rnti_manager_activate_and_refresh(q->rnti_manager, cand[hist_max_format_idx].rnti, (uint32_t)hist_max_format_idx, RM_ACT_SHORTCUT);
         }
         else {
           //descend right half; pass NULL as parent_rnti_cands
-          recursion_result += srslte_ue_dl_inspect_dci_location_recursively(q, dci_msg, cfi, sf_idx, sfn, cce_map, location_list, ncce + (1 << (L-1)), L-1, formats, nof_formats, NULL);
+          recursion_result += srslte_ue_dl_inspect_dci_location_recursively(q, dci_msg, cfi, sf_idx, sfn, cce_map, location_list, ncce + (1 << (L-1)), L-1, formats, nof_formats, enable_shortcut, NULL);
         }
       }
 
@@ -547,25 +576,27 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
       // recursion_result >  0: return this value as number of findings
       if(recursion_result == 0) {
         for(uint32_t format_idx=0; format_idx<nof_formats; format_idx++) {
-          if(rnti_cand[format_idx] != FALCON_ILLEGAL_RNTI) {
+          if(cand[format_idx].rnti != FALCON_ILLEGAL_RNTI) {
 #ifndef __NEW_HISTOGRAM__
-            rnti_histogram_add_rnti(&q->rnti_histogram[0], rnti_cand[format_idx]);
+            rnti_histogram_add_rnti(&q->rnti_histogram[0], cand[format_idx].rnti);
 #else
-            rnti_manager_add_candidate(q->rnti_manager, rnti_cand[format_idx], format_idx);
-            INFO("Dropped DCI cand. %d (format_idx %d) L%d ncce %d (spurious/infrequent), add to histogram\n", rnti_cand[format_idx], format_idx, L, ncce);
+            rnti_manager_add_candidate(q->rnti_manager, cand[format_idx].rnti, format_idx);
+            INFO("Dropped DCI cand. %d (format_idx %d) L%d ncce %d (spurious/infrequent), add to histogram\n", cand[format_idx].rnti, format_idx, L, ncce);
 #endif
 
 #ifdef __DISABLED_FOR_TESTING__
             // Filter 2a (part1): Remember DCI-Format of this RNTI
-            if(dci_msg_cand[format_idx].format != SRSLTE_DCI_FORMAT0) {
-              q->rnti_format[rnti_cand[format_idx]] = dci_msg_cand[format_idx].format;
+            if(cand[format_idx].dci_msg.format != SRSLTE_DCI_FORMAT0) {
+              q->rnti_format[cand[format_idx].rnti] = cand[format_idx].dci_msg.format;
             }
 #endif
           }
         }
+        falcon_free_candidates(cand);
         return 0;
       }
       else if(recursion_result > 0) {
+        falcon_free_candidates(cand);
         return recursion_result;
       }
       //else if(recursion_result < 0) { do not return }
@@ -586,26 +617,26 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
 
       // consider only the most frequent dci candidate; ignore others
 #ifndef __NEW_HISTOGRAM__
-      rnti_histogram_add_rnti(&q->rnti_histogram[0], rnti_cand[hist_max_format_idx]);
+      rnti_histogram_add_rnti(&q->rnti_histogram[0], cand[hist_max_format_idx].rnti);
 #else
-      rnti_manager_add_candidate(q->rnti_manager, rnti_cand[hist_max_format_idx], (uint32_t)hist_max_format_idx);
+      rnti_manager_add_candidate(q->rnti_manager, cand[hist_max_format_idx].rnti, (uint32_t)hist_max_format_idx);
 #endif
 
       // process the accepted DCI
-      srslte_dci_msg_to_trace_timestamp(&dci_msg_cand[hist_max_format_idx], rnti_cand[hist_max_format_idx], q->q->cell.nof_prb, q->q->cell.nof_ports,
+      srslte_dci_msg_to_trace_timestamp(&cand[hist_max_format_idx].dci_msg, cand[hist_max_format_idx].rnti, q->q->cell.nof_prb, q->q->cell.nof_ports,
                                         &dl_dci_unpacked, &ul_dci_unpacked, &dl_grant, &ul_grant, sf_idx, sfn, hist_max_format_value,
-                                        ncce, L, dci_msg_cand[hist_max_format_idx].format, cfi, 0, timestamp, hist_max_format_value, q->dci_file);
+                                        ncce, L, cand[hist_max_format_idx].dci_msg.format, cfi, 0, timestamp, hist_max_format_value, q->dci_file);
 
-      srslte_dci_msg_to_trace_toTop(&dci_msg_cand[hist_max_format_idx], rnti_cand[hist_max_format_idx], q->q->cell.nof_prb, q->q->cell.nof_ports,
+      srslte_dci_msg_to_trace_toTop(&cand[hist_max_format_idx].dci_msg, cand[hist_max_format_idx].rnti, q->q->cell.nof_prb, q->q->cell.nof_ports,
                                     &dl_dci_unpacked, &ul_dci_unpacked, &dl_grant, &ul_grant, sf_idx, sfn, hist_max_format_value,
-                                    ncce, L, dci_msg_cand[hist_max_format_idx].format, cfi, 0, timestamp, hist_max_format_value, q->dci_file,q->decoderthread);
+                                    ncce, L, cand[hist_max_format_idx].dci_msg.format, cfi, 0, timestamp, hist_max_format_value, q->dci_file,q->decoderthread);
 
       // ####################################################################################################################################################
 
       // check upload/download
       if (dl_grant.mcs[0].tbs>0) {
         /* merge total RB map for RB allocation overview */
-        uint16_t color = rnti_cand[hist_max_format_idx];
+        uint16_t color = cand[hist_max_format_idx].rnti;
         color = (((color & 0xFF00) >> 8) | ((color & 0x00FF) << 8));
         color = (((color & 0xF0F0) >> 4) | ((color & 0x0F0F) << 4));
         color = (((color & 0xCCCC) >> 2) | ((color & 0x3333) << 2));
@@ -626,7 +657,7 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
       }
       if (ul_grant.mcs.tbs>0) {
         /* merge total RB map for RB allocation overview */
-        uint16_t color = rnti_cand[hist_max_format_idx];
+        uint16_t color = cand[hist_max_format_idx].rnti;
         color = (((color & 0xFF00) >> 8) | ((color & 0x00FF) << 8));
         color = (((color & 0xF0F0) >> 4) | ((color & 0x0F0F) << 4));
         color = (((color & 0xCCCC) >> 2) | ((color & 0x3333) << 2));
@@ -643,13 +674,15 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
         q->totBWup +=  (uint32_t) ul_grant.mcs.tbs;
         if (q->totRBup > q->q->cell.nof_prb) q->totBWup = q->q->cell.nof_prb;
       }
-      return 1;
+      falcon_free_candidates(cand);
+      return 1 + disambiguation_count;
     }
     else {
       // this should never happen
       ERROR("nof_cand_above_threshold <= 0 but this was not caught earlier.\n");
     }
   }
+  falcon_free_candidates(cand);
   return 0;
 }
 
@@ -667,13 +700,6 @@ int srslte_ue_dl_recursive_blind_dci_search(falcon_ue_dl_t *q, srslte_dci_msg_t 
   q->stats.nof_cce += q->q->pdcch.nof_cce[0] + q->q->pdcch.nof_cce[1] + q->q->pdcch.nof_cce[2];
 
   //struct timeval t[3];
-
-#define DEDICATED_BREAKPOINT
-#ifdef DEDICATED_BREAKPOINT
-  if(sfn == 977 && sf_idx == 9) {   /* only for a quick breakpoint */
-    printf("TTT\n");
-  }
-#endif
 
   /* Generate PDCCH candidates and a lookup map for cce -> parent dci */
   nof_locations = srslte_pdcch_ue_locations_all_map(&q->q->pdcch, locations, MAX_CANDIDATES_BLIND, cce_map, MAX_NUM_OF_CCE, sf_idx, cfi);
@@ -702,14 +728,23 @@ int srslte_ue_dl_recursive_blind_dci_search(falcon_ue_dl_t *q, srslte_dci_msg_t 
   //uint32_t L = 3;    // Aggregation level
   // inspect all locations at this aggregation level recursively
   for(unsigned int location_idx=0; location_idx < nof_locations; location_idx++) {
-      ret += srslte_ue_dl_inspect_dci_location_recursively(q, dci_msg, cfi, sf_idx, sfn, cce_map, locations, locations[location_idx].ncce, locations[location_idx].L, formats, nof_formats, NULL);
-    }
+    ret += srslte_ue_dl_inspect_dci_location_recursively(q, dci_msg, cfi, sf_idx, sfn, cce_map, locations, locations[location_idx].ncce, locations[location_idx].L, formats, nof_formats, 1, NULL);
+  }
 
   //    if(ret == 0) {
   //        //printf("Empty Subframe!\n");
   //        q->colored_rb_map_dw[15] = 60000.0;
   //        q->colored_rb_map_up[15] = 60000.0;
   //    }
+
+  if(sfn == 1109 && sf_idx == 5) {
+
+      q->colored_rb_map_dw[15] = 60000.0;
+      q->colored_rb_map_dw[20] = 60000.0;
+      q->colored_rb_map_dw[25] = 60000.0;
+      q->colored_rb_map_dw[30] = 60000.0;
+  }
+
   //swap colored rb map buffers
   float* tmp_dw = q->colored_rb_map_dw_last;
   float* tmp_up = q->colored_rb_map_up_last;
@@ -831,7 +866,7 @@ int srslte_ue_dl_find_dci_histogram(falcon_ue_dl_t *q, srslte_dci_msg_t *dci_msg
               if (!srslte_pdcch_validate_location(srslte_pdcch_nof_cce(&q->q->pdcch, cfi), locations[i].ncce, locations[i].L, sf_idx, crc_rem)) {
                   DEBUG("Dropped DCI cand. by illegal position: 0x%x\n", crc_rem);
                   continue;
-                }
+              }
               // Histogram consideration
               rnti_histogram_add_rnti(&q->rnti_histogram[f], crc_rem);
               // Filter 2: Occurence Count

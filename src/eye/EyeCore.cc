@@ -397,6 +397,11 @@ bool EyeCore::run() {
                 rnti_manager_add_evergreen(falcon_ue_dl.rnti_manager, SRSLTE_RARNTI_START, SRSLTE_RARNTI_END, static_cast<uint32_t>(idx));
                 rnti_manager_add_evergreen(falcon_ue_dl.rnti_manager, SRSLTE_PRNTI, SRSLTE_SIRNTI, static_cast<uint32_t>(idx));
               }
+              // add forbidden rnti values to rnti manager
+              for(uint32_t f=0; f<nof_falcon_ue_all_formats; f++) {
+                  //disallow RNTI=0 for all formats
+                  rnti_manager_add_forbidden(falcon_ue_dl.rnti_manager, 0x0, 0x0, f);
+              }
 
             }
           }

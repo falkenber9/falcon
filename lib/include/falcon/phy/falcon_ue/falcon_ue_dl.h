@@ -41,8 +41,19 @@ extern "C" {
 //#define LOG_ERRORS
 #define PROB_THR 97
 
+#define ENABLE_DCI_DISAMBIGUATION
+
 extern const srslte_dci_format_t falcon_ue_all_formats[];
 extern const uint32_t nof_falcon_ue_all_formats;
+
+#define SEARCH_SPACE_MATCH_RESULT_MISMATCH 0
+#define SEARCH_SPACE_MATCH_RESULT_AMBIGUOUS 1
+#define SEARCH_SPACE_MATCH_RESULT_EXACT 2
+typedef struct {
+  uint16_t rnti;
+  srslte_dci_msg_t dci_msg;
+  uint32_t search_space_match_result;
+} dci_candidate_t;
 
 typedef struct {
   srslte_dci_format_t format;
@@ -99,6 +110,8 @@ SRSLTE_API int falcon_ue_dl_init(falcon_ue_dl_t *q,
                                  const char* dci_file_name,
                                  const char* stats_file_name);
 SRSLTE_API void falcon_ue_dl_free(falcon_ue_dl_t *q);
+SRSLTE_API dci_candidate_t* falcon_alloc_candidates(uint32_t nof_candidates);
+SRSLTE_API void falcon_free_candidates(dci_candidate_t* candidates);
 SRSLTE_API void srslte_ue_dl_reset_rnti_list(falcon_ue_dl_t *q);
 SRSLTE_API void srslte_ue_dl_reset_rnti_user(falcon_ue_dl_t *q, uint16_t user);
 SRSLTE_API void srslte_ue_dl_reset_rnti_user_to(falcon_ue_dl_t *q, uint16_t user, uint16_t val);
@@ -126,7 +139,9 @@ SRSLTE_API int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
                                                              uint32_t ncce,
                                                              uint32_t L,
                                                              const srslte_dci_format_t *formats,
-                                                             uint32_t nof_formats, const uint16_t parent_rnti_cand[]);
+                                                             uint32_t nof_formats,
+                                                             uint32_t enable_shortcut,
+                                                             const dci_candidate_t parent_rnti_cand[]);
 SRSLTE_API int srslte_ue_dl_recursive_blind_dci_search(falcon_ue_dl_t *q,
                                                        srslte_dci_msg_t *dci_msg,
                                                        uint32_t cfi,

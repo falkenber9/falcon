@@ -73,10 +73,13 @@ public:
   virtual ~RNTIManager();
 
   virtual void addEvergreen(uint16_t rntiStart, uint16_t rntiEnd, uint32_t formatIdx);
+  virtual void addForbidden(uint16_t rntiStart, uint16_t rntiEnd, uint32_t formatIdx);
   virtual void addCandidate(uint16_t rnti, uint32_t formatIdx);
   virtual bool validate(uint16_t rnti, uint32_t formatIdx);
   virtual bool validateAndRefresh(uint16_t rnti, uint32_t formatIdx);
   virtual void activateAndRefresh(uint16_t rnti, uint32_t formatIdx, ActivationReason reason);
+  virtual bool isEvergreen(uint16_t rnti, uint32_t formatIdx) const;
+  virtual bool isForbidden(uint16_t rnti, uint32_t formatIdx) const;
   virtual void stepTime();
   virtual void stepTime(uint32_t nSteps);
   virtual uint32_t getFrequency(uint16_t rnti, uint32_t formatIdx);
@@ -89,7 +92,6 @@ public:
   static std::string getActivationReasonString(ActivationReason reason);
 private:
   RNTIManager(const RNTIManager&);    // prevent copy
-  bool validateByEvergreen(uint16_t rnti, uint32_t formatIdx);
   RMValidationResult_t validateByActiveList(uint16_t rnti, uint32_t formatIdx);
   bool validateByHistogram(uint16_t rnti, uint32_t formatIdx);
   virtual uint32_t getLikelyFormatIdx(uint16_t rnti);
@@ -98,6 +100,7 @@ private:
   uint32_t nformats;
   std::vector<Histogram> histograms;
   std::vector<std::vector<Interval> > evergreen;
+  std::vector<std::vector<Interval> > forbidden;
   std::vector<bool> active;
   std::list<RNTIActiveSetItem> activeSet;
   std::vector<uint32_t> lastSeen;

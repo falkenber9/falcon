@@ -204,27 +204,44 @@ uint32_t srslte_pdcch_generic_locations_ncce(uint32_t nof_cce, srslte_dci_locati
 #define MAX_CANDIDATES_UE  (16+6) // From 36.213 Table 9.1.1-1 (Common+UE_spec.)
 
 /**
- * @brief srslte_pdcch_validate_location Validate position of a DCI candidate
+ * @brief srslte_pdcch_validate_location Validate position of a DCI candidate. In addition
+ * this function reports, whether the candidate for a given L has an ambiguous match für L-1
+ * at the same location ncce. Deeper ambiguities L-2..3 are ignored. Ambiguous candidates require
+ * special treatment to prevent coverage of neighboring DCI.
  * @param nof_cce Total number of CCEs in this subframe.
  * @param ncce Index of CCE where this DCI candidate starts
  * @param l Aggregation level of DCI candidate 0..3
  * @param nsubframe Current subframe number 0..9
  * @param rnti RNTI of the decoded candidate
- * @return 1 if valid candidate, 0 if invalid candidate
+ * @return 0 for invalid candidate, 1 for valid but ambiguous candidate, 2 for valid and unambiguous candidate
  */
 uint32_t srslte_pdcch_validate_location(uint32_t nof_cce, uint32_t ncce, uint32_t l,
                                         uint32_t nsubframe, uint16_t rnti)
 {
+  uint32_t ambiguous = 0;
+  uint32_t is_valid = 0;
   srslte_dci_location_t loc[MAX_CANDIDATES_UE];
   uint32_t num_candidates = srslte_pdcch_generic_locations_ncce(nof_cce, loc, MAX_CANDIDATES_UE, nsubframe, rnti);
 
+
   for(uint32_t i = 0; i < num_candidates; i++) {
     //search for matching candidate
-    if((loc[i].L == l) && (loc[i].ncce == ncce)) return 1;
+    if(loc[i].ncce == ncce) {
+      // check ambiguity
+      if(l > 0 && (l-1 == loc[i].L)) {
+        ambiguous = 1;
+      }
+      // check validity
+      if(loc[i].L == l) {
+        is_valid = 1;
+      }
+    }
   }
 
-  //no valid candidate found = illegal candidate - return false.
-  return 0;
+  if(is_valid && !ambiguous) {
+    is_valid = 2;
+  }
+  return is_valid;
 }
 
 /** 36.213 v9.1.1

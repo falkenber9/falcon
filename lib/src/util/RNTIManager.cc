@@ -43,6 +43,10 @@ void rnti_manager_add_evergreen(void* h, uint16_t rnti_start, uint16_t rnti_end,
   if(h) static_cast<RNTIManager*>(h)->addEvergreen(rnti_start, rnti_end, format_idx);
 }
 
+void rnti_manager_add_forbidden(void* h, uint16_t rnti_start, uint16_t rnti_end, uint32_t format_idx) {
+  if(h) static_cast<RNTIManager*>(h)->addForbidden(rnti_start, rnti_end, format_idx);
+}
+
 void rnti_manager_add_candidate(void* h, uint16_t rnti, uint32_t format_idx) {
   if(h) static_cast<RNTIManager*>(h)->addCandidate(rnti, format_idx);
 }
@@ -59,6 +63,16 @@ int rnti_manager_validate_and_refresh(void* h, uint16_t rnti, uint32_t format_id
 
 void rnti_manager_activate_and_refresh(void* h, uint16_t rnti, uint32_t format_idx, rnti_manager_activation_reason_t reason) {
   if(h) static_cast<RNTIManager*>(h)->activateAndRefresh(rnti, format_idx, reason);
+}
+
+int rnti_manager_is_evergreen(void* h, uint16_t rnti, uint32_t format_idx) {
+  if(h) return static_cast<RNTIManager*>(h)->isEvergreen(rnti, format_idx);
+  return 0;
+}
+
+int rnti_manager_is_forbidden(void* h, uint16_t rnti, uint32_t format_idx) {
+  if(h) return static_cast<RNTIManager*>(h)->isForbidden(rnti, format_idx);
+  return 0;
 }
 
 void rnti_manager_step_time(void* h) {
@@ -117,6 +131,7 @@ RNTIManager::RNTIManager(uint32_t nformats, uint32_t maxCandidatesPerStepPerForm
   nformats(nformats),
   histograms(nformats, Histogram(RNTI_HISTORY_DEPTH, RNTI_HISTOGRAM_ELEMENT_COUNT)),
   evergreen(nformats, vector<Interval>()),
+  forbidden(nformats, vector<Interval>()),
   active(RNTI_HISTOGRAM_ELEMENT_COUNT, false),
   activeSet(),
   lastSeen(RNTI_HISTOGRAM_ELEMENT_COUNT, 0),
@@ -138,6 +153,10 @@ void RNTIManager::addEvergreen(uint16_t rntiStart, uint16_t rntiEnd, uint32_t fo
   evergreen[formatIdx].push_back(Interval(rntiStart, rntiEnd));
 }
 
+void RNTIManager::addForbidden(uint16_t rntiStart, uint16_t rntiEnd, uint32_t formatIdx) {
+  forbidden[formatIdx].push_back(Interval(rntiStart, rntiEnd));
+}
+
 void RNTIManager::addCandidate(uint16_t rnti, uint32_t formatIdx) {
   histograms[formatIdx].add(rnti);
   remainingCandidates[formatIdx]--;
@@ -146,8 +165,12 @@ void RNTIManager::addCandidate(uint16_t rnti, uint32_t formatIdx) {
 bool RNTIManager::validate(uint16_t rnti, uint32_t formatIdx) {
 
   /* evergreen consultation */
-  if(validateByEvergreen(rnti, formatIdx)) {
+  if(isEvergreen(rnti, formatIdx)) {
     return true;
+  }
+
+  if(isForbidden(rnti, formatIdx)) {
+      return false;
   }
 
   /* active-list consultation */
@@ -264,9 +287,17 @@ void RNTIManager::getHistogramSummary(uint32_t *buf)
   }
 }
 
-bool RNTIManager::validateByEvergreen(uint16_t rnti, uint32_t formatIdx) {
-  vector<Interval>& intervals = evergreen[formatIdx];
-  for(vector<Interval>::iterator inter = intervals.begin(); inter != intervals.end(); inter++) {
+bool RNTIManager::isEvergreen(uint16_t rnti, uint32_t formatIdx) const {
+  const vector<Interval>& intervals = evergreen[formatIdx];
+  for(vector<Interval>::const_iterator inter = intervals.begin(); inter != intervals.end(); inter++) {
+    if(inter->matches(rnti)) return true;
+  }
+  return false;
+}
+
+bool RNTIManager::isForbidden(uint16_t rnti, uint32_t formatIdx) const {
+  const vector<Interval>& intervals = forbidden[formatIdx];
+  for(vector<Interval>::const_iterator inter = intervals.begin(); inter != intervals.end(); inter++) {
     if(inter->matches(rnti)) return true;
   }
   return false;

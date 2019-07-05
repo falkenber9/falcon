@@ -48,10 +48,13 @@ typedef struct {
 void* rnti_manager_create(uint32_t n_formats, uint32_t maxCandidatesPerStepPerFormat);
 void rnti_manager_free(void* h);
 void rnti_manager_add_evergreen(void* h, uint16_t rnti_start, uint16_t rnti_end, uint32_t format_idx);
+void rnti_manager_add_forbidden(void* h, uint16_t rnti_start, uint16_t rnti_end, uint32_t format_idx);
 void rnti_manager_add_candidate(void* h, uint16_t rnti, uint32_t format_idx);
 int rnti_manager_validate(void* h, uint16_t rnti, uint32_t format_idx);
 int rnti_manager_validate_and_refresh(void* h, uint16_t rnti, uint32_t format_idx);
 void rnti_manager_activate_and_refresh(void* h, uint16_t rnti, uint32_t format_idx, rnti_manager_activation_reason_t reason);
+int rnti_manager_is_evergreen(void* h, uint16_t rnti, uint32_t format_idx);
+int rnti_manager_is_forbidden(void* h, uint16_t rnti, uint32_t format_idx);
 void rnti_manager_step_time(void* h);
 void rnti_manager_step_time_multi(void* h, uint32_t n_steps);
 uint32_t rnti_manager_getFrequency(void* h, uint16_t rnti, uint32_t format_idx);

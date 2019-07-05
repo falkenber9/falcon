@@ -27,7 +27,7 @@ class Interval {
 public:
   Interval(uint16_t start_end);
   Interval(uint16_t start, uint16_t end);
-  bool matches(uint16_t value);
+  bool matches(uint16_t value) const;
 private:
   uint16_t start;
   uint16_t end;

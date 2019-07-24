@@ -156,3 +156,22 @@ However, we noticed the following (minor) differences:
 
 
 
+## Acknowledgements
+
+To acknowledge us in your publication(s) please refer to the following (upcoming) publication:
+
+```tex
+@InProceedings{Falkenberg2019a,
+	Author = {Robert Falkenberg and Christian Wietfeld},
+	Title = {{FALCON}: {An} accurate real-time monitor for client-based mobile network data analytics},
+	Booktitle = {GLOBECOM 2019 - 2019 IEEE Global Communications Conference},
+	Year = {2019},
+	Publishingstatus = {accepted for presentation},
+	Address = {Waikoloa, Hawaii, USA},
+	Month = {Dec},
+	Publisher = {IEEE},
+	Authorsversion = {https://www.kn.e-technik.tu-dortmund.de/.cni-bibliography/publications/cni-publications/Falkenberg2019a.pdf}
+}
+```
+
+

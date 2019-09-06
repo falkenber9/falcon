@@ -32,7 +32,7 @@
 
 void MainWindow::on_spinBox_rf_freq_editingFinished()//RF-Freq changed:
 {
-    glob_settings.glob_args.decoder_args.rf_freq = ui->spinBox_rf_freq->value() * 1000;   //Save Value to glob_args
+    glob_settings.glob_args.decoder_args.rf_freq = (double)ui->spinBox_rf_freq->value() * 1000.0;   //Save Value to glob_args
     ui->lcdNumber_rf_freq->display(glob_settings.glob_args.decoder_args.rf_freq);  //Display rf_freq
 
     if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();  //If save_settings = true, save to file.

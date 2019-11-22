@@ -7,3 +7,6 @@
 # Ignore private files
 _*
 
+# Other local files
+CMakeLists.txt.user
+

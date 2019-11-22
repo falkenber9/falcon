@@ -50,6 +50,11 @@
 // Reserverd values
 #define ILLEGAL_RNTI 0
 
+// Constant values for format indices
+#define FORMAT_INDEX_UPLINK 0
+#define FORMAT_INDEX_FIRST_DOWNLINK (FORMAT_INDEX_UPLINK + 1)
+#define ASSOC_FORMAT_INDEX_UNCERTAIN 0
+
 typedef enum {
   RMV_FALSE = 0,
   RMV_UNCERTAIN = 1,
@@ -94,9 +99,11 @@ private:
   RNTIManager(const RNTIManager&);    // prevent copy
   RMValidationResult_t validateByActiveList(uint16_t rnti, uint32_t formatIdx);
   bool validateByHistogram(uint16_t rnti, uint32_t formatIdx);
-  virtual uint32_t getLikelyFormatIdx(uint16_t rnti);
+  virtual uint32_t getLikelyDlFormatIdx(uint16_t rnti);
   void activateRNTI(uint16_t rnti, ActivationReason reason);
   void deactivateRNTI(uint16_t rnti);
+  bool isExpired(uint16_t rnti) const;
+  void cleanExpired();
   uint32_t nformats;
   std::vector<Histogram> histograms;
   std::vector<std::vector<Interval> > evergreen;

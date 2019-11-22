@@ -18,15 +18,16 @@
  * the LICENSE file in the top-level directory of this distribution
  * and at http://www.gnu.org/licenses/.
  */
+#include <iomanip>
 #include <iostream>
 
 #include "falcon/util/RNTIManager.h"
 
 using namespace std;
 
-/////////////////////////
-/// C wrapper functions
-/////////////////////////
+//////////////////////////////////////////////
+/// C wrapper functions for legacy support
+//////////////////////////////////////////////
 
 void* rnti_manager_create(uint32_t n_formats, uint32_t maxCandidatesPerStepPerFormat) {
   return new RNTIManager(n_formats, maxCandidatesPerStepPerFormat);
@@ -164,7 +165,7 @@ void RNTIManager::addCandidate(uint16_t rnti, uint32_t formatIdx) {
 
 bool RNTIManager::validate(uint16_t rnti, uint32_t formatIdx) {
 
-  /* evergreen consultation */
+  // evergreen consultation
   if(isEvergreen(rnti, formatIdx)) {
     return true;
   }
@@ -173,7 +174,7 @@ bool RNTIManager::validate(uint16_t rnti, uint32_t formatIdx) {
       return false;
   }
 
-  /* active-list consultation */
+  // active-list consultation
   RMValidationResult_t rmvRet;
   rmvRet = validateByActiveList(rnti, formatIdx);
   switch (rmvRet) {
@@ -182,7 +183,7 @@ bool RNTIManager::validate(uint16_t rnti, uint32_t formatIdx) {
     case RMV_FALSE:
       return false;
     case RMV_UNCERTAIN:
-      /* continue validation */
+      // continue validation
       break;
   }
 
@@ -221,6 +222,7 @@ ActivationReason RNTIManager::getActivationReason(uint16_t rnti) {
 }
 
 vector<rnti_manager_active_set_t> RNTIManager::getActiveSet() {
+  cleanExpired();
   vector<rnti_manager_active_set_t> result(activeSet.size());
   uint32_t index = 0;
   for(list<RNTIActiveSetItem>::iterator it = activeSet.begin(); it != activeSet.end(); it++) {
@@ -241,20 +243,19 @@ void RNTIManager::printActiveSet() {
   std::vector<rnti_manager_active_set_t> activeSet = getActiveSet();
   std::vector<rnti_manager_active_set_t>::size_type n_active = activeSet.size();
 
-  printf("--------Active RNTI Set--------\n");
-  printf("RNTI\tFormat\tFreq\tLast[ms] Reason\n");
-  printf("-------------------------------\n");
+  std::cout << "----------------------Active RNTI Set----------------------" << std::endl;
+  std::cout << "RNTI\tFormat\tFreq\tLast[ms]\tFound by" << std::endl;
+  std::cout << "-----------------------------------------------------------" << std::endl;
   for(uint32_t i = 0; i< n_active; i++) {
-    printf("%5d\t%d\t%3d\t%5d\t%s\n",
-           activeSet[i].rnti,
-           activeSet[i].assoc_format_idx,
-           activeSet[i].frequency,
-           activeSet[i].last_seen,
-           RNTIManager::getActivationReasonString(activeSet[i].reason).c_str());
+    std::cout << std::setw(5) << activeSet[i].rnti << "\t";
+    std::cout << std::setw(3) << activeSet[i].assoc_format_idx << "\t";
+    std::cout << std::setw(4) << activeSet[i].frequency << "\t";
+    std::cout << std::setw(7) << activeSet[i].last_seen << "\t";
+    std::cout << RNTIManager::getActivationReasonString(activeSet[i].reason) << std::endl;
   }
-  printf("-------------------------------\n");
-  printf("Total: %ld\n", n_active);
-  printf("-------------------------------\n");
+  std::cout << "-----------------------------------------------------------" << std::endl;
+  std::cout << "Total: " << n_active << std::endl;
+  std::cout << "-----------------------------------------------------------" << std::endl;
 
 }
 
@@ -279,7 +280,7 @@ string RNTIManager::getActivationReasonString(ActivationReason reason) {
 void RNTIManager::getHistogramSummary(uint32_t *buf)
 {
   memset(buf, 0, RNTI_HISTOGRAM_ELEMENT_COUNT*sizeof(uint32_t));
-  for(uint32_t i=0; i<nformats; i++) {   //nformats
+  for(uint32_t i=0; i<nformats; i++) {
     const uint32_t* histData = histograms[i].getFrequencyAll();
     for(uint32_t j=0; j<RNTI_HISTOGRAM_ELEMENT_COUNT; j++) {
       buf[j] += histData[j];
@@ -304,23 +305,25 @@ bool RNTIManager::isForbidden(uint16_t rnti, uint32_t formatIdx) const {
 }
 
 RMValidationResult_t RNTIManager::validateByActiveList(uint16_t rnti, uint32_t formatIdx) {
-  if(active[rnti]) {  /* active RNTI */
-    if(timestamp - lastSeen[rnti] < lifetime) {   /* lifetime check */
-      if(formatIdx == 0) return RMV_TRUE; /* always accept 0 (uplink) */
-      if(assocFormatIdx[rnti] > 0) {  /* downlink format is already fixed */
+  if(active[rnti]) {  // active RNTI
+    if(!isExpired(rnti)) {   // lifetime check
+      if(formatIdx == FORMAT_INDEX_UPLINK) return RMV_TRUE; // always accept uplink
+
+      if(assocFormatIdx[rnti] != ASSOC_FORMAT_INDEX_UNCERTAIN) {  // downlink format locked?
         if(assocFormatIdx[rnti] == formatIdx) {
+          // active + locked + match
           return RMV_TRUE;
         }
         else {
-          /* active RNTI, but mismatching format */
-          //return RMV_FALSE;
-          // maybe format has changed (a TM allows two different DCI formats)
+          // active + locked, but format mismatch
+          // format might have changed (e.g. a TM allows two different DCI formats)
           return RMV_UNCERTAIN;
         }
       }
-      /* RNTI is in active list, but dl format not yet known for sure */
+      // active but format is uncertain
     }
-    else {  /* lifetime expired, deactivate RNTI */
+    else {
+      // lifetime expired
       deactivateRNTI(rnti);
     }
   }
@@ -328,34 +331,42 @@ RMValidationResult_t RNTIManager::validateByActiveList(uint16_t rnti, uint32_t f
 }
 
 bool RNTIManager::validateByHistogram(uint16_t rnti, uint32_t formatIdx) {
-  uint32_t ul_frequency = histograms[0].getFrequency(rnti);
-  uint32_t dl_frequency = 0;
-  uint32_t dlFormatIdx = getLikelyFormatIdx(rnti);
-  if(dlFormatIdx > 0) {
-    dl_frequency = histograms[dlFormatIdx].getFrequency(rnti);
+
+  uint32_t likelyDlFormatIdx = getLikelyDlFormatIdx(rnti);
+  if(formatIdx != FORMAT_INDEX_UPLINK && formatIdx != likelyDlFormatIdx) {
+    // given format is downlink, but not in the most likely dl format - reject!
+    // (this also prevents activation of forbidden/evergreen rnti)
+    return false;
   }
 
-  if(ul_frequency + dl_frequency > threshold) {
+  uint32_t ulFreq = histograms[FORMAT_INDEX_UPLINK].getFrequency(rnti);
+  uint32_t dlFreq = likelyDlFormatIdx != ASSOC_FORMAT_INDEX_UNCERTAIN ? histograms[likelyDlFormatIdx].getFrequency(rnti) : 0;
+  if(ulFreq + dlFreq > threshold) {   // exceeds threshold?
     activateRNTI(rnti, RM_ACT_HISTOGRAM);
-    /* assocFormat remains uncertain (=0) until dl_frequency exceeds threshold */
-    assocFormatIdx[rnti] = dl_frequency > threshold ? dlFormatIdx : 0;
-    //cout << "Activated RNTI " << rnti << "(freq ul/dl " << ul_frequency << " " << dl_frequency << " assocFormatIdx " << assocFormatIdx[rnti] << ")" << endl;
-    return formatIdx == dlFormatIdx;
+    if(dlFreq > threshold) {    // dl format certain?
+      // lock dl format
+      assocFormatIdx[rnti] = likelyDlFormatIdx;
+    }
+    else {
+      // dl format is still uncertain
+      assocFormatIdx[rnti] = ASSOC_FORMAT_INDEX_UNCERTAIN;
+    }
+    return true;  // accept
   }
 
-  /* too low frequency... reject! */
+  // too low frequency - reject!
   return false;
 }
 
-uint32_t RNTIManager::getLikelyFormatIdx(uint16_t rnti) {
-  uint32_t result = 0;
-  uint32_t max_frequency = 0;
-  uint32_t cur_frequency = 0;
-  // start here from formatIdx 1, since format 0 is UL anyway
-  for(uint32_t formatIdx=1; formatIdx<nformats; formatIdx++) {
-    cur_frequency = histograms[formatIdx].getFrequency(rnti);
-    if(cur_frequency > max_frequency) {
-      max_frequency = cur_frequency;
+uint32_t RNTIManager::getLikelyDlFormatIdx(uint16_t rnti) {
+  uint32_t result = ASSOC_FORMAT_INDEX_UNCERTAIN;
+  uint32_t maxFreq = 0;
+  uint32_t curFreq = 0;
+  // start here from formatIdx 1 (FORMAT_INDEX_FIRST_DOWNLINK), skip uplink
+  for(uint32_t formatIdx=FORMAT_INDEX_FIRST_DOWNLINK; formatIdx<nformats; formatIdx++) {
+    curFreq = histograms[formatIdx].getFrequency(rnti);
+    if(curFreq > maxFreq) {
+      maxFreq = curFreq;
       result = formatIdx;
     }
   }
@@ -372,12 +383,35 @@ void RNTIManager::activateRNTI(uint16_t rnti, ActivationReason reason) {
 void RNTIManager::deactivateRNTI(uint16_t rnti) {
   if(active[rnti]) {
     active[rnti] = false;
+    assocFormatIdx[rnti] = 0;
     activeSet.remove(RNTIActiveSetItem(rnti));
   }
 }
 
+bool RNTIManager::isExpired(uint16_t rnti) const {
+  bool result = true;
+  if(active[rnti]) {
+    if(timestamp - lastSeen[rnti] < lifetime) {
+      result = false;
+    }
+  }
+  return result;
+}
+
+void RNTIManager::cleanExpired() {
+  list<RNTIActiveSetItem>::iterator it = activeSet.begin();
+  while(it != activeSet.end()) {
+    if(isExpired(it->rnti)) {
+      it = activeSet.erase(it);
+    }
+    else {
+      ++it;
+    }
+  }
+}
+
 void RNTIManager::stepTime() {
-  /* add padding to histograms */
+  // add padding to histograms
   for(uint32_t i=0; i<nformats; i++) {
     if(remainingCandidates[i] > 0) {
       histograms[i].add(ILLEGAL_RNTI, static_cast<uint32_t>(remainingCandidates[i]));

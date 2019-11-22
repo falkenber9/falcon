@@ -43,6 +43,17 @@ set(GCC_ARCH native CACHE STRING "GCC compile for specific architecture.")
 ###########################################################################
 
 
+########################################################################
+# Extra options
+########################################################################
+
+if(NOT DEFINED MAX_RECURSION_DEPTH)
+    set(MAX_RECURSION_DEPTH 99)
+endif()
+#add_definitions(-DMAX_RECURSION_DEPTH=${MAX_RECURSION_DEPTH})
+########################################################################
+
+
 if(NOT CMAKE_BUILD_TYPE)
   #    set(CMAKE_BUILD_TYPE Release)
   set(CMAKE_BUILD_TYPE RelWithDebInfo)
@@ -237,7 +248,7 @@ macro(ADD_CXX_COMPILER_FLAG_IF_AVAILABLE flag have)
   endif(${have})
 endmacro(ADD_CXX_COMPILER_FLAG_IF_AVAILABLE)
 
-ADD_CXX_COMPILER_FLAG_IF_AVAILABLE("-Werror=incompatible-pointer-types" HAVE_ERROR_INCOMPATIBLE)
+#ADD_CXX_COMPILER_FLAG_IF_AVAILABLE("-Werror=incompatible-pointer-types" HAVE_ERROR_INCOMPATIBLE)
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   message("MARCH - FLAGS: ${GCC_ARCH}")
@@ -329,7 +340,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 message(STATUS "CMAKE_C_FLAGS is ${CMAKE_C_FLAGS}")
 message(STATUS "CMAKE_CXX_FLAGS is ${CMAKE_CXX_FLAGS}")
 
-
 ########################################################################
 # Add -fPIC property to all targets
 ########################################################################
@@ -350,6 +360,7 @@ set(INCLUDE_DIR include)    # PATH to usr/local/include for install
 ########################################################################
 include_directories(${PROJECT_BINARY_DIR}/lib/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/include)
+include_directories(${PROJECT_SOURCE_DIR}/src)	# for cross includes of top-level applications
 include_directories(${PROJECT_SOURCE_DIR}/import)
 ########################################################################
 # Add the subdirectories

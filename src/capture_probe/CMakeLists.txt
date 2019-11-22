@@ -15,5 +15,5 @@ target_link_libraries(falcon_capture_probe
   ${SRSLTE_LIBRARIES}
   ${FFT_LIBRARIES}
 )
-target_compile_options(falcon_capture_probe PUBLIC "-std=c++11")
+target_compile_options(falcon_capture_probe PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
 

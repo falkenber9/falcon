@@ -24,8 +24,9 @@
 //#include "falcon/CCSnifferInterfaces.h"
 #include "falcon/common/SignalManager.h"
 #include "falcon/util/RNTIManager.h"
+#include "phy/Phy.h"
 
-#include "srslte/srslte.h"
+//#include "srslte/srslte.h"
 
 // include C-only headers
 #ifdef __cplusplus
@@ -51,13 +52,19 @@
 
 class EyeCore : public SignalHandler {
 public:
-  EyeCore(Args& args);
+  EyeCore(const Args& args);
   EyeCore(const EyeCore&) = delete; //prevent copy
   EyeCore& operator=(const EyeCore&) = delete; //prevent copy
   virtual ~EyeCore() override;
 
   //other public methods
   bool run();
+  void stop();
+  RNTIManager &getRNTIManager();
+
+  //upper layer interfaces
+  void setDCIConsumer(std::shared_ptr<SubframeInfoConsumer> consumer);
+  void resetDCIConsumer();
 
 private:
   //incoming interfaces
@@ -65,9 +72,9 @@ private:
 
   //internal variables
   bool go_exit;
-  Args& args;
-  uint8_t *pch_payload_buffers[SRSLTE_MAX_CODEWORDS];
+  Args args;
   enum receiver_state { DECODE_MIB, DECODE_PDSCH} state;
+  Phy* phy;
 //  Provider<ScanLine> uplinkAllocProvider;
 //  Provider<ScanLine> downlinkAllocProvider;
 //  Provider<ScanLine> downlinkSpectrumProvider;

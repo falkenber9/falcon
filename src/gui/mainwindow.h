@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019 Robert Falkenberg.
  *
- * This file is part of FALCON 
+ * This file is part of FALCON
  * (see https://github.com/falkenber9/falcon).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,16 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <mutex>
 #include <QMainWindow>
 #include "spectrum.h"
 #include "falcon/CCSnifferInterfaces.h"
 #include "adapters_qt/SpectrumAdapter.h"
-#include "model_dummy/ScanThread.h"
+//#include "model_dummy/ScanThread.h"
+
+#include "model/EyeThread.h"
 #include "model_dummy/cni_cc_decoderThread.h"
+
 #include "QTextBrowser"
 #include "stdio.h"
 #include "QtCharts"
@@ -58,14 +62,18 @@ private slots:
   void draw_dl(const ScanLineLegacy*);
   void draw_spectrum(const ScanLineLegacy*);
   void draw_spectrum_diff(const ScanLineLegacy*);
-  void draw_plot(const ScanLineLegacy*);
+  void calc_performance_data(const ScanLineLegacy*);
+  void replot_perf();
+  void draw_plot_uplink();
+  void draw_plot_downlink();
   //void draw_plot_a(const ScanLineLegacy*);
   //void draw_plot_b(const ScanLineLegacy*);
   void draw_rnti_hist(const ScanLineLegacy *line);
   //void draw_rnti_hist_b(const ScanLineLegacy *line);
   //void spectrum_window_destroyed();
-  void on_actionNew_triggered();
-  void on_spinBox_rf_freq_editingFinished();
+  void on_actionStart_triggered();
+  void on_doubleSpinBox_rf_freq_editingFinished();
+  void exampleSlot();
   void on_actionStop_triggered();
   void on_checkBox_FileAsSource_clicked();
   void on_lineEdit_FileName_editingFinished();
@@ -87,7 +95,7 @@ private slots:
   //Color:
   void on_pushButton_uplink_color_clicked();
   void set_color(const QColor &color);
-  void range_slider_value_changed(int value);  
+  void range_slider_value_changed(int value);
 
 protected:
   //void mousePressEvent(QMouseEvent *event) override;    // Klick and scroll per mousewheel
@@ -100,14 +108,15 @@ private:
 
   // Functions:
 
-  bool get_infos_from_file(QString filename, volatile prog_args_t& args);
+  void update_cell_config_fields();
+  bool get_args_from_file(const QString filename);
 
   //  [SUBWINDOW]_start(bool)
 
   void downlink_start(bool start);
   void uplink_start(bool start);
   void diff_start(bool start);
-  void spectrum_start(bool start);  
+  void spectrum_start(bool start);
   void performance_plots_start(bool start);
 
   // Color Menu:
@@ -123,106 +132,110 @@ private:
   // QCustomPlots:
 
   QGridLayout *gridLayout_a;
-//  QGridLayout *gridLayout_b;
+  //  QGridLayout *gridLayout_b;
 
   void setupPlot(PlotsType_t plottype, QCustomPlot *plot);
   void addData(PlotsType_t plottype, QCustomPlot *plot, const ScanLineLegacy *data);
   void update_plot_color();
 
-  QCustomPlot *mcs_idx_plot_a;
-  QCustomPlot *mcs_tbs_plot_a;
-  QCustomPlot *prb_plot_a;
-  QCustomPlot *rnti_hist_plot_a;
+  QCustomPlot *plot_mcs_idx;
+  QCustomPlot *plot_throughput;
+  QCustomPlot *plot_prb;
+  QCustomPlot *plot_rnti_hist;
   QWidget *plot_a_window;
   QMdiSubWindow *plot_a_subwindow = NULL;
   QSlider *plot_mean_slider_a;
   QLabel  *plot_mean_slider_label_a;
   QLabel  *plot_mean_slider_label_b;
 
+  QTimer fps_timer;
+  QTimer avg_timer_uplink;
+  QTimer avg_timer_downlink;
+
+  // QCP graphs
+  QCPGraph* graph_current = nullptr;
+  QCPGraph* graph_mcs_idx = nullptr;
+  QCPGraph* graph_throughput   =  nullptr;
+  QCPGraph* graph_prb = nullptr;
 
   //Variables for plots:
+  std::vector<double> rnti_x_axis;
+  xAxisTicks xAT;
+  QSharedPointer<QCPAxisTickerText> xTicker;
 
-  uint32_t sfn_old_a        = 0;
-  uint32_t sfn_old_b        = 0;
-  uint32_t mcs_idx_sum_a    = 0;
-  uint32_t mcs_idx_sum_b    = 0;
-  int mcs_idx_sum_counter_a = 0;
-  int mcs_idx_sum_counter_b = 0;
-  uint32_t mcs_tbs_sum_a    = 0;
-  uint32_t mcs_tbs_sum_b    = 0;
-  uint32_t l_prb_sum_a      = 0;
-  uint32_t l_prb_sum_b      = 0;
-  int plot_counter_a        = 0;
-  int plot_counter_b        = 0;
+  /*  Pointer to counter pairs:
+     *  T* ptr;
+     *  T  cnt_uplink;
+     *  T  cnt_downlink;     *
+     */
+  // Mutex
+  std::mutex perf_mutex;
 
-  uint32_t mcs_idx_sum_sum_a    = 0;
-  uint32_t mcs_idx_sum_sum_b    = 0;
-  uint32_t mcs_tbs_sum_sum_a    = 0;
-  uint32_t mcs_tbs_sum_sum_b    = 0;
-  uint32_t l_prb_sum_sum_a      = 0;
-  uint32_t l_prb_sum_sum_b      = 0;
-  uint32_t sum_sum_counter_a    = 1;
-  uint32_t sum_sum_counter_b    = 1;
+  // Timestamps
+  double* last_timestamp = nullptr;
+  double last_timestamp_uplink = 0;
+  double last_timestamp_downlink = 0;
+
+  // Subframe index
+  uint32_t* sf_idx_old = nullptr;
+  uint32_t sf_idx_old_uplink        = 0;
+  uint32_t sf_idx_old_downlink      = 0;
+
+  // Number of received subframes
+  double* nof_received_sf = nullptr;
+  double nof_received_sf_uplink    = 0;
+  double nof_received_sf_downlink    = 0;
+
+  // Modulation and coding scheme index
+  double* mcs_idx = nullptr;
+  double mcs_idx_uplink    = 0;
+  double mcs_idx_sum_downlink    = 0;
+
+  // Number of allocations
+  int* nof_allocations = nullptr;
+  int nof_allocations_uplink = 0;
+  int nof_allocations_downlink = 0;
+
+  // Transportblocksize
+  double* mcs_tbs = nullptr;
+  double mcs_tbs_sum_uplink    = 0;
+  double mcs_tbs_sum_downlink    = 0;
+
+  // Length of resource blocks
+  double* l_prb = nullptr;
+  double l_prb_sum_uplink      = 0;
+  double l_prb_sum_downlink      = 0;
 
 
   // Setting Class:
-
   Settings glob_settings;
 
-  // Setting Variables:
-
-  int mouse_wheel_sens = 4;
-  bool save_settings = true;
-  double rf_freq = -1.0;
-  bool use_file_as_source = true;
-
   // Spectrogram:
-
-  Spectrum *spectrum_view_ul   = NULL;
-  Spectrum *spectrum_view_dl   = NULL;
-  Spectrum *spectrum_view      = NULL;
-  Spectrum *spectrum_view_diff = NULL;
-
-  bool spectrum_paused       = false;
-  int spectrogram_line_count = 300;
-  int spectrogram_line_shown = 150;
-  int spectrogram_line_width = 50;
-
-
-
-
-  // Threads
-  ScanThread* scanThread;
-  DecoderThread* decoderThread;
+  Spectrum *spectrum_view_ul   = nullptr;
+  Spectrum *spectrum_view_dl   = nullptr;
+  Spectrum *spectrum_view      = nullptr;
+  Spectrum *spectrum_view_diff = nullptr;
 
   //Objects
-
   SpectrumAdapter spectrumAdapter;
 
+  // Threads
+  EyeThread eyeThread;
+  std::shared_ptr<DCIGUIConsumer> guiConsumer;
+  Args& eyeArgs;  // the actual object is part of settings
+
   //Subwindow Variables:
+  QWidget *uplink_window = nullptr;
+  QWidget *downlink_window = nullptr;
+  QWidget *spectrum_window = nullptr;
+  QWidget *diff_window = nullptr;
 
-  QSize windowsize_tmp_a;  // Windowsize for rescaling
-  QSize windowsize_tmp_b;  // Windowsize for rescaling
-  QSize windowsize_tmp_c;  // Windowsize for rescaling
-  QSize windowsize_tmp_d;
-  QSize windowsize_tmp_plot_a;
-
-  QWidget *a_window = NULL;
-  QWidget *b_window = NULL;
-  QWidget *c_window = NULL;
-  QWidget *d_window = NULL;
-
-  QMdiSubWindow *a_subwindow = NULL;
-  QMdiSubWindow *b_subwindow = NULL;
-  QMdiSubWindow *c_subwindow = NULL;
-  QMdiSubWindow *d_subwindow = NULL;
-
-  QWidget *spectrum_view_window;
+  QMdiSubWindow *uplink_subwindow = nullptr;
+  QMdiSubWindow *downlink_subwindow = nullptr;
+  QMdiSubWindow *spectrum_subwindow = nullptr;
+  QMdiSubWindow *diff_subwindow = nullptr;
 
   bool spectrum_view_on   = false;
-  bool subwindow_state    = true;
-
-
   //Files
 
   FILE *settings;

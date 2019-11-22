@@ -4,7 +4,7 @@
  *
  * Copyright 2013-2015 Software Radio Systems Limited
  * Copyright 2016 IMDEA Networks Institute
- * Copyright 2018 TU Dortmund University, Communication Networks Institute
+ * Copyright 2018-2019 TU Dortmund University, Communication Networks Institute
  *
  * \section LICENSE
  *
@@ -48,7 +48,7 @@
 //#define CORRECT_SAMPLE_OFFSET
 
 
-#ifndef SRSGUI_LIBRARIES_NOTFOUND
+#ifdef ENABLE_GUI
 #include "srsgui/srsgui.h"
 #endif
 void init_plots(void);
@@ -64,7 +64,7 @@ static float* current_colored_rb_map_up = NULL;
 #include "srslte/phy/rf/rf.h"
 #include "srslte/phy/rf/rf_utils.h"
 
-cell_search_cfg_t cell_detect_config = {
+static cell_search_cfg_t cell_detect_config = {
   SRSLTE_DEFAULT_MAX_FRAMES_PBCH,
   SRSLTE_DEFAULT_MAX_FRAMES_PSS,
   SRSLTE_DEFAULT_NOF_VALID_PSS_FRAMES,
@@ -111,7 +111,7 @@ typedef struct {
   int net_port_signal;
   char *net_address_signal;
   int decimate;
-}prog_args_t;
+} prog_args_t;
 
 void args_default(prog_args_t *args) {
   args->disable_plots = false;
@@ -201,34 +201,34 @@ void parse_args(prog_args_t *args, int argc, char **argv) {
         args->stats_file_name = argv[optind];
         break;
       case 'p':
-        args->file_nof_prb = atoi(argv[optind]);
+        args->file_nof_prb = (uint32_t)atoi(argv[optind]);
         break;
       case 'P':
-        args->file_nof_ports = atoi(argv[optind]);
+        args->file_nof_ports = (uint32_t)atoi(argv[optind]);
         break;
       case 'o':
-        args->file_offset_freq = atof(argv[optind]);
+        args->file_offset_freq = (float)atof(argv[optind]);
         break;
       case 'O':
         args->file_offset_time = atoi(argv[optind]);
         break;
       case 'c':
-        args->file_cell_id = atoi(argv[optind]);
+        args->file_cell_id = (uint32_t)atoi(argv[optind]);
         break;
       case 'a':
         args->rf_args = argv[optind];
         break;
       case 'A':
-        args->rf_nof_rx_ant = atoi(argv[optind]);
+        args->rf_nof_rx_ant = (uint32_t)atoi(argv[optind]);
         break;
       case 'g':
-        args->rf_gain = atof(argv[optind]);
+        args->rf_gain = (float)atof(argv[optind]);
         break;
       case 'C':
         args->disable_cfo = true;
         break;
       case 't':
-        args->time_offset = atoi(argv[optind]);
+        args->time_offset = (uint32_t)atoi(argv[optind]);
         break;
       case 'f':
         args->rf_freq = strtod(argv[optind], NULL);
@@ -299,6 +299,7 @@ static cf_t *sf_buffer[SRSLTE_MAX_PORTS] = {NULL};
 
 #ifndef DISABLE_RF
 int falcon_rf_recv_wrapper(void *h, cf_t *data[SRSLTE_MAX_PORTS], uint32_t nsamples, srslte_timestamp_t *t) {
+  (void)t;
   DEBUG(" ----  Receive %d samples  ---- \n", nsamples);
   void *ptr[SRSLTE_MAX_PORTS];
   for (int i=0;i<SRSLTE_MAX_PORTS;i++) {
@@ -381,7 +382,7 @@ int main(int argc, char **argv) {
   }
 
   if (prog_args.net_port > 0) {
-    if (srslte_netsink_init(&net_sink, prog_args.net_address, prog_args.net_port, SRSLTE_NETSINK_TCP)) {
+    if (srslte_netsink_init(&net_sink, prog_args.net_address, (uint16_t)prog_args.net_port, SRSLTE_NETSINK_TCP)) {
       fprintf(stderr, "Error initiating UDP socket to %s:%d\n", prog_args.net_address, prog_args.net_port);
       exit(-1);
     }
@@ -389,7 +390,7 @@ int main(int argc, char **argv) {
   }
   if (prog_args.net_port_signal > 0) {
     if (srslte_netsink_init(&net_sink_signal, prog_args.net_address_signal,
-                            prog_args.net_port_signal, SRSLTE_NETSINK_UDP)) {
+                            (uint16_t)prog_args.net_port_signal, SRSLTE_NETSINK_UDP)) {
       fprintf(stderr, "Error initiating UDP socket to %s:%d\n", prog_args.net_address_signal, prog_args.net_port_signal);
       exit(-1);
     }
@@ -406,7 +407,7 @@ int main(int argc, char **argv) {
     }
     /* Set receiver gain */
     if (prog_args.rf_gain > 0) {
-      srslte_rf_set_rx_gain(&rf, prog_args.rf_gain);
+      srslte_rf_set_rx_gain(&rf, (double)prog_args.rf_gain);
     } else {
       printf("Starting AGC thread...\n");
       if (srslte_rf_start_gain_thread(&rf, false)) {
@@ -414,7 +415,7 @@ int main(int argc, char **argv) {
         exit(-1);
       }
       srslte_rf_set_rx_gain(&rf, srslte_rf_get_rx_gain(&rf));
-      cell_detect_config.init_agc = srslte_rf_get_rx_gain(&rf);
+      cell_detect_config.init_agc = (float)srslte_rf_get_rx_gain(&rf);
     }
 
     sigset_t sigset;
@@ -457,9 +458,9 @@ int main(int argc, char **argv) {
       } else {
         srslte_rf_set_master_clock_rate(&rf, srate);
       }
-      printf("Setting sampling rate %.2f MHz\n", (float) srate/1000000);
-      float srate_rf = srslte_rf_set_rx_srate(&rf, (double) srate);
-      if (!isEqual(srate_rf, srate, 1.0)) {
+      printf("Setting sampling rate %.2f MHz\n", (double) srate/1000000);
+      float srate_rf = (float)srslte_rf_set_rx_srate(&rf, (double) srate);
+      if (!isEqual((double)srate_rf, srate, 1.0)) {
         fprintf(stderr, "Could not set sampling rate\n");
         exit(-1);
       }
@@ -519,8 +520,8 @@ int main(int argc, char **argv) {
 #endif
   }
 
-  for (int i=0;i<prog_args.rf_nof_rx_ant;i++) {
-    sf_buffer[i] = srslte_vec_malloc(3*sizeof(cf_t)*SRSLTE_SF_LEN_PRB(cell.nof_prb));
+  for (uint32_t i=0; i<prog_args.rf_nof_rx_ant; i++) {
+    sf_buffer[i] = srslte_vec_malloc(3*sizeof(cf_t)*((uint32_t)SRSLTE_SF_LEN_PRB(cell.nof_prb)));
   }
 
   if (srslte_ue_mib_init(&ue_mib, sf_buffer, cell.nof_prb)) {
@@ -532,11 +533,18 @@ int main(int argc, char **argv) {
     exit(-1);
   }
 
-  if (falcon_ue_dl_init(&falcon_ue_dl, &ue_dl, sf_buffer, cell.nof_prb, prog_args.rf_nof_rx_ant, prog_args.dci_file_name, prog_args.stats_file_name)) {
+  if (falcon_ue_dl_init(&falcon_ue_dl,
+                        &ue_dl, sf_buffer,
+                        cell.nof_prb,
+                        prog_args.rf_nof_rx_ant,
+                        prog_args.dci_file_name,
+                        prog_args.stats_file_name,
+                        false))
+  {
   //if (srslte_ue_dl_init(&ue_dl, sf_buffer, cell.nof_prb, prog_args.rf_nof_rx_ant)) {
     fprintf(stderr, "Error initiating UE downlink processing module\n");
     exit(-1);
-  }  
+  }
   if (srslte_ue_dl_set_cell(&ue_dl, cell)) {
     fprintf(stderr, "Error initiating UE downlink processing module\n");
     exit(-1);
@@ -579,7 +587,7 @@ int main(int argc, char **argv) {
                              falcon_rf_set_rx_gain_th_wrapper,
                              rf_info->min_rx_gain,
                              rf_info->max_rx_gain,
-                             cell_detect_config.init_agc);
+                             (double)cell_detect_config.init_agc);
   }
 #endif
 
@@ -588,11 +596,11 @@ int main(int argc, char **argv) {
   falcon_ue_dl.q = &ue_dl;
   if (prog_args.rnti_list_file != NULL) { // loading RNTI list
     fid = fopen(prog_args.rnti_list_file,"r");
-    if (fid>0) {
+    if (fid != NULL) {
       for (int i=0;i<65536;i++) {
         if (fscanf(fid,"%hu",&rnti_tmp) != EOF) {
           //		  if (rnti_tmp) printf("rnti %d val %d\n", i, rnti_tmp);
-          srslte_ue_dl_reset_rnti_user_to(&falcon_ue_dl, i, rnti_tmp); // check this
+          srslte_ue_dl_reset_rnti_user_to(&falcon_ue_dl, (uint16_t)i, rnti_tmp); // check this
           //printf("is rnti in the list? %d\n",rnti_in_list(&ue_dl, rnti_tmp));
         }
       }
@@ -607,9 +615,13 @@ int main(int argc, char **argv) {
 //  for(int hst=0; hst<NOF_UE_ALL_FORMATS; hst++)
 //      rnti_histogram_init(&falcon_ue_dl.rnti_histogram[hst]);
 
-  INFO("\nEntering main loop...\n\n", 0);
+  INFO("\nEntering main loop...\n\n");
   /* Main loop */
   while (!go_exit && (sf_cnt < prog_args.nof_subframes || prog_args.nof_subframes == -1)) {
+
+//    if(sf_cnt % (DEFAULT_DCI_FORMAT_SPLIT_UPDATE_INTERVAL_MS) == 0) {
+//      falcon_ue_dl_update_formats(&falcon_ue_dl, DEFAULT_DCI_FORMAT_SPLIT_RATIO);
+//    }
 
     bool acks [SRSLTE_MAX_CODEWORDS] = {false};
     ret = srslte_ue_sync_zerocopy_multi(&ue_sync, sf_buffer);
@@ -646,7 +658,7 @@ int main(int argc, char **argv) {
               srslte_pbch_mib_unpack(bch_payload, &cell, &sfn);
               srslte_cell_fprint(stdout, &cell, sfn);
               printf("Decoded MIB. SFN: %d, offset: %d\n", sfn, sfn_offset);
-              sfn = (sfn + sfn_offset)%1024;
+              sfn = (sfn + (uint32_t)sfn_offset)%1024;
               state = DECODE_PDSCH;
               if(falcon_ue_dl.rnti_manager != 0) {
                 rnti_manager_free(falcon_ue_dl.rnti_manager);
@@ -755,7 +767,7 @@ int main(int argc, char **argv) {
 
         //      printf("%d %d %d %d\n", ue_dl.totRBup, ue_dl.totRBdw, ue_dl.totBWup, ue_dl.totBWdw);
         if (plot_track == false) {
-          for (int i = last_good+1; i<sfn; i++) {
+          for (uint32_t i = last_good+1; i<sfn; i++) {
             rb_up[i % 1024] += 0;
             rb_dw[i % 1024] += 0;
             bw_up[i % 1024] += 0;
@@ -797,7 +809,7 @@ int main(int argc, char **argv) {
       }
     } else if (ret == 0) {
       printf("Finding PSS... Peak: %8.1f, FrameCnt: %d, State: %d\r",
-             srslte_sync_get_peak_value(&ue_sync.sfind),
+             (double)srslte_sync_get_peak_value(&ue_sync.sfind),
              ue_sync.frame_total_cnt, ue_sync.state);
       if (!prog_args.disable_plots) {
         //      	plot_sf_idx = srslte_ue_sync_get_sfidx(&ue_sync);
@@ -864,17 +876,24 @@ int main(int argc, char **argv) {
 #define NUM_HIST 1
 
 static plot_waterfall_t poutfft, rb_allocs_dw, rb_allocs_up;
-static plot_real_t p_rb_up, p_rb_dw, p_bw_up, p_bw_dw, hist[NUM_HIST];
+static plot_real_t hist[NUM_HIST];
+#ifdef GUI_ENABLE_PERFORMANCEPLOTS
+static plot_real_t p_rb_up, p_rb_dw, p_bw_up, p_bw_dw;
+#endif
 
-static float tmp_plot[1024],tmp_plot2[1024],tmp_plot3[1024],tmp_plot4[1024], tmp_plot_wf[2048*110*15];
+static float tmp_plot_wf[2048*110*15];
+#ifdef GUI_ENABLE_PERFORMANCEPLOTS
+static float tmp_plot[1024],tmp_plot2[1024],tmp_plot3[1024],tmp_plot4[1024];
+#endif
 static float tmp_hist[65536];
 
 void *plot_thread_run(void *arg) {
-    int i, j;
+    (void)arg;
+    uint32_t i, j;
     sdrgui_init();
 
 #ifdef GUI_ENABLE_SPECTROGRAM
-    plot_waterfall_init(&poutfft, SRSLTE_NRE * ue_dl.cell.nof_prb, 100);
+    plot_waterfall_init(&poutfft, SRSLTE_NRE * (int)ue_dl.cell.nof_prb, 100);
     plot_waterfall_setTitle(&poutfft, "Output FFT - Magnitude");
     plot_waterfall_setPlotYAxisScale(&poutfft, -40, 40);
     plot_waterfall_setSpectrogramZAxisScale(&poutfft, -40, 20);
@@ -891,22 +910,6 @@ void *plot_thread_run(void *arg) {
     plot_waterfall_setPlotYAxisScale(&rb_allocs_up, 0, 65536);
     plot_waterfall_setSpectrogramZAxisScale(&rb_allocs_up, 0, 65536);
 #endif
-
-    //    int plot_waterfall_init(plot_waterfall_t *h, int numDataPoints, int numRows);
-    //    void plot_waterfall_setTitle(plot_waterfall_t *h, char *title);
-    //    void plot_waterfall_appendNewData(plot_waterfall_t *h, float *data, int num_points);
-    //    void plot_complex_setPlotXLabel(plot_waterfall_t *h, char *xLabel);
-    //    void plot_complex_setPlotYLabel(plot_waterfall_t *h, char *yLabel);
-    //    void plot_waterfall_setPlotXAxisRange(plot_waterfall_t *h, double xMin, double xMax);
-    //    void plot_waterfall_setPlotXAxisScale(plot_waterfall_t *h, double xMin, double xMax);
-    //    void plot_waterfall_setPlotYAxisScale(plot_waterfall_t *h, double yMin, double yMax);
-    //    void plot_waterfall_setSpectrogramXLabel(plot_waterfall_t *h, char* xLabel);
-    //    void plot_waterfall_setSpectrogramYLabel(plot_waterfall_t *h, char* yLabel);
-    //    void plot_waterfall_setSpectrogramXAxisRange(plot_waterfall_t *h, double xMin, double xMax);
-    //    void plot_waterfall_setSpectrogramYAxisRange(plot_waterfall_t *h, double yMin, double yMax);
-    //    void plot_waterfall_setSpectrogramZAxisScale(plot_waterfall_t *h, double zMin, double zMax);
-    //    void plot_waterfall_addToWindow(plot_waterfall_t *h, char *window);
-    //    void plot_waterfall_addToWindowGrid(plot_waterfall_t *h, char *window, int row, int column);
 
 #ifdef GUI_ENABLE_PERFORMANCEPLOTS
     plot_real_init(&p_rb_up);
@@ -961,13 +964,13 @@ void *plot_thread_run(void *arg) {
         plot_real_setNewData(&p_bw_dw, tmp_plot4, 1024);
 #endif
 #ifdef GUI_ENABLE_SPECTROGRAM
-        plot_waterfall_appendNewData(&poutfft, tmp_plot_wf, 12*ue_dl.cell.nof_prb);
+        plot_waterfall_appendNewData(&poutfft, tmp_plot_wf, 12*(int)ue_dl.cell.nof_prb);
 #endif
 #ifdef GUI_ENABLE_RBALLOC_PLOT
         if(current_colored_rb_map_dw != NULL)
-            plot_waterfall_appendNewData(&rb_allocs_dw, current_colored_rb_map_dw, ue_dl.cell.nof_prb);
+            plot_waterfall_appendNewData(&rb_allocs_dw, current_colored_rb_map_dw, (int)ue_dl.cell.nof_prb);
         if(current_colored_rb_map_up != NULL)
-            plot_waterfall_appendNewData(&rb_allocs_up, current_colored_rb_map_up, ue_dl.cell.nof_prb);
+            plot_waterfall_appendNewData(&rb_allocs_up, current_colored_rb_map_up, (int)ue_dl.cell.nof_prb);
 #endif
 #ifdef GUI_ENABLE_HISTOGRAMPLOT
         for(int hidx=0; hidx<NUM_HIST; hidx++) {

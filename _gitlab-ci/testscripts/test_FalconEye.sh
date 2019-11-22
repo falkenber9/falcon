@@ -1,40 +1,130 @@
 #!/bin/bash 
 
+#exit immediately if any command fails
+set -e
+
+echo -e "\n********************* STARTING TEST *********************\n"
+
 templatedir="../testdata"
 builddir=$1
 workdir=$2
 
 uut="src/FalconEye"
-uut_params="-i $templatedir/template-iq.bin -p 50 -P 2 -c 392 -n 1000 -D $workdir/test-falcon-dci.csv -E $workdir/test-falcon-stats.csv"
 
-#exit immediately if any command fails
-set -e
+load_subtest() {
+	source "$templatedir/$subtest/args.sh"
+}
 
-echo "Testing FALCON Eye"
-$builddir/$uut $uut_params
+load_variant() {
+	input_dir=$templatedir/$subtest
+	input_iq=$basename-$iq_suffix
+	input_dci=$basename$variant-$dci_suffix
+	input_stats=$basename$variant-$stats_suffix
 
-#strip timestamp from dci
-#sed 's/\([^\t]*\)\t\(.*\)/\2/' $workdir/test-falcon-dci.csv > $workdir/stripped-falcon-dci.csv
-#sed 's/\([^\t]*\)\t\(.*\)/\2/' $templatedir/template-falcon-dci.csv > $workdir/template-falcon-dci.csv
+	output_dir=$workdir
+	output_dci=test$variant-$dci_suffix
+	output_stats=test$variant-$stats_suffix
+}
 
-#strip timestamp (first column) and histogram counter (last column) from dci
-cat $workdir/test-falcon-dci.csv | cut -f2- | rev | cut -f2- | rev > $workdir/stripped-test-falcon-dci.csv
-cat $templatedir/template-falcon-dci.csv | cut -f2- | rev | cut -f2- | rev > $workdir/stripped-template-falcon-dci.csv
+strip_outputs_falcon() {
+	echo "Stripping outputs"
+	#strip timestamp (first column) and histogram counter (last column) from dci
+	cat $output_dir/$output_dci | cut -f2- | rev | cut -f4- | rev > $output_dir/stripped-$output_dci
+	cat $input_dir/$input_dci | cut -f2- | rev | cut -f4- | rev > $output_dir/stripped-$input_dci
+}
 
-#copy dci to tmp (e.g. for updating tests)
-cp $workdir/test-falcon-dci.csv /tmp/tmp-host
-cp $workdir/stripped-test-falcon-dci.csv /tmp/tmp-host
-cp $templatedir/template-falcon-dci.csv /tmp/tmp-host
-cp $workdir/stripped-template-falcon-dci.csv /tmp/tmp-host
+store_input_output_falcon() {
+	echo "Storing inputs and outputs"
+	#copy dci to tmp (e.g. for updating tests)
+	mkdir -p /tmp/tmp-host/$subtest
+	cp $output_dir/$output_dci /tmp/tmp-host/$subtest
+	cp $output_dir/stripped-$output_dci /tmp/tmp-host/$subtest
+	cp $input_dir/$input_dci /tmp/tmp-host/$subtest
+	cp $output_dir/stripped-$input_dci /tmp/tmp-host/$subtest
 
-#copy stats to tmp
-cp $workdir/test-falcon-stats.csv /tmp/tmp-host
-cp $templatedir/template-falcon-stats.csv /tmp/tmp-host
+	#copy stats to tmp
+	cp $output_dir/$output_stats /tmp/tmp-host/$subtest
+	cp $input_dir/$input_stats /tmp/tmp-host/$subtest
+}
 
-echo "Comparing DCI"
-#diff $workdir/stripped-falcon-dci.csv $workdir/template-falcon-dci.csv
-cmp $workdir/stripped-test-falcon-dci.csv $workdir/stripped-template-falcon-dci.csv
-echo "Comparing stats"
-cmp $workdir/test-falcon-stats.csv $templatedir/template-falcon-stats.csv
+run_falcon() {
+	echo "Running subtest '$subtest', variant '$variant': $uut $uut_params"
+	$builddir/$uut $uut_params
+}
 
-echo "Done"
+postprocess_falcon() {
+	echo "Postprocessing"
+	strip_outputs_falcon
+	store_input_output_falcon
+}
+
+validate_falcon() {
+	echo "Comparing DCI"
+	cmp $output_dir/stripped-$output_dci $output_dir/stripped-$input_dci
+
+	echo "Comparing stats"
+	cmp $output_dir/$output_stats $input_dir/$input_stats
+}
+
+######### TESTS ##########
+
+subtest="normal-10-MHz"
+load_subtest
+
+variant="-falcon"
+load_variant
+
+uut_params="-i $input_dir/$input_iq -p $nof_prb -P $antenna_ports -c $cell_id -n $nof_subframes -D $output_dir/$output_dci -E $output_dir/$output_stats -r"
+run_falcon
+
+postprocess_falcon
+validate_falcon
+
+echo "Passed"
+
+##########################
+
+variant="-falcon-histogram"
+load_variant
+
+uut_params="-i $input_dir/$input_iq -p $nof_prb -P $antenna_ports -c $cell_id -n $nof_subframes -D $output_dir/$output_dci -E $output_dir/$output_stats -r -H"
+run_falcon
+
+postprocess_falcon
+validate_falcon
+
+echo "Passed"
+
+##########################
+
+subtest="busy-15-MHz"
+load_subtest
+
+variant=""
+load_variant
+
+uut_params="-i $input_dir/$input_iq -p $nof_prb -P $antenna_ports -c $cell_id -D $output_dir/$output_dci -E $output_dir/$output_stats -r"
+run_falcon
+
+postprocess_falcon
+validate_falcon
+
+echo "Passed"
+
+##########################
+
+variant="-histogram"
+load_variant
+
+uut_params="-i $input_dir/$input_iq -p $nof_prb -P $antenna_ports -c $cell_id -D $output_dir/$output_dci -E $output_dir/$output_stats -r -H"
+run_falcon
+
+postprocess_falcon
+validate_falcon
+
+echo "Passed"
+
+##########################
+##########################
+
+echo "Success"

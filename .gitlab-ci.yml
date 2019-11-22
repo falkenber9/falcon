@@ -20,7 +20,7 @@ base_ubuntu:
 base_ubuntu_srsgui:
   stage: environment_base
   script:
-    #- docker build -t $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}_base_ubuntu .
+    #- docker build -t $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA}_base_ubuntu .
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/base-ubuntu
     - docker build -t base_ubuntu_srsgui --target base_ubuntu_srsgui .
 
@@ -28,31 +28,31 @@ variant_minimal:
   stage: environment_variants
   script:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker build -t variant_minimal:${CI_COMMIT_REF_SLUG} .
+    - docker build -t variant_minimal:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} .
     
 variant_cmnalib:
   stage: environment_variants
   script:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker build -t variant_cmnalib:${CI_COMMIT_REF_SLUG} --build-arg INCLUDE_CMNALIB=true .
+    - docker build -t variant_cmnalib:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} --build-arg INCLUDE_CMNALIB=true .
     
 variant_cmnalib_uhd:
   stage: environment_variants
   script:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker build -t variant_cmnalib_uhd:${CI_COMMIT_REF_SLUG} --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true .
+    - docker build -t variant_cmnalib_uhd:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true .
     
 variant_uhd:
   stage: environment_variants
   script:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker build -t variant_uhd:${CI_COMMIT_REF_SLUG} --build-arg INCLUDE_UHD=true .
+    - docker build -t variant_uhd:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} --build-arg INCLUDE_UHD=true .
     
 variant_full:
   stage: environment_variants
   script:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker build -t variant_full:${CI_COMMIT_REF_SLUG} --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true --build-arg INCLUDE_LIMESDR=true .
+    - docker build -t variant_full:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true --build-arg INCLUDE_LIMESDR=true .
     
 #variant_noradio:
   #stage: environment_variants
@@ -86,32 +86,32 @@ sys_minimal:
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker run -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i variant_minimal:${CI_COMMIT_REF_SLUG} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - docker run -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i variant_minimal:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
     
 sys_cmnalib:
   stage: system_test
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker run -v `pwd`/.:/falcon -i variant_cmnalib:${CI_COMMIT_REF_SLUG} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - docker run -v `pwd`/.:/falcon -i variant_cmnalib:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
     
 sys_cmnalib_uhd:
   stage: system_test
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker run -v `pwd`/.:/falcon -i variant_cmnalib_uhd:${CI_COMMIT_REF_SLUG} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - docker run -v `pwd`/.:/falcon -i variant_cmnalib_uhd:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
 
 sys_uhd:
   stage: system_test
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker run -v `pwd`/.:/falcon -i variant_uhd:${CI_COMMIT_REF_SLUG} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - docker run -v `pwd`/.:/falcon -i variant_uhd:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
     
 sys_full:
   stage: system_test
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker run -v `pwd`/.:/falcon -i variant_full:${CI_COMMIT_REF_SLUG} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - docker run -v `pwd`/.:/falcon -i variant_full:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp

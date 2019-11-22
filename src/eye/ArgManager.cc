@@ -34,7 +34,8 @@ using namespace std;
 void ArgManager::defaultArgs(Args& args) {
   args.nof_subframes = DEFAULT_NOF_SUBFRAMES_TO_SHOW;
   args.cpu_affinity = -1;
-  args.disable_plots = false;
+  args.enable_ASCII_PRB_plot = true;
+  args.enable_ASCII_power_plot = false;
   args.disable_cfo = false;
   args.time_offset = 0;
   args.force_N_id_2 = -1; // Pick the best
@@ -48,6 +49,7 @@ void ArgManager::defaultArgs(Args& args) {
   args.file_nof_prb = DEFAULT_NOF_PRB;
   args.file_nof_ports = DEFAULT_NOF_PORTS;
   args.file_cell_id = 0;
+  args.file_wrap = false;
   args.rf_args = "";
   args.rf_freq = -1.0;
   args.rf_nof_rx_ant = DEFAULT_NOF_RX_ANT;
@@ -61,10 +63,16 @@ void ArgManager::defaultArgs(Args& args) {
   //args.net_port_signal = -1;
   //args.net_address_signal = "127.0.0.1";
   args.decimate = 0;
+
+  // other args
+  args.dci_format_split_update_interval_ms = DEFAULT_DCI_FORMAT_SPLIT_UPDATE_INTERVAL_MS;
+  args.dci_format_split_ratio = DEFAULT_DCI_FORMAT_SPLIT_RATIO;
+  args.skip_secondary_meta_formats = false;
+  args.enable_shortcut_discovery = true;
 }
 
 void ArgManager::usage(Args& args, const std::string& prog) {
-  printf("Usage: %s [aAcCdfgilnoOpPrtvyY] -f rx_frequency (in Hz) | -i input_file\n", prog.c_str());
+  printf("Usage: %s [aAcCdfgHilnoOpPrRsStTvwyY] -f rx_frequency (in Hz) | -i input_file\n", prog.c_str());
 #ifndef DISABLE_RF
   printf("\t-a RF args [Default %s]\n", args.rf_args.c_str());
   printf("\t-A Number of RX antennas [Default %d]\n", args.rf_nof_rx_ant);
@@ -76,7 +84,9 @@ void ArgManager::usage(Args& args, const std::string& prog) {
 #else
   printf("\t   RF is disabled.\n");
 #endif
+  printf("\t-H disable shortcut discovery (stick to histogram and random access)\n");
   printf("\t-i input_file [Default use RF board]\n");
+  printf("\t-w wrap input_file after reading all samples\n");
   printf("\t-D output filename for DCI [default stdout]\n");
   printf("\t-E output filename for statistics [default stdout]\n");
   printf("\t-o offset frequency correction (in Hz) for input file [Default %.1f Hz]\n", args.file_offset_freq);
@@ -87,11 +97,8 @@ void ArgManager::usage(Args& args, const std::string& prog) {
   printf("\t-l Force N_id_2 [Default best]\n");
   printf("\t-C Disable CFO correction [Default %s]\n", args.disable_cfo ? "Disabled" : "Enabled");
   printf("\t-t Add time offset [Default %d]\n", args.time_offset);
-#ifndef DISABLE_GRAPHICS
-  printf("\t-d disable plots [Default enabled]\n");
-#else
-  printf("\t plots are disabled. Graphics library not available\n");
-#endif
+  printf("\t-r disable ASCII PRB plots [Default enabled]\n");
+  printf("\t-R enable ASCII Power plot [Default disabled]\n");
   printf("\t-y set the cpu affinity mask [Default %d]\n", args.cpu_affinity);
   printf("\t-Y set the decimate value [Default %d]\n", args.decimate);
   printf("\t-n nof_subframes [Default %d]\n", args.nof_subframes);
@@ -99,6 +106,9 @@ void ArgManager::usage(Args& args, const std::string& prog) {
   //printf("\t-S remote UDP address to send input signal [Default %s]\n", args.net_address_signal);
   //printf("\t-u remote TCP port to send data (-1 does nothing with it) [Default %d]\n", args.net_port);
   //printf("\t-U remote TCP address to send data [Default %s]\n", args.net_address);
+  printf("\t-s skip decoding of secondary (less frequent) DCI formats\n");
+  printf("\t-S split ratio for primary/secondary DCI formats [0.0..1.0, Default %f]\n", args.dci_format_split_ratio);
+  printf("\t-T interval to perform dci format split [Default %d ms]\n", args.dci_format_split_update_interval_ms);
   printf("\t-v [set srslte_verbose to debug, default none]\n");
   //printf("\t-z filename of the output reporting one int per rnti (tot length 64k entries)\n");
   //printf("\t-Z filename of the input reporting one int per rnti (tot length 64k entries)\n");
@@ -107,7 +117,7 @@ void ArgManager::usage(Args& args, const std::string& prog) {
 void ArgManager::parseArgs(Args& args, int argc, char **argv) {
   int opt;
   defaultArgs(args);
-  while ((opt = getopt(argc, argv, "aAcCdDEfgilnpPrtvyY")) != -1) {
+  while ((opt = getopt(argc, argv, "aAcCDEfgHilnpPrRsStTvwyY")) != -1) {
     switch (opt) {
       case 'a':
         args.rf_args = argv[optind];
@@ -118,8 +128,14 @@ void ArgManager::parseArgs(Args& args, int argc, char **argv) {
       case 'g':
         args.rf_gain = strtod(argv[optind], nullptr);
         break;
+      case 'H':
+        args.enable_shortcut_discovery = false;
+        break;
       case 'i':
         args.input_file_name = argv[optind];
+        break;
+      case 'w':
+        args.file_wrap = true;
         break;
       case 'D':
         args.dci_file_name = argv[optind];
@@ -148,11 +164,23 @@ void ArgManager::parseArgs(Args& args, int argc, char **argv) {
       case 'C':
         args.disable_cfo = true;
         break;
+      case 's':
+        args.skip_secondary_meta_formats = true;
+        break;
+      case 'S':
+        args.dci_format_split_ratio = strtod(argv[optind], nullptr);
+        break;
       case 't':
         args.time_offset = static_cast<uint32_t>(strtoul(argv[optind], nullptr, 0));
         break;
-      case 'd':
-        args.disable_plots = true;
+      case 'T':
+        args.dci_format_split_update_interval_ms = static_cast<uint32_t>(strtoul(argv[optind], nullptr, 0));
+        break;
+      case 'r':
+        args.enable_ASCII_PRB_plot = false;
+        break;
+      case 'R':
+        args.enable_ASCII_power_plot = true;
         break;
       case 'y':
         args.cpu_affinity = atoi(argv[optind]);

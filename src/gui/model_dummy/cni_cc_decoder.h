@@ -34,6 +34,7 @@ extern "C"
 #include <stdbool.h>
 
 extern void *decoderthread;  // Pointer auf decoderthread Funktionen
+extern volatile bool go_exit;
 
 typedef struct {
   int nof_subframes;
@@ -59,14 +60,14 @@ typedef struct {
   int net_port_signal;
   char *net_address_signal;
   int decimate;
-}prog_args_t;
+} prog_args_t;
 
 
-void call_function(void *f_pointer, float *data_ul, float *data_dl, float *data_spectrum, uint32_t *rnti_hist);
+void plot_scanLines(void *f_pointer, float *data_ul, float *data_dl, float *data_spectrum, uint32_t *rnti_hist);
 
-extern volatile prog_args_t prog_args;
+//extern volatile prog_args_t prog_args;
 
-extern volatile bool go_exit;
+//extern volatile bool go_exit;
 
 
 int start_cni_decoder();

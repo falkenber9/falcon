@@ -11,6 +11,7 @@ if(SRSGUI_FOUND)
   link_directories(${SRSGUI_LIBRARY_DIRS})
 else(SRSGUI_FOUND)
   add_definitions(-DDISABLE_GRAPHICS)
+  set(SRSGUI_LIBRARIES "")
 endif(SRSGUI_FOUND)
 
 if(RF_FOUND)
@@ -23,28 +24,36 @@ if(RF_FOUND)
   )
 else(RF_FOUND)
   add_definitions(-DDISABLE_RF)
-  unset(SRSGUI_LIBRARIES)
+  #unset(SRSGUI_LIBRARIES)
 endif(RF_FOUND)
 
+message("### STATUS GUI:")
+message(SRSGUI_FOUND)
 
-add_executable(imdea_cc_decoder imdea_cc_decoder.c)
-target_link_libraries(imdea_cc_decoder
-  falcon_phy
-  falcon_util
-  ${SRSLTE_LIBRARIES}
-  ${SRSGUI_LIBRARIES}
-  ${FFT_LIBRARIES}
-)
+if(SRSGUI_FOUND)
+    add_executable(imdea_cc_decoder imdea_cc_decoder.c)
+    target_link_libraries(imdea_cc_decoder
+      eye_phy
+      falcon_phy
+      falcon_util
+      ${SRSLTE_LIBRARIES}
+      ${SRSGUI_LIBRARIES}
+      ${FFT_LIBRARIES}
+    )
 
-add_executable(cni_cc_decoder cni_cc_decoder.c)
-target_link_libraries(cni_cc_decoder
-  falcon_phy
-  falcon_util
-  falcon_common
-  ${SRSLTE_LIBRARIES}
-  ${SRSGUI_LIBRARIES}
-  ${FFT_LIBRARIES}
-)
+    add_executable(cni_cc_decoder cni_cc_decoder.c)
+    target_link_libraries(cni_cc_decoder
+      eye_phy
+      falcon_phy
+      falcon_util
+      falcon_common
+      ${SRSLTE_LIBRARIES}
+      ${SRSGUI_LIBRARIES}
+      ${FFT_LIBRARIES}
+    )
+else(SRSGUI_FOUND)
+    message(WARNING "imdea_cc_decoder and cni_cc_decoder won't be built sind SRSGUI was not found.")
+endif(SRSGUI_FOUND)
 
 #################################################################
 # Compile options (compatibility)
@@ -53,6 +62,8 @@ target_link_libraries(cni_cc_decoder
 if(RF_FOUND)
     target_compile_options(imdea_capture_sync PUBLIC "-std=gnu99")
 endif(RF_FOUND)
-target_compile_options(imdea_cc_decoder PUBLIC "-std=gnu99")
-target_compile_options(cni_cc_decoder PUBLIC "-std=gnu99")
+if(SRSGUI_FOUND)
+    target_compile_options(imdea_cc_decoder PUBLIC "-std=gnu99")
+    target_compile_options(cni_cc_decoder PUBLIC "-std=gnu99")
+endif(SRSGUI_FOUND)
 

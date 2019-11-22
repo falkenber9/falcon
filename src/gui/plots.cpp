@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019 Robert Falkenberg.
  *
- * This file is part of FALCON 
+ * This file is part of FALCON
  * (see https://github.com/falkenber9/falcon).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,64 +22,47 @@
 #include "qcustomplot/qcustomplot.h"
 #include "plots.h"
 
+#define HO_MARGIN_RESCALE 100
+#define TA_SPACING 2
+#define TIMEFORMAT "%h:%m:%s"
+#define TA_DIGITS_PER_DISPLAY 80
+#define OVERSCAN 1.15
+
 void MainWindow::setupPlot(PlotsType_t plottype, QCustomPlot *plot){
 
   if(plottype == RNTI_HIST){
 
     plot->addGraph(); //Blue line
-    plot->graph(0)->setPen(QPen(QColor(1,1,200)));
-    plot->graph(0)->setLineStyle(QCPGraph::lsImpulse);
+    plot->graph(UPLINK)->setPen(QPen(QColor(1,1,200)));
+    plot->graph(UPLINK)->setLineStyle(QCPGraph::lsImpulse);
 
-//    plot->addGraph(); //blue line
-//    plot->graph(1)->setPen(QPen(QColor(40,110,255)));
-//    plot->graph(1)->setLineStyle(QCPGraph::lsImpulse);
-
-    plot->xAxis->setRange(0,65536);
-   // plot->xAxis->setLabel("RNTI");
-    plot->xAxis2->setLabel("RNTI Histogram");
-    //plot->yAxis->setRange(0,100000);
-    plot->yAxis->setRange(1e1, 1e5);
+    QSharedPointer<QCPAxisTickerLog> logTicker(new QCPAxisTickerLog);
+    plot->yAxis->setRange(1, 2000);
     plot->yAxis->setScaleType(QCPAxis::stLogarithmic);
     plot->yAxis2->setScaleType(QCPAxis::stLogarithmic);
-    QSharedPointer<QCPAxisTickerLog> logTicker(new QCPAxisTickerLog);
     plot->yAxis->setTicker(logTicker);
     plot->yAxis2->setTicker(logTicker);
+
+    plot->xAxis->setRange(0,65535);
+    plot->xAxis2->setLabel("RNTI Histogram");
+    xTicker = QSharedPointer<QCPAxisTickerText>(new QCPAxisTickerText);
+    plot->xAxis->setTicker(xTicker);
+    plot->xAxis2->setTicker(xTicker);
+    xTicker->setTickStepStrategy(QCPAxisTicker::TickStepStrategy::tssReadability);
+    xTicker->setTicks(xAT.getTicks(plot_rnti_hist->width()));
+
     plot->axisRect()->setupFullAxesBox();
-
-    //connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), plot->xAxis2, SLOT(setRange(QCPRange))); //evt. for later
-    //connect(plot->yAxis, SIGNAL(rangeChanged(QCPRange)), plot->yAxis2, SLOT(setRange(QCPRange)));
-
   }
-
-  /*if(plottype == RB_OCCUPATION || plottype == CELL_THROUGHPUT){
-
-    plot->addGraph(); // blue line
-    plot->graph(0)->setPen(QPen(QColor(40, 110, 255)));
-
-    QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
-    timeTicker->setTimeFormat("%h:%m:%s");
-    plot->xAxis->setTicker(timeTicker);
-    plot->axisRect()->setupFullAxesBox();
-    plot->yAxis->setRange(0, 30);
-
-    // make left and bottom axes transfer their ranges to right and top axes:
-    connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), plot->xAxis2, SLOT(setRange(QCPRange)));
-    connect(plot->yAxis, SIGNAL(rangeChanged(QCPRange)), plot->yAxis2, SLOT(setRange(QCPRange)));
-
-    // setup a timer that repeatedly calls MainWindow::realtimeDataSlot:
-    //connect(&dataTimer, SIGNAL(timeout()), this, SLOT(realtimeDataSlot()));
-    //dataTimer.start(0); // Interval 0 means to refresh as fast as possible
-  }*/
 
   if(plottype == MCS_TBS_PLOT){
 
     plot->addGraph(); //orange line
-    plot->graph(0)->setName("Uplink");
-    plot->graph(0)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
+    plot->graph(UPLINK)->setName("Uplink");
+    plot->graph(UPLINK)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
 
     plot->addGraph(); //blue line
-    plot->graph(1)->setName("Downlink");
-    plot->graph(1)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
+    plot->graph(DOWNLINK)->setName("Downlink");
+    plot->graph(DOWNLINK)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
 
 
     /*// Legend for Graph Names:
@@ -93,54 +76,61 @@ void MainWindow::setupPlot(PlotsType_t plottype, QCustomPlot *plot){
 
     // Settings for Axis:
     QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
-    timeTicker->setTimeFormat("%m:%s");
+    timeTicker->setTimeFormat(TIMEFORMAT);
+    timeTicker->setTickStepStrategy(QCPAxisTicker::TickStepStrategy::tssReadability);
     plot->xAxis->setTicker(timeTicker);
-    plot->xAxis2->setLabel("Transport-Block-Size");
-    plot->yAxis->setRange(0, 80000);
-    //plot->yAxis->setScaleType(QCPAxis::stLogarithmic);
-    //plot->yAxis2->setScaleType(QCPAxis::stLogarithmic);
-    //QSharedPointer<QCPAxisTickerLog> logTicker(new QCPAxisTickerLog);
-    //plot->yAxis->setTicker(logTicker);
-    //plot->yAxis2->setTicker(logTicker);
+    plot->xAxis2->setLabel("Cell Throughput (TBS) [Mbit/s]");
     plot->axisRect()->setupFullAxesBox();
+    plot->legend->setVisible(true);
+    plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
 
   }
 
   if(plottype == MCS_IDX_PLOT){
 
     plot->addGraph(); //orange line
-    plot->graph(0)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
+    plot->graph(UPLINK)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
+    plot->graph(UPLINK)->setName("Uplink");
 
     plot->addGraph(); //blue line
-    plot->graph(1)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
+    plot->graph(DOWNLINK)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
+    plot->graph(DOWNLINK)->setName("Downlink");
 
     QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
-    timeTicker->setTimeFormat("%m:%s");
+    timeTicker->setTimeFormat(TIMEFORMAT);
+    timeTicker->setTickStepStrategy(QCPAxisTicker::TickStepStrategy::tssReadability);
     plot->xAxis->setTicker(timeTicker);
-    plot->xAxis2->setLabel("IDX");
+    plot->xAxis2->setLabel("MCS Index");
     plot->axisRect()->setupFullAxesBox();
     plot->yAxis->setRange(0, 100);
-
-    // make left and bottom axes transfer their ranges to right and top axes:
-    // connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), plot->xAxis2, SLOT(setRange(QCPRange)));
-    // connect(plot->yAxis, SIGNAL(rangeChanged(QCPRange)), plot->yAxis2, SLOT(setRange(QCPRange)));
-
+    plot->legend->setVisible(true);
+    plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
   }
 
   if(plottype == PRB_PLOT){
 
     plot->addGraph(); //orange line
-    plot->graph(0)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
+    plot->graph(UPLINK)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
+    plot->graph(UPLINK)->setName("Uplink");
+
 
     plot->addGraph(); //blue line
-    plot->graph(1)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
+    plot->graph(DOWNLINK)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
+    plot->graph(DOWNLINK)->setName("Downlink");
+
 
     QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
-    timeTicker->setTimeFormat("%m:%s");
+    timeTicker->setTimeFormat(TIMEFORMAT);
+    timeTicker->setTickStepStrategy(QCPAxisTicker::TickStepStrategy::tssReadability);
     plot->xAxis->setTicker(timeTicker);
     plot->xAxis2->setLabel("Resourceblocks/Subframe");
     plot->axisRect()->setupFullAxesBox();
-    plot->yAxis->setRange(0, glob_settings.glob_args.decoder_args.file_nof_prb);
+    plot->yAxis->setRange(0, SPECTROGRAM_MAX_LINE_WIDTH);
+    plot->legend->setVisible(true);
+    plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
+
+
+
 
     // make left and bottom axes transfer their ranges to right and top axes:
     // connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), plot->xAxis2, SLOT(setRange(QCPRange)));
@@ -151,49 +141,33 @@ void MainWindow::setupPlot(PlotsType_t plottype, QCustomPlot *plot){
 }
 
 void MainWindow::addData(PlotsType_t plottype, QCustomPlot *plot, const ScanLineLegacy *data){
-
   if(plottype == RNTI_HIST){
     static QTime time(QTime::currentTime());
     double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
     static double lastPointKey = 0;
-    static uint32_t rnti_hist_sum[65536];
+    std::vector<double> rnti_hist_sum(65536);
 
-    if (key - lastPointKey > 0.1){ // at most add point every 100ms
+    if(abs(xAT.getPrevW() - plot_rnti_hist->width()) > HO_MARGIN_RESCALE){
+      xTicker->setTicks(xAT.getTicks(plot_rnti_hist->width()));
+    }
 
-      /*plot->removeGraph(0);
-    //plot->addGraph();
-    plot->graph(0)->setPen(QPen(QColor(40, 110, 255)));*/
+    if ((key - lastPointKey)*1000 > plot_mean_slider_a->value()){ // Update RNTI according to slider
 
-      for(int i = 0; i <= 65535; i++){
-        if(data->rnti_hist[i] >= 10){
-          rnti_hist_sum[i] += data->rnti_hist[i]; //Sum rnti_hist up.
-          //if(rnti_hist_sum[i] > 4000000000) rnti_hist_sum[i] = 4000000000;  //evtl. overflow protection
-          plot->graph(0)->addData(i,rnti_hist_sum[i]);
-        }
-      }
+      std::for_each(data->rnti_active_set.begin(), data->rnti_active_set.end(), [&rnti_hist_sum](rnti_manager_active_set_t i){ rnti_hist_sum[i.rnti] = i.frequency;});
+      plot->graph(UPLINK)->setData(QVector<double>::fromStdVector(rnti_x_axis), QVector<double>::fromStdVector(rnti_hist_sum));
+
       lastPointKey = key;
-      plot->replot();
+      //            plot->replot();
     }
 
   }
   if(plottype == RB_OCCUPATION || plottype == CELL_THROUGHPUT){
-    static QTime time(QTime::currentTime());
     // calculate two new data points:
-    double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
-    /*static double lastPointKey = 0;
-    if (key-lastPointKey > 0.002) // at most add point every 2 ms
-    {
-        // add data to lines:
-        plot->graph(0)->addData(key, qSin(key)+qrand()/(double)RAND_MAX*1*qSin(key/0.3843));
-        // rescale value (vertical) axis to fit the current data:
-        //ui->customPlot->graph(0)->rescaleValueAxis();
-        //ui->customPlot->graph(1)->rescaleValueAxis(true);
-        lastPointKey = key;
-    }*/
+    double key = QTime::currentTime().msecsSinceStartOfDay()*0.001; // time elapsed since start of demo, in seconds
     int rnti_counter = 0;
     for(int i = 0; i < 65000; i++)if(data->rnti_hist[i] > 10) rnti_counter++;
 
-    plot->graph(0)->addData(key,rnti_counter);
+    plot->graph(UPLINK)->addData(key,rnti_counter);
 
     key++;
 
@@ -203,170 +177,197 @@ void MainWindow::addData(PlotsType_t plottype, QCustomPlot *plot, const ScanLine
   }
 }
 
-void MainWindow::draw_plot(const ScanLineLegacy *line){
 
+void MainWindow::calc_performance_data(const ScanLineLegacy *line){
+  perf_mutex.lock();
+  // Fix axes
+  if(plot_mcs_idx->width()/TA_DIGITS_PER_DISPLAY - TA_SPACING != plot_mcs_idx->xAxis->ticker()->tickCount()){
+    plot_mcs_idx->xAxis->ticker()->setTickCount(std::max(plot_mcs_idx->width()/TA_DIGITS_PER_DISPLAY - TA_SPACING, 1));
+  }
+  if(plot_throughput->width()/TA_DIGITS_PER_DISPLAY - TA_SPACING != plot_throughput->xAxis->ticker()->tickCount()){
+    plot_throughput->xAxis->ticker()->setTickCount(std::max(plot_throughput->width()/TA_DIGITS_PER_DISPLAY - TA_SPACING, 1));
+  }
+  if(plot_prb    ->width()/TA_DIGITS_PER_DISPLAY - TA_SPACING != plot_prb    ->xAxis->ticker()->tickCount()){
+    plot_prb->xAxis->ticker()->setTickCount(std::max(plot_prb->width()/TA_DIGITS_PER_DISPLAY - TA_SPACING, 1));
+  }
+
+  /*  Assign pointer set according to uplink/downlink case:
+     *
+     *  There are variables for uplink/downlink calculation each.
+     *  Depending on the link type a set of pointers is set to the corresponding set of variables,
+     *  the calculation is then operated based on the pointer set.
+     */
 
   if(line->type == SCAN_LINE_PERF_PLOT_A){
-
-    if(line->sfn != sfn_old_a){
-
-      if(mcs_idx_sum_counter_a != 0){
-
-
-        //qDebug() <<"\nMCS_IDX mean: "<< mcs_idx_sum / mcs_idx_sum_counter <<", TBS_SUM:" << mcs_tbs_sum << ", L_PRB_SUM:"<< l_prb_sum ;
-
-        static QTime time(QTime::currentTime());
-        double key = time.elapsed() * 0.001; // time elapsed since start of demo, in milliseconds
-        static double last_key = 0;
-
-        mcs_idx_sum_sum_a += mcs_idx_sum_a / mcs_idx_sum_counter_a;
-        mcs_tbs_sum_sum_a += mcs_tbs_sum_a;
-        l_prb_sum_sum_a   += l_prb_sum_a;
-
-        if((key - last_key) * 1000 > plot_mean_slider_a->value()){
-
-          mcs_idx_plot_a->graph(0)->addData(key,mcs_idx_sum_sum_a / sum_sum_counter_a);
-          mcs_tbs_plot_a->graph(0)->addData(key,mcs_tbs_sum_sum_a / sum_sum_counter_a);
-          prb_plot_a    ->graph(0)->addData(key,(l_prb_sum_sum_a  / (sum_sum_counter_a * 10)));
-
-          mcs_idx_sum_sum_a = 0;
-          mcs_tbs_sum_sum_a = 0;
-          l_prb_sum_sum_a   = 0;
-          sum_sum_counter_a = 0;
-
-          mcs_idx_plot_a->yAxis->rescale(true);
-          //mcs_tbs_plot_a->yAxis->rescale(true);
-          //prb_plot_a->yAxis->    rescale(true);
-
-          // make key axis range scroll with the data (at a constant range size of 10 sec):
-          mcs_idx_plot_a->xAxis->setRange(key, 10, Qt::AlignRight);
-          mcs_idx_plot_a       ->replot();
-          mcs_tbs_plot_a->xAxis->setRange(key, 10, Qt::AlignRight);
-          mcs_tbs_plot_a       ->replot();
-          prb_plot_a    ->xAxis->setRange(key, 10, Qt::AlignRight);
-          prb_plot_a           ->replot();
-
-          last_key = key;
-
-
-        }
-
-        sum_sum_counter_a++;
-
-      }
-
-      mcs_idx_sum_a = line->mcs_idx; // Save new value for next round.
-      mcs_idx_sum_counter_a = 1;
-
-      mcs_tbs_sum_a = line->mcs_tbs; //Save Values for next round.
-      l_prb_sum_a   = line->l_prb;
-
-      //qDebug() <<"\n New Subframe: \n";
-
-      sfn_old_a = line->sfn;
-    }
-    else{
-
-      mcs_tbs_sum_a += line->mcs_tbs;   //Sum all values.
-      l_prb_sum_a   += line->l_prb;
-      mcs_idx_sum_a += line->mcs_idx;
-      mcs_idx_sum_counter_a++;
-    }
-
-    //qDebug() << "SF_ID:"<< line->sf_idx << ", SFN:"<< line->sfn << ", MCS_IDX:"<< line->mcs_idx << ", MCS_TBS:"<< line->mcs_tbs << ", L_PRB:"<< line->l_prb;
-
-
-  }
-  if(line->type == SCAN_LINE_PERF_PLOT_B){
-
-    if(line->sfn != sfn_old_b){
-
-      if(mcs_idx_sum_counter_b != 0){
-
-
-        //qDebug() <<"\nMCS_IDX mean: "<< mcs_idx_sum / mcs_idx_sum_counter <<", TBS_SUM:" << mcs_tbs_sum << ", L_PRB_SUM:"<< l_prb_sum ;
-
-        static QTime time(QTime::currentTime());
-        double key = time.elapsed() * 0.001 ; // time elapsed since start of demo, in milliseconds
-        static double last_key = 0;
-
-        mcs_idx_sum_sum_b += mcs_idx_sum_b / mcs_idx_sum_counter_b;
-        mcs_tbs_sum_sum_b += mcs_tbs_sum_b;
-        l_prb_sum_sum_b   += l_prb_sum_b;
-
-        //qDebug() << "key: " << key << " last key: " << last_key << " Diff: " << key- last_key;
-
-        if((key - last_key) * 1000 > plot_mean_slider_a->value()){
-
-          //qDebug() << "Taken";
-
-          mcs_idx_plot_a->graph(1)->addData(key,mcs_idx_sum_sum_b / sum_sum_counter_b);
-          mcs_tbs_plot_a->graph(1)->addData(key,mcs_tbs_sum_sum_b / sum_sum_counter_b);
-          prb_plot_a    ->graph(1)->addData(key,(l_prb_sum_sum_b  / (sum_sum_counter_b * 10)));
-
-          mcs_idx_sum_sum_b = 0;
-          mcs_tbs_sum_sum_b = 0;
-          l_prb_sum_sum_b   = 0;
-          sum_sum_counter_b = 0;
-
-          // make key axis range scroll with the data (at a constant range size of 1000):
-        /*  mcs_idx_plot_a->xAxis->setRange(key, 5000, Qt::AlignRight);
-          mcs_idx_plot_a       ->replot();
-          mcs_tbs_plot_a->xAxis->setRange(key, 5000, Qt::AlignRight);
-          mcs_tbs_plot_a       ->replot();
-          prb_plot_a    ->xAxis->setRange(key, 5000, Qt::AlignRight);
-          prb_plot_a           ->replot();
-*/
-          last_key = key;
-
-
-        }
-
-        sum_sum_counter_b++;
-
-      }
-
-      mcs_idx_sum_b = line->mcs_idx; // Save new value for next round.
-      mcs_idx_sum_counter_b = 1;
-
-      mcs_tbs_sum_b = line->mcs_tbs; //Save Values for next round.
-      l_prb_sum_b   = line->l_prb;
-
-      //qDebug() <<"\n New Subframe: \n";
-
-      sfn_old_b = line->sfn;
-    }
-    else{
-
-      mcs_tbs_sum_b += line->mcs_tbs;   //Sum all values.
-      l_prb_sum_b   += line->l_prb;
-      mcs_idx_sum_b += line->mcs_idx;
-      mcs_idx_sum_counter_b++;
-    }
-
-    //qDebug() << "SF_ID:"<< line->sf_idx << ", SFN:"<< line->sfn << ", MCS_IDX:"<< line->mcs_idx << ", MCS_TBS:"<< line->mcs_tbs << ", L_PRB:"<< line->l_prb;
-
+    mcs_tbs = &mcs_tbs_sum_uplink;
+    l_prb = &l_prb_sum_uplink;
+    mcs_idx = &mcs_idx_uplink;
+    nof_allocations = &nof_allocations_uplink;
+    nof_received_sf = &nof_received_sf_uplink;
+    last_timestamp = &last_timestamp_uplink;
+    sf_idx_old = &sf_idx_old_uplink;
+    graph_mcs_idx = plot_mcs_idx->graph(UPLINK);
+    graph_throughput   =  plot_throughput->graph(UPLINK);
+    graph_prb =  plot_prb->graph(UPLINK);
+  }else
+  {
+    mcs_tbs = &mcs_tbs_sum_downlink;
+    l_prb = &l_prb_sum_downlink;
+    mcs_idx = &mcs_idx_sum_downlink;
+    nof_allocations = &nof_allocations_downlink;
+    nof_received_sf = &nof_received_sf_downlink;
+    last_timestamp = &last_timestamp_downlink;
+    sf_idx_old = &sf_idx_old_downlink;
+    graph_mcs_idx = plot_mcs_idx->graph(DOWNLINK);
+    graph_throughput   =  plot_throughput->graph(DOWNLINK);
+    graph_prb =  plot_prb->graph(DOWNLINK);
   }
 
+  // Sum everything up
+  (*mcs_tbs) += line->mcs_tbs;
+  (*l_prb)   += line->l_prb;
+  (*mcs_idx) += line->mcs_idx;
+  (*nof_allocations)++;
 
+  // Update sf_idx if new subframe has started
+  if(line->sf_idx != *sf_idx_old){
+    (*nof_received_sf)++;
+    *sf_idx_old = line->sf_idx;
+  }
+  perf_mutex.unlock();
   delete line;
 }
 
 void MainWindow::draw_rnti_hist(const ScanLineLegacy *line){
-
-  addData(RNTI_HIST, rnti_hist_plot_a, line);
+  addData(RNTI_HIST, plot_rnti_hist, line);
   delete line;
 }
 
 void MainWindow::update_plot_color(){
 
-  mcs_idx_plot_a->graph(0)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
-  mcs_idx_plot_a->graph(1)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
+  plot_mcs_idx->graph(UPLINK)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
+  plot_mcs_idx->graph(DOWNLINK)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
 
-  mcs_tbs_plot_a->graph(0)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
-  mcs_tbs_plot_a->graph(1)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
+  plot_throughput->graph(UPLINK)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
+  plot_throughput->graph(DOWNLINK)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
 
-  prb_plot_a->graph(0)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
-  prb_plot_a->graph(1)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
+  plot_prb->graph(UPLINK)->setPen(QPen(glob_settings.glob_args.gui_args.uplink_plot_color));
+  plot_prb->graph(DOWNLINK)->setPen(QPen(glob_settings.glob_args.gui_args.downlink_plot_color));
 
+}
+
+void MainWindow::draw_plot_uplink(){
+  double timestamp = QTime::currentTime().msecsSinceStartOfDay()*0.001; // day time in milliseconds
+  perf_mutex.lock();
+
+  mcs_tbs = &mcs_tbs_sum_uplink;
+  l_prb = &l_prb_sum_uplink;
+  mcs_idx = &mcs_idx_uplink;
+  nof_allocations = &nof_allocations_uplink;
+  nof_received_sf = &nof_received_sf_uplink;
+  graph_mcs_idx = plot_mcs_idx->graph(UPLINK);
+  graph_throughput   =  plot_throughput->graph(UPLINK);
+  graph_prb =  plot_prb->graph(UPLINK);
+
+  if(*nof_received_sf != 0){    // Only plot if at least one subframe was received
+
+    /*  CALCULATION:
+     *  mcs_tbs_sum_sum_a/elapsed/1024/1024*1000 [bit/ms] --> /1024^2 --> [Mbit/ms] --> /1000 --> [Mbit/s]
+     */
+    graph_mcs_idx ->addData(timestamp,*mcs_idx / *nof_allocations);
+    graph_throughput     ->addData(timestamp,*mcs_tbs / *nof_received_sf *1000/1024/1024);
+    graph_prb   ->addData(timestamp,*l_prb  / *nof_received_sf);
+  }
+  else{
+
+    graph_mcs_idx ->addData(timestamp, 0);
+    graph_throughput     ->addData(timestamp, 0);
+    graph_prb   ->addData(timestamp, 0);
+  }
+  *mcs_idx = 0;
+  *mcs_tbs = 0;
+  *l_prb   = 0;
+  *nof_allocations = 0;
+  *nof_received_sf = 0;
+
+  // make timestamp axis range scroll with the data (at a constant range size of 10 sec):
+  plot_mcs_idx->xAxis->setRange(timestamp, 10, Qt::AlignRight);
+  plot_mcs_idx->yAxis->rescale(true);
+  plot_mcs_idx->yAxis->scaleRange(OVERSCAN);
+  plot_mcs_idx->yAxis->setRangeLower(0);
+
+  plot_throughput->xAxis->setRange(timestamp, 10, Qt::AlignRight);
+  plot_throughput->yAxis->rescale(true);
+  plot_throughput->yAxis->scaleRange(OVERSCAN);
+  plot_throughput->yAxis->setRangeLower(0);
+
+  plot_prb    ->xAxis->setRange(timestamp, 10, Qt::AlignRight);
+  plot_prb->yAxis->rescale(true);
+  plot_prb->yAxis->scaleRange(OVERSCAN);
+  plot_prb->yAxis->setRangeLower(0);
+
+  perf_mutex.unlock();
+}
+
+void MainWindow::draw_plot_downlink(){
+  double timestamp = QTime::currentTime().msecsSinceStartOfDay()*0.001; // day time in milliseconds
+  perf_mutex.lock();
+
+  mcs_tbs = &mcs_tbs_sum_downlink;
+  l_prb = &l_prb_sum_downlink;
+  mcs_idx = &mcs_idx_sum_downlink;
+  nof_allocations = &nof_allocations_downlink;
+  nof_received_sf = &nof_received_sf_downlink;
+  graph_mcs_idx = plot_mcs_idx->graph(DOWNLINK);
+  graph_throughput   =  plot_throughput->graph(DOWNLINK);
+  graph_prb =  plot_prb->graph(DOWNLINK);
+
+  if(*nof_received_sf != 0){    // Only plot if at least one subframe was received
+
+    /*  CALCULATION:
+     *  mcs_tbs_sum_sum_a/elapsed/1024/1024*1000 [bit/ms] --> /1024^2 --> [Mbit/ms] --> /1000 --> [Mbit/s]
+     */
+    graph_mcs_idx ->addData(timestamp,*mcs_idx / *nof_allocations);
+    graph_throughput     ->addData(timestamp,*mcs_tbs / *nof_received_sf *1000/1024/1024);
+    graph_prb   ->addData(timestamp,*l_prb  / *nof_received_sf);
+  }
+  else{
+
+    graph_mcs_idx ->addData(timestamp, 0);
+    graph_throughput     ->addData(timestamp, 0);
+    graph_prb   ->addData(timestamp, 0);
+  }
+
+  *mcs_idx = 0;
+  *mcs_tbs = 0;
+  *l_prb   = 0;
+  *nof_allocations = 0;
+  *nof_received_sf = 0;
+
+  // make timestamp axis range scroll with the data (at a constant range size of 10 sec):
+  plot_mcs_idx->xAxis->setRange(timestamp, 10, Qt::AlignRight);
+  plot_mcs_idx->yAxis->rescale(true);
+  plot_mcs_idx->yAxis->scaleRange(OVERSCAN);
+  plot_mcs_idx->yAxis->setRangeLower(0);
+
+  plot_throughput->xAxis->setRange(timestamp, 10, Qt::AlignRight);
+  plot_throughput->yAxis->rescale(true);
+  plot_throughput->yAxis->scaleRange(OVERSCAN);
+  plot_throughput->yAxis->setRangeLower(0);
+
+  plot_prb    ->xAxis->setRange(timestamp, 10, Qt::AlignRight);
+  plot_prb->yAxis->rescale(true);
+  plot_prb->yAxis->scaleRange(OVERSCAN);
+  plot_prb->yAxis->setRangeLower(0);
+
+  perf_mutex.unlock();
+}
+
+void MainWindow::replot_perf(){
+  perf_mutex.lock();
+  plot_mcs_idx->replot();
+  plot_throughput->replot();
+  plot_prb->replot();
+  plot_rnti_hist->replot();
+  perf_mutex.unlock();
 }

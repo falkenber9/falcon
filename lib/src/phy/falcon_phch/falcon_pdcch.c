@@ -205,7 +205,7 @@ uint32_t srslte_pdcch_generic_locations_ncce(uint32_t nof_cce, srslte_dci_locati
 
 /**
  * @brief srslte_pdcch_validate_location Validate position of a DCI candidate. In addition
- * this function reports, whether the candidate for a given L has an ambiguous match für L-1
+ * this function reports, whether the candidate for a given L has an ambiguous match for L-1
  * at the same location ncce. Deeper ambiguities L-2..3 are ignored. Ambiguous candidates require
  * special treatment to prevent coverage of neighboring DCI.
  * @param nof_cce Total number of CCEs in this subframe.
@@ -317,35 +317,48 @@ uint32_t srslte_pdcch_ue_locations_all_map(srslte_pdcch_t *q, falcon_dci_locatio
                                            falcon_cce_to_dci_location_map_t *cce_map, uint32_t max_cce,
                                            uint32_t nsubframe, uint32_t cfi) {
   /* IMDEA contribution: obtain all possible location for CCE, without caring about the RNTI */
+  /* CNI contribution: create cce_map data structure */
 
   uint32_t i, L, k, map_idx;
   int l;
 
   k = 0;
   for (l = 3; l >= 0; l--) {
-      L = (1 << l);
-      for (i = 0; i < SRSLTE_MIN(NOF_CCE(cfi), MAX_NUM_OF_CCE) / (L); i++) {
-          if (k < max_candidates) {
-              c[k].L = (uint32_t)l;
-              c[k].ncce = (L) * (i % (NOF_CCE(cfi) / (L)));
-              c[k].power = 0;
-              c[k].used = 0;
-              c[k].checked = 0;
-              c[k].sufficient_power = 1;
+    L = (1 << l);
+    for (i = 0; i < SRSLTE_MIN(NOF_CCE(cfi), MAX_NUM_OF_CCE) / (L); i++) {
+      if (k < max_candidates) {
+        c[k].L = (uint32_t)l;
+        c[k].ncce = (L) * (i % (NOF_CCE(cfi) / (L)));
+        c[k].power = 0;
+        c[k].used = 0;
+        c[k].occupied = 0;
+        c[k].checked = 0;
+        c[k].sufficient_power = 1;
 
-              for (map_idx = c[k].ncce; map_idx < c[k].ncce + L; map_idx++) {
-                  cce_map[map_idx].location[l] = &c[k];
-                }
-
-              DEBUG("SS Candidate %d: nCCE: %d, L: %d\n", k, c[k].ncce, c[k].L);
-              k++;
-            }
+        for (map_idx = c[k].ncce; map_idx < c[k].ncce + L; map_idx++) {
+          cce_map[map_idx].location[l] = &c[k];
         }
+
+        DEBUG("SS Candidate %d: nCCE: %d, L: %d\n", k, c[k].ncce, c[k].L);
+        k++;
+      }
     }
+  }
 
   INFO("Initiated %d candidate(s) out of %d CCEs\n", k,NOF_CCE(cfi));
 
   return k;
+}
+
+uint32_t srslte_pdcch_uncheck_ue_locations(falcon_dci_location_t *c, uint32_t nof_locations) {
+  uint32_t result = 0;
+  if(c) {
+    for(uint32_t i=0; i<nof_locations; i++) {
+      c[i].checked = 0;
+    }
+    result = nof_locations;
+  }
+  return result;
 }
 
 static float dci_decode_and_check_list(srslte_pdcch_t *q, float *e, uint8_t *data, uint32_t E, uint32_t nof_bits, uint16_t *crc, uint16_t *list) {

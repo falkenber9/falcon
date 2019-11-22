@@ -67,15 +67,6 @@ bool isEqual(double a, double b, double epsilon) {
 
 //#define STDOUT_COMPACT
 
-#ifndef DISABLE_GRAPHICS
-#include "srsgui/srsgui.h"
-void init_plots(void);
-static pthread_t plot_thread;
-static sem_t plot_sem;
-static uint32_t plot_sf_idx=0;
-static bool plot_track = true;
-#endif
-
 #define PRINT_CHANGE_SCHEDULIGN
 
 //#define CORRECT_SAMPLE_OFFSET
@@ -139,7 +130,7 @@ void parse_args(prog_args_t *args, int argc, char **argv) {
   while ((opt = getopt(argc, argv, "aACfglnopvy")) != -1) {
     switch (opt) {
       case 'p':
-        args->nof_prb = atoi(argv[optind]);
+        args->nof_prb = (uint32_t)atoi(argv[optind]);
         break;
       case 'o':
         args->output_file_name = argv[optind];
@@ -148,10 +139,10 @@ void parse_args(prog_args_t *args, int argc, char **argv) {
         args->rf_args = argv[optind];
         break;
       case 'A':
-        args->rf_nof_rx_ant = atoi(argv[optind]);
+        args->rf_nof_rx_ant = (uint32_t)atoi(argv[optind]);
         break;
       case 'g':
-        args->rf_gain = atof(argv[optind]);
+        args->rf_gain = (float)atof(argv[optind]);
         break;
       case 'C':
         args->disable_cfo = true;
@@ -186,9 +177,6 @@ void parse_args(prog_args_t *args, int argc, char **argv) {
 }
 /**********************************************************************/
 
-/* TODO: Do something with the output data */
-static uint8_t data[20000];
-
 static bool go_exit = false;
 void sig_int_handler(int signo)
 {
@@ -198,9 +186,8 @@ void sig_int_handler(int signo)
   }
 }
 
-static cf_t *sf_buffer[2] = {NULL, NULL};
-
 int srslte_rf_recv_wrapper(void *h, cf_t *data[SRSLTE_MAX_PORTS], uint32_t nsamples, srslte_timestamp_t *t) {
+  (void)t;
   DEBUG(" ----  Receive %d samples  ---- \n", nsamples);
   void *ptr[SRSLTE_MAX_PORTS];
   for (int i=0;i<SRSLTE_MAX_PORTS;i++) {
@@ -268,7 +255,7 @@ int main(int argc, char **argv) {
   }
   /* Set receiver gain */
   if (prog_args.rf_gain > 0) {
-    srslte_rf_set_rx_gain(&rf, prog_args.rf_gain);
+    srslte_rf_set_rx_gain(&rf, (double)prog_args.rf_gain);
   } else {
     printf("Starting AGC thread...\n");
     if (srslte_rf_start_gain_thread(&rf, false)) {
@@ -276,7 +263,7 @@ int main(int argc, char **argv) {
       exit(-1);
     }
     srslte_rf_set_rx_gain(&rf, srslte_rf_get_rx_gain(&rf));
-    cell_detect_config.init_agc = srslte_rf_get_rx_gain(&rf);
+    cell_detect_config.init_agc = (float)srslte_rf_get_rx_gain(&rf);
   }
 
   sigset_t sigset;
@@ -324,9 +311,9 @@ int main(int argc, char **argv) {
     } else {
       srslte_rf_set_master_clock_rate(&rf, srate);
     }
-    printf("Setting sampling rate %.2f MHz\n", (float) srate/1000000);
-    float srate_rf = srslte_rf_set_rx_srate(&rf, (double) srate);
-    if (!isEqual(srate_rf, srate, 1.0)) {
+    printf("Setting sampling rate %.2f MHz\n", (double) srate/1000000);
+    float srate_rf = (float)srslte_rf_set_rx_srate(&rf, (double)srate);
+    if (!isEqual((double)srate_rf, srate, 1.0)) {
       fprintf(stderr, "Could not set sampling rate\n");
       exit(-1);
     }
@@ -366,7 +353,7 @@ int main(int argc, char **argv) {
   }
 
   for (uint32_t i=0;i<prog_args.rf_nof_rx_ant;i++) {
-    sf_buffer[i] = srslte_vec_malloc(3*sizeof(cf_t)*SRSLTE_SF_LEN_PRB(cell.nof_prb));
+    sf_buffer[i] = srslte_vec_malloc(3*sizeof(cf_t)*(uint32_t)SRSLTE_SF_LEN_PRB(cell.nof_prb));
   }
 
   if (srslte_ue_dl_init(&ue_dl, sf_buffer, cell.nof_prb, prog_args.rf_nof_rx_ant)) {
@@ -410,7 +397,7 @@ int main(int argc, char **argv) {
                              srslte_rf_set_rx_gain_th_wrapper_,
                              rf_info->min_rx_gain,
                              rf_info->max_rx_gain,
-                             cell_detect_config.init_agc);
+                             (double)cell_detect_config.init_agc);
   }
 
 #ifdef PRINT_CHANGE_SCHEDULIGN
@@ -462,7 +449,7 @@ int main(int argc, char **argv) {
                                "Recording started: %d\n"
                                "*************************\n"
                                "*************************\n", sfn);
-                sfn = (sfn + sfn_offset)%1024;
+                sfn = (sfn + (uint32_t)sfn_offset)%1024;
                 fstart = 1;
               }
             } else {
@@ -487,7 +474,7 @@ int main(int argc, char **argv) {
       }
       else {
         fprintf(stderr,"Finding PSS... Peak: %8.1f, FrameCnt: %d, State: %d\n",
-                srslte_sync_get_peak_value(&ue_sync.sfind),
+                (double)srslte_sync_get_peak_value(&ue_sync.sfind),
                 ue_sync.frame_total_cnt, ue_sync.state);
       }
     }

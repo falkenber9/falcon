@@ -21,7 +21,8 @@
 
 #pragma once
 
-#define FALCON_ILLEGAL_RNTI 0x0000 
+#define FALCON_ILLEGAL_RNTI 0x0000
+#define FALCON_UNSET_RNTI 0x0000
 
 #ifdef __cplusplus
 extern "C" {

@@ -107,6 +107,9 @@ SRSLTE_API uint32_t srslte_pdcch_ue_locations_all_map(srslte_pdcch_t *q,
                                                       uint32_t max_cce,
                                                       uint32_t nsubframe, uint32_t cfi);
 
+SRSLTE_API uint32_t srslte_pdcch_uncheck_ue_locations(falcon_dci_location_t *c,
+                                                uint32_t nof_locations);
+
 SRSLTE_API int srslte_pdcch_decode_msg_power(srslte_pdcch_t *q,
 					     srslte_dci_msg_t *msg,
 					     srslte_dci_location_t *location,

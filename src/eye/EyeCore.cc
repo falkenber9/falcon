@@ -26,6 +26,7 @@
 
 #include "EyeCore.h"
 #include "falcon/common/SubframeBuffer.h"
+#include "falcon/phy/falcon_ue/BufferPool.h"
 #include "falcon/phy/falcon_rf/rf_imp.h"
 
 #include "falcon/prof/Lifetime.h"
@@ -48,9 +49,6 @@
 
 using namespace std;
 
-/* Buffers for PCH reception (not included in DL HARQ) */
-const static uint32_t  pch_payload_buffer_sz = 8*1024;  // cf. srslte: srsue/hdr/mac/mac.h
-
 static cell_search_cfg_t cell_detect_config = {
   SRSLTE_DEFAULT_MAX_FRAMES_PBCH,
   SRSLTE_DEFAULT_MAX_FRAMES_PSS,
@@ -68,34 +66,45 @@ bool isEqual(double a, double b, double epsilon) {
     return (diff < epsilon) && (diff > -epsilon);
 }
 
-EyeCore::EyeCore(Args& args) :
+EyeCore::EyeCore(const Args& args) :
   go_exit(false),
   args(args),
   state(DECODE_MIB)
 {
-  for (int i = 0; i< SRSLTE_MAX_CODEWORDS; i++) {
-    pch_payload_buffers[i] = new uint8_t[pch_payload_buffer_sz];
-    if (!pch_payload_buffers[i]) {
-      cout << "Error allocating bpch_payload_buffers" << endl;
-      go_exit = true;
-    }
+  phy = new Phy(args.rf_nof_rx_ant,
+                DEFAULT_NOF_WORKERS,
+                args.dci_file_name,
+                args.stats_file_name,
+                args.skip_secondary_meta_formats,
+                args.dci_format_split_ratio);
+  phy->getCommon().setShortcutDiscovery(args.enable_shortcut_discovery);
+  std::shared_ptr<DCIConsumerList> cons(new DCIConsumerList());
+  if(args.dci_file_name != "") {
+    cons->addConsumer(static_pointer_cast<SubframeInfoConsumer>(std::shared_ptr<DCIToFile>(new DCIToFile(phy->getCommon().getDCIFile()))));
   }
+  if(args.enable_ASCII_PRB_plot) {
+    cons->addConsumer(static_pointer_cast<SubframeInfoConsumer>(std::shared_ptr<DCIDrawASCII>(new DCIDrawASCII())));
+  }
+  if(args.enable_ASCII_power_plot) {
+    cons->addConsumer(static_pointer_cast<SubframeInfoConsumer>(std::shared_ptr<PowerDrawASCII>(new PowerDrawASCII())));
+  }
+  setDCIConsumer(cons);
 }
 
 EyeCore::~EyeCore() {
-  for (int i = 0; i< SRSLTE_MAX_CODEWORDS; i++) {
-    delete[] pch_payload_buffers[i];
-    pch_payload_buffers[i] = nullptr;
-  }
+  delete phy;
+  phy = nullptr;
 }
 
 bool EyeCore::run() {
+  state = DECODE_MIB;
   int n, ret;
   int decimate = 1;
   srslte_cell_t cell;
   int64_t sf_cnt;
-  srslte_ue_dl_t ue_dl;
-  falcon_ue_dl_t falcon_ue_dl;
+    //disabled for migration
+    //srslte_ue_dl_t ue_dl;
+    //falcon_ue_dl_t falcon_ue_dl;
   srslte_ue_sync_t ue_sync;
   srslte_ue_mib_t ue_mib;
 #ifndef DISABLE_RF
@@ -108,8 +117,11 @@ bool EyeCore::run() {
   //FILE *fid;
   //uint16_t rnti_tmp;
 
-  SubframeBuffer sfb(args.rf_nof_rx_ant);
+  //BufferPool bufferPool(args.rf_nof_rx_ant, 10);
+  //std::unique_ptr<SubframeBuffer> sfb = bufferPool.getAvail();
+  //SubframeBuffer sfb(args.rf_nof_rx_ant);
   uint32_t sfn = 0; // system frame number
+  uint32_t skip_cnt = 0;
 
   if(args.cpu_affinity > -1) {
     cpu_set_t cpuset;
@@ -118,7 +130,7 @@ bool EyeCore::run() {
     thread = pthread_self();
     for(int i = 0; i < 8;i++){
       if(((args.cpu_affinity >> i) & 0x01) == 1){
-        cout << "Setting cni_capture_sync with affinity to core " << i << endl;
+        cout << "Setting EyeCore with affinity to core " << i << endl;
         CPU_SET(static_cast<size_t>(i), &cpuset);
       }
       if(pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset)){
@@ -229,6 +241,7 @@ bool EyeCore::run() {
       cout << "Error initiating ue_sync" << endl;
       return true;
     }
+    srslte_ue_sync_file_wrap(&ue_sync, args.file_wrap);
   }
   else {
 #ifndef DISABLE_RF
@@ -257,7 +270,9 @@ bool EyeCore::run() {
 #endif
   }
 
-  if (srslte_ue_mib_init(&ue_mib, sfb.sf_buffer, cell.nof_prb)) {
+  std::shared_ptr<SubframeWorker> worker(phy->getAvail());
+
+  if (srslte_ue_mib_init(&ue_mib, worker->getBuffers(), cell.nof_prb)) {
     cout << "Error initaiting UE MIB decoder" << endl;
     return true;
   }
@@ -266,12 +281,24 @@ bool EyeCore::run() {
     return true;
   }
 
-  if (falcon_ue_dl_init(&falcon_ue_dl, &ue_dl, sfb.sf_buffer, cell.nof_prb, args.rf_nof_rx_ant, args.dci_file_name.c_str(), args.stats_file_name.c_str())) {
-    //if (srslte_ue_dl_init(&ue_dl, sf_buffer, cell.nof_prb, args.rf_nof_rx_ant)) {
-    cout << "Error initiating UE downlink processing module" << endl;
-    return true;
-  }
-  if (srslte_ue_dl_set_cell(&ue_dl, cell)) {
+///THIS IS REPLACED by the phy instantiation...
+//  if (falcon_ue_dl_init(&falcon_ue_dl, &ue_dl,
+//                        sfb.sf_buffer,
+//                        cell.nof_prb,
+//                        args.rf_nof_rx_ant,
+//                        args.dci_file_name.c_str(),
+//                        args.stats_file_name.c_str(),
+//                        args.skip_secondary_meta_formats))
+//  {
+//    //if (srslte_ue_dl_init(&ue_dl, sf_buffer, cell.nof_prb, args.rf_nof_rx_ant)) {
+//    cout << "Error initiating UE downlink processing module" << endl;
+//    return true;
+//  }
+
+  //defaultDCIConsumer.setFile(falcon_ue_dl.dci_file);
+
+  // set cell for all workers
+  if (!phy->setCell(cell)) {
     cout << "Error initiating UE downlink processing module" << endl;
     return true;
   }
@@ -282,12 +309,14 @@ bool EyeCore::run() {
   ue_sync.cfo_correct_enable_find = true;
   srslte_sync_set_cfo_cp_enable(&ue_sync.sfind, false, 0);
 
-
-  srslte_chest_dl_cfo_estimate_enable(&ue_dl.chest, false, 1023); // args->enable_cfo_ref = false;
-  srslte_chest_dl_average_subframe(&ue_dl.chest, false);          // args->average_subframe = false;
+  phy->setChestCFOEstimateEnable(false, 1023);
+  phy->setChestAverageSubframe(false);
+  //srslte_chest_dl_cfo_estimate_enable(&ue_dl.chest, false, 1023); // args->enable_cfo_ref = false;
+  //srslte_chest_dl_average_subframe(&ue_dl.chest, false);          // args->average_subframe = false;
 
   /* Configure downlink receiver for the SI-RNTI since will be the only one we'll use */
-  srslte_ue_dl_set_rnti(&ue_dl, SRSLTE_SIRNTI);
+  phy->setRNTI(SRSLTE_SIRNTI);
+  //srslte_ue_dl_set_rnti(&ue_dl, SRSLTE_SIRNTI);
 
   /* Initialize subframe counter */
   sf_cnt = 0;
@@ -319,7 +348,8 @@ bool EyeCore::run() {
 
   ue_sync.cfo_correct_enable_track = !args.disable_cfo;
 
-  falcon_ue_dl.q = &ue_dl;
+//  falcon_ue_dl.q = &ue_dl;
+
 //  if (args.rnti_list_file != NULL) { // loading RNTI list
 //    fid = fopen(args.rnti_list_file,"r");
 //    if (fid>0) {
@@ -336,23 +366,24 @@ bool EyeCore::run() {
 
   srslte_pbch_decode_reset(&ue_mib.pbch);
 
+  //PrintLifetime lt("###>> Search took: ");
   cout << "Entering main loop..." << endl;
   /* Main loop */
   while (!go_exit && (sf_cnt < args.nof_subframes || args.nof_subframes == 0)) {
 
-    bool acks [SRSLTE_MAX_CODEWORDS] = {false};
-    ret = srslte_ue_sync_zerocopy_multi(&ue_sync, sfb.sf_buffer);
+//    if(sf_cnt % (args.dci_format_split_update_interval_ms) == 0) {
+//      phy->getMetaFormats().update_formats();
+//      //falcon_ue_dl_update_formats(&falcon_ue_dl, args.dci_format_split_ratio);
+//    }
+
+    ret = srslte_ue_sync_zerocopy_multi(&ue_sync, worker->getBuffers());
     if (ret < 0) {
-      cout << "Error calling srslte_ue_sync_work()" << endl;
-    }
-    /* TODO: Add return value 7 for controlled shutdown after reading whole file in file mode */
-    if (ret == 7) {
-//      if (!args.disable_plots) {
-//        plot_sf_idx = sfn % 1024;
-//        last_good = sfn;
-//        plot_track = true;
-//        sem_post(&plot_sem);
-//      }
+      if(ue_sync.file_mode) {
+        cout << "Finished reading samples from file (srslte_ue_sync_work())" << endl;
+      }
+      else {
+        cout << "Error calling srslte_ue_sync_work()" << endl;
+      }
       go_exit = true;
       break;
     }
@@ -378,110 +409,65 @@ bool EyeCore::run() {
                       ", offset " << sfn_offset << endl;
               sfn = (sfn + static_cast<uint32_t>(sfn_offset)) % 1024;
               state = DECODE_PDSCH;
-              if(falcon_ue_dl.rnti_manager != nullptr) {
-                rnti_manager_free(falcon_ue_dl.rnti_manager);
-                falcon_ue_dl.rnti_manager = nullptr;
-              }
-              falcon_ue_dl.rnti_manager = rnti_manager_create(nof_falcon_ue_all_formats, RNTI_PER_SUBFRAME);
+              RNTIManager& rntiManager = phy->getCommon().getRNTIManager();
+//              if(falcon_ue_dl.rnti_manager != nullptr) {
+//                rnti_manager_free(falcon_ue_dl.rnti_manager);
+//                falcon_ue_dl.rnti_manager = nullptr;
+//              }
+//              falcon_ue_dl.rnti_manager = rnti_manager_create(nof_falcon_ue_all_formats, RNTI_PER_SUBFRAME);
+
               // setup rnti manager
               int idx;
               // add format1A evergreens
               idx = falcon_dci_index_of_format_in_list(SRSLTE_DCI_FORMAT1A, falcon_ue_all_formats, nof_falcon_ue_all_formats);
               if(idx > -1) {
-                rnti_manager_add_evergreen(falcon_ue_dl.rnti_manager, SRSLTE_RARNTI_START, SRSLTE_RARNTI_END, static_cast<uint32_t>(idx));
-                rnti_manager_add_evergreen(falcon_ue_dl.rnti_manager, SRSLTE_PRNTI, SRSLTE_SIRNTI, static_cast<uint32_t>(idx));
+                rntiManager.addEvergreen(SRSLTE_RARNTI_START, SRSLTE_RARNTI_END, static_cast<uint32_t>(idx));
+                rntiManager.addEvergreen(SRSLTE_PRNTI, SRSLTE_SIRNTI, static_cast<uint32_t>(idx));
+                //rnti_manager_add_evergreen(falcon_ue_dl.rnti_manager, SRSLTE_RARNTI_START, SRSLTE_RARNTI_END, static_cast<uint32_t>(idx));
+                //rnti_manager_add_evergreen(falcon_ue_dl.rnti_manager, SRSLTE_PRNTI, SRSLTE_SIRNTI, static_cast<uint32_t>(idx));
               }
               // add format1C evergreens
               idx = falcon_dci_index_of_format_in_list(SRSLTE_DCI_FORMAT1C, falcon_ue_all_formats, nof_falcon_ue_all_formats);
               if(idx > -1) {
-                rnti_manager_add_evergreen(falcon_ue_dl.rnti_manager, SRSLTE_RARNTI_START, SRSLTE_RARNTI_END, static_cast<uint32_t>(idx));
-                rnti_manager_add_evergreen(falcon_ue_dl.rnti_manager, SRSLTE_PRNTI, SRSLTE_SIRNTI, static_cast<uint32_t>(idx));
+                rntiManager.addEvergreen(SRSLTE_RARNTI_START, SRSLTE_RARNTI_END, static_cast<uint32_t>(idx));
+                rntiManager.addEvergreen(SRSLTE_PRNTI, SRSLTE_SIRNTI, static_cast<uint32_t>(idx));
+                //rnti_manager_add_evergreen(falcon_ue_dl.rnti_manager, SRSLTE_RARNTI_START, SRSLTE_RARNTI_END, static_cast<uint32_t>(idx));
+                //rnti_manager_add_evergreen(falcon_ue_dl.rnti_manager, SRSLTE_PRNTI, SRSLTE_SIRNTI, static_cast<uint32_t>(idx));
               }
               // add forbidden rnti values to rnti manager
               for(uint32_t f=0; f<nof_falcon_ue_all_formats; f++) {
                   //disallow RNTI=0 for all formats
-                  rnti_manager_add_forbidden(falcon_ue_dl.rnti_manager, 0x0, 0x0, f);
+                rntiManager.addForbidden(0x0, 0x0, f);
+                //rnti_manager_add_forbidden(falcon_ue_dl.rnti_manager, 0x0, 0x0, f);
               }
 
             }
           }
           break;
         case DECODE_PDSCH:
-          {
-            //PrintLifetime lt("###>> Subframe took: ");
-            srslte_ue_dl_get_control_cc_hist(&falcon_ue_dl, srslte_ue_sync_get_sfidx(&ue_sync), sfn);
-          }
-          if (ue_dl.current_rnti != 0xffff) {
-            //n = srslte_ue_dl_decode_broad(&ue_dl, &sf_buffer[args.time_offset], data, srslte_ue_sync_get_sfidx(&ue_sync), ue_dl.current_rnti);
-            if(cell.nof_ports == 1) {
-              /* Transmission mode 1 */
-              n = srslte_ue_dl_decode(&ue_dl, pch_payload_buffers, 0, sfn * 10 + srslte_ue_sync_get_sfidx(&ue_sync), acks);
+            worker->prepare(srslte_ue_sync_get_sfidx(&ue_sync),
+                            sfn,
+                            sf_cnt % (args.dci_format_split_update_interval_ms) == 0);
+//#define SINGLE_THREAD
+#ifdef SINGLE_THREAD
+            worker->work();
+#else
+            std::shared_ptr<SubframeWorker> tmp;
+            if(args.input_file_name == "") {
+              tmp = phy->getAvailImmediate();  // non-blocking if reading from radio
             }
             else {
-              /* Transmission mode 2 */
-              n = srslte_ue_dl_decode(&ue_dl, pch_payload_buffers, 1, sfn * 10 + srslte_ue_sync_get_sfidx(&ue_sync), acks);
+              tmp = phy->getAvail();  // blocking if reading from file
             }
-            uint8_t* pch_payload = pch_payload_buffers[0];
-            uint16_t t_rnti;
-
-            switch(n) {
-              case 0:
-                //        			printf("No decode\n");
-                break;
-              case 40:
-                t_rnti = 256*static_cast<uint16_t>(pch_payload[(n/8)-2]) + pch_payload[(n/8)-1];
-                srslte_ue_dl_reset_rnti_user(&falcon_ue_dl, t_rnti);
-                rnti_manager_activate_and_refresh(falcon_ue_dl.rnti_manager, t_rnti, 0, ActivationReason::RM_ACT_RAR);
-                //					printf("Found %d\t%d\t%d\n", sfn, srslte_ue_sync_get_sfidx(&ue_sync), 256*pch_payload[(n/8)-2] + pch_payload[(n/8)-1]);
-                //        			for (int k=0; k<(n/8); k++) {
-                //        				printf("%02x ",pch_payload[k]);
-                //        			}
-                //        			printf("\n");
-                break;
-              case 56:
-                t_rnti = 256*static_cast<uint16_t>(pch_payload[(n/8)-2]) + pch_payload[(n/8)-1];
-                srslte_ue_dl_reset_rnti_user(&falcon_ue_dl, t_rnti);
-                rnti_manager_activate_and_refresh(falcon_ue_dl.rnti_manager, t_rnti, 0, ActivationReason::RM_ACT_RAR);
-                //        			printf("Found %d\t%d\t%d\n", sfn, srslte_ue_sync_get_sfidx(&ue_sync), 256*pch_payload[(n/8)-2] + pch_payload[(n/8)-1]);
-                //        			for (int k=0; k<(n/8); k++) {
-                //        				printf("%02x ",pch_payload[k]);
-                //        			}
-                //        			printf("\n");
-                break;
-              case 72:
-                t_rnti = 256*static_cast<uint16_t>(pch_payload[(n/8)-4]) + pch_payload[(n/8)-3];
-                srslte_ue_dl_reset_rnti_user(&falcon_ue_dl, t_rnti);
-                rnti_manager_activate_and_refresh(falcon_ue_dl.rnti_manager, t_rnti, 0, ActivationReason::RM_ACT_RAR);
-                //        			printf("Found %d\t%d\t%d\n", sfn, srslte_ue_sync_get_sfidx(&ue_sync), 256*pch_payload[(n/8)-4] + pch_payload[(n/8)-3]);
-                //        			for (int k=0; k<(n/8); k++) {
-                //        				printf("%02x ",pch_payload[k]);
-                //        			}
-                //        			printf("\n");
-                break;
-              case 120:
-                t_rnti = 256*static_cast<uint16_t>(pch_payload[(n/8)-3]) + pch_payload[(n/8)-2];
-                srslte_ue_dl_reset_rnti_user(&falcon_ue_dl, t_rnti);
-                rnti_manager_activate_and_refresh(falcon_ue_dl.rnti_manager, t_rnti, 0, ActivationReason::RM_ACT_RAR);
-
-                t_rnti = 256*static_cast<uint16_t>(pch_payload[(n/8)-9]) + pch_payload[(n/8)-8];
-                srslte_ue_dl_reset_rnti_user(&falcon_ue_dl, t_rnti);
-                rnti_manager_activate_and_refresh(falcon_ue_dl.rnti_manager, t_rnti, 0, ActivationReason::RM_ACT_RAR);
-                //					printf("Found %d\t%d\t%d\n", sfn, srslte_ue_sync_get_sfidx(&ue_sync), 256*pch_payload[(n/8)-9] + pch_payload[(n/8)-8]);
-                //					printf("Found %d\t%d\t%d\n", sfn, srslte_ue_sync_get_sfidx(&ue_sync), 256*pch_payload[(n/8)-3] + pch_payload[(n/8)-2]);
-                //					for (int k=0; k<(n/8); k++) {
-                //						printf("%02x ",pch_payload[k]);
-                //					}
-                //					printf("\n");
-                break;
-              default:
-                //        			fprintf(stderr,"\n");
-                //					for (int k=0; k<(n/8); k++) {
-                //						fprintf(stderr,"%02x ",pch_payload[k]);
-                //					}
-                //					fprintf(stderr,"\n");
-                break;
+            if(tmp != nullptr) {
+              phy->putPending(std::move(worker));
+              worker = std::move(tmp);
             }
-          }
+            else {
+              cout << "No worker available. Skipping subframe " << worker->getSfn() << "." << worker->getSfidx() << endl;
+              skip_cnt++;
+            }
+#endif
           break;
       }
 
@@ -489,65 +475,10 @@ bool EyeCore::run() {
         sfn++;
       }
 
-#ifdef BLOCK_SUBSCRIBE
-      if (!args.disable_plots) {
-        if (state == DECODE_PDSCH) {
-          //plot_sf_idx = sfn % 1024;
-          //last_good = sfn;
-          //plot_track = true;
-          float* current_colored_rb_map_up = falcon_ue_dl.colored_rb_map_up_last;
-          float* current_colored_rb_map_dw = falcon_ue_dl.colored_rb_map_dw_last;
-
-          //ScanLine uplinkScanLine(current_colored_rb_map_up, ue_dl.cell.nof_prb);
-          //uplinkAllocProvider.pushToSubscribers(&uplinkScanLine);
-
-          //ScanLine downlinkScanLine(current_colored_rb_map_dw, ue_dl.cell.nof_prb);
-          //downlinkAllocProvider.pushToSubscribers(&downlinkScanLine);
-
-          // Spectrum - compute absolute values
-          float tmp_plot_wf[2048*110*15];
-          bzero(tmp_plot_wf,12*ue_dl.cell.nof_prb*sizeof(float));
-          for (int j = 0; j < 14; j++) {
-            for (int i = 0; i < 12*ue_dl.cell.nof_prb; i++) { // 12*
-              //tmp_plot_wf[i] += 20 * log10f(cabsf(ue_dl.sf_symbols[i+j*(12*ue_dl.cell.nof_prb)]))/14;
-              tmp_plot_wf[i] += 20 * log10f(std::abs(static_cast<std::complex<float>>(ue_dl.sf_symbols[i+j*(12*ue_dl.cell.nof_prb)])))/14;
-              // if(ue_dl == NULL) tmp_plot_wf[i] = 0;
-              // printf(": %f",ue_dl.sf_symbols[i+j*12*ue_dl.cell.nof_prb]);
-
-            }
-          }
-
-          // Spectrum - average signals to full PRBs
-          float tmp_linebuffer[110];
-          float tmp_buff = 0;
-
-          for(uint32_t i = 0; i < ue_dl.cell.nof_prb; i++){
-            for(uint32_t j = 0; j < 12; j++){
-              if((i*12)+j >= 600) break;
-              tmp_buff += tmp_plot_wf[(i*12)+j];
-            }
-            tmp_linebuffer[i] = tmp_buff * 128;
-            tmp_buff = 0;
-          }
-
-          //ScanLine spectrumScanLine(tmp_linebuffer, ue_dl.cell.nof_prb);
-          //downlinkSpectrumProvider.pushToSubscribers(&spectrumScanLine);
-
-          // Histogram
-          uint32_t hist_int[65536];
-          rnti_manager_get_histogram_summary(falcon_ue_dl.rnti_manager, hist_int);
-
-          //histogramProvider.pushToSubscribers(hist_int);
-
-          //call_function(decoderthread,falcon_ue_dl.colored_rb_map_up_last, falcon_ue_dl.colored_rb_map_dw_last,tmp_linebuffer,hist_int);
-          //sem_post(&plot_sem);
-        }
-      }
-#endif
-
       if (sfn % 10 == 0 && srslte_ue_sync_get_sfidx(&ue_sync) == 9) {
         if(SRSLTE_VERBOSE_ISINFO()) {
-          rnti_manager_print_active_set(falcon_ue_dl.rnti_manager);
+          phy->getCommon().getRNTIManager().printActiveSet();
+          //rnti_manager_print_active_set(falcon_ue_dl.rnti_manager);
         }
       }
     }
@@ -557,18 +488,31 @@ bool EyeCore::run() {
               " State: " << ue_sync.state << endl;
     }
     // Some delay when playing
-    if (args.input_file_name != "" && !args.disable_plots) {
-      usleep(1000);
-    }
+//    if (args.input_file_name != "" && !args.disable_plots) {
+//      usleep(1000);
+//    }
     sf_cnt++;
   } // Main loop
 
-  rnti_manager_print_active_set(falcon_ue_dl.rnti_manager);
+  phy->joinPending();
 
-  srslte_ue_dl_stats_print(&falcon_ue_dl, falcon_ue_dl.stats_file);
 
-  rnti_manager_free(falcon_ue_dl.rnti_manager);
-  falcon_ue_dl_free(&falcon_ue_dl);
+  phy->getCommon().getRNTIManager().printActiveSet();
+  //rnti_manager_print_active_set(falcon_ue_dl.rnti_manager);
+
+  phy->getCommon().printStats();
+  cout << "Skipped subframes: " << skip_cnt << " (" << static_cast<double>(skip_cnt) * 100 / (phy->getCommon().getStats().nof_subframes + skip_cnt) << "%)" <<  endl;
+  //srslte_ue_dl_stats_print(&falcon_ue_dl, falcon_ue_dl.stats_file);
+
+#if 0
+  std::vector<std::shared_ptr<SubframeWorker> >& ww(phy->getWorkers());
+  for(auto w : ww) {
+    w->printStats();
+  }
+#endif
+
+  //rnti_manager_free(falcon_ue_dl.rnti_manager);
+  //falcon_ue_dl_free(&falcon_ue_dl);
   srslte_ue_sync_free(&ue_sync);
   srslte_ue_mib_free(&ue_mib);
 
@@ -581,7 +525,23 @@ bool EyeCore::run() {
   return true;
 }
 
-void EyeCore::handleSignal() {
+void EyeCore::stop() {
   cout << "EyeCore: Exiting..." << endl;
   go_exit = true;
+}
+
+RNTIManager &EyeCore::getRNTIManager(){
+  return phy->getCommon().getRNTIManager();
+}
+
+void EyeCore::setDCIConsumer(std::shared_ptr<SubframeInfoConsumer> consumer) {
+  phy->getCommon().setDCIConsumer(consumer);
+}
+
+void EyeCore::resetDCIConsumer() {
+  phy->getCommon().resetDCIConsumer();
+}
+
+void EyeCore::handleSignal() {
+  stop();
 }

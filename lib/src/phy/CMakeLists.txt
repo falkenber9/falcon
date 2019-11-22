@@ -16,5 +16,5 @@ target_link_libraries(falcon_phy
   ${FFT_LIBRARIES}
   pthread
   ${Boost_LIBRARIES}
-  model_dummy
+#  model_dummy
   )

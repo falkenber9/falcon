@@ -77,7 +77,7 @@ DecoderThread::~DecoderThread() {
 }
 
 
-extern "C" void call_function(void *f_pointer, float *data_ul, float *data_dl, float *data_spectrum, uint32_t *rnti_hist){
+extern "C" void plot_scanLines(void *f_pointer, float *data_ul, float *data_dl, float *data_spectrum, uint32_t *rnti_hist){
 
   DecoderThread* inst = static_cast<DecoderThread*>(f_pointer);
   if(inst != NULL) {
@@ -130,7 +130,7 @@ extern "C" void call_function(void *f_pointer, float *data_ul, float *data_dl, f
 
 }
 
-extern "C" void call_function_2(void* goal, uint16_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb){
+extern "C" void uplink_perfPlot(void* goal, uint16_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb){
 
   DecoderThread* inst = static_cast<DecoderThread*>(goal);
   if(inst != NULL) {
@@ -150,7 +150,7 @@ extern "C" void call_function_2(void* goal, uint16_t sfn, uint32_t sf_idx,uint32
   }
 }
 
-extern "C" void call_function_3(void* goal, uint16_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb){
+extern "C" void downlink_perfPlot(void* goal, uint16_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb){
 
   DecoderThread* inst = static_cast<DecoderThread*>(goal);
   if(inst != NULL) {

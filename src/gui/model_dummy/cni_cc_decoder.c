@@ -57,7 +57,9 @@ volatile prog_args_t prog_args;
 #define ENABLE_AGC_DEFAULT
 //#define CORRECT_SAMPLE_OFFSET
 
+#ifdef ENABLE_GUI
 #include "srsgui/srsgui.h"
+#endif
 
 volatile bool go_exit = false;
 
@@ -335,7 +337,7 @@ srslte_netsink_t net_sink, net_sink_signal;
 #define PRINT_LINE_ADVANCE_CURSOR() printf("\033[%dB", prev_nof_lines + 1)
 
 int start_cni_decoder() {
-
+  state = DECODE_MIB;
   int ret;
   int decimate = 1;
   srslte_cell_t cell;
@@ -538,7 +540,15 @@ int start_cni_decoder() {
     return false;
   }
 
-  if (falcon_ue_dl_init(&falcon_ue_dl, &ue_dl, sf_buffer, cell.nof_prb, prog_args.rf_nof_rx_ant, "", "")) {
+  if (falcon_ue_dl_init(&falcon_ue_dl,
+                        &ue_dl,
+                        sf_buffer,
+                        cell.nof_prb,
+                        prog_args.rf_nof_rx_ant,
+                        "",
+                        "",
+                        false))
+  {
     //if (srslte_ue_dl_init(&ue_dl, sf_buffer, cell.nof_prb, prog_args.rf_nof_rx_ant)) {
     fprintf(stderr, "Error initiating UE downlink processing module\n");
     return false;
@@ -622,6 +632,10 @@ int start_cni_decoder() {
   INFO("\nEntering main loop...\n\n", 0);
   /* Main loop */
   while (!go_exit && (sf_cnt < prog_args.nof_subframes || prog_args.nof_subframes == -1)) {
+
+//    if(sf_cnt % (DEFAULT_DCI_FORMAT_SPLIT_UPDATE_INTERVAL_MS) == 0) {
+//      falcon_ue_dl_update_formats(&falcon_ue_dl, DEFAULT_DCI_FORMAT_SPLIT_RATIO);
+//    }
 
     bool acks [SRSLTE_MAX_CODEWORDS] = {false};
     ret = srslte_ue_sync_zerocopy_multi(&ue_sync, sf_buffer);
@@ -822,11 +836,12 @@ int start_cni_decoder() {
 
 
 
-          call_function(decoderthread,falcon_ue_dl.colored_rb_map_up_last, falcon_ue_dl.colored_rb_map_dw_last,tmp_linebuffer,hist_int);
+          plot_scanLines(decoderthread,falcon_ue_dl.colored_rb_map_up_last, falcon_ue_dl.colored_rb_map_dw_last,tmp_linebuffer,hist_int);
 
           //sem_post(&plot_sem);
         }
       }
+#ifdef __LOG_ACTIVE_SET__
       if (sfn % 10 == 0 && srslte_ue_sync_get_sfidx(&ue_sync) == 9) {
         rnti_manager_active_set_t active[100];
         uint32_t n_active = 100;
@@ -835,6 +850,7 @@ int start_cni_decoder() {
           printf("%d: %d idx: %d\n", active[i].rnti, active[i].frequency, active[i].assoc_format_idx);
         }
       }
+#endif
     } else if (ret == 0) {
       printf("Finding PSS... Peak: %8.1f, FrameCnt: %d, State: %d\r",
              srslte_sync_get_peak_value(&ue_sync.sfind),

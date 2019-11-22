@@ -41,7 +41,6 @@ extern "C" {
 //#define LOG_ERRORS
 #define PROB_THR 97
 
-#define ENABLE_DCI_DISAMBIGUATION
 
 extern const srslte_dci_format_t falcon_ue_all_formats[];
 extern const uint32_t nof_falcon_ue_all_formats;
@@ -62,6 +61,7 @@ typedef struct {
 } full_dci_blind_search_t;
 
 typedef struct {
+  uint32_t nof_locations;
   uint32_t nof_decoded_locations;
   uint32_t nof_cce;
   uint32_t nof_missed_cce;
@@ -92,6 +92,15 @@ typedef struct SRSLTE_API {
   rnti_histogram_t* rnti_histogram;  
   //srslte_dci_format_t rnti_format[RNTI_HISTOGRAM_ELEMENT_COUNT];
 
+  falcon_dci_meta_format_t* all_meta_formats;
+  falcon_dci_meta_format_t** primary_meta_formats;
+  falcon_dci_meta_format_t** secondary_meta_formats;
+
+  uint32_t nof_all_meta_formats;
+  uint32_t nof_primary_meta_formats;
+  uint32_t nof_secondary_meta_formats;
+  bool skip_secondary_meta_formats;
+
   void* rnti_manager;
   void* decoderthread;
 
@@ -108,10 +117,12 @@ SRSLTE_API int falcon_ue_dl_init(falcon_ue_dl_t *q,
                                  uint32_t max_prb,
                                  uint32_t nof_rx_antennas,
                                  const char* dci_file_name,
-                                 const char* stats_file_name);
+                                 const char* stats_file_name,
+                                 bool skip_secondary_meta_formats);
 SRSLTE_API void falcon_ue_dl_free(falcon_ue_dl_t *q);
 SRSLTE_API dci_candidate_t* falcon_alloc_candidates(uint32_t nof_candidates);
 SRSLTE_API void falcon_free_candidates(dci_candidate_t* candidates);
+SRSLTE_API void falcon_ue_dl_update_formats(falcon_ue_dl_t *q, double split_ratio);
 SRSLTE_API void srslte_ue_dl_reset_rnti_list(falcon_ue_dl_t *q);
 SRSLTE_API void srslte_ue_dl_reset_rnti_user(falcon_ue_dl_t *q, uint16_t user);
 SRSLTE_API void srslte_ue_dl_reset_rnti_user_to(falcon_ue_dl_t *q, uint16_t user, uint16_t val);
@@ -138,9 +149,10 @@ SRSLTE_API int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
                                                              falcon_dci_location_t *location_list,
                                                              uint32_t ncce,
                                                              uint32_t L,
-                                                             const srslte_dci_format_t *formats,
+                                                             uint32_t max_depth,
+                                                             falcon_dci_meta_format_t** meta_formats,
                                                              uint32_t nof_formats,
-                                                             uint32_t enable_shortcut,
+                                                             uint32_t enable_discovery,
                                                              const dci_candidate_t parent_rnti_cand[]);
 SRSLTE_API int srslte_ue_dl_recursive_blind_dci_search(falcon_ue_dl_t *q,
                                                        srslte_dci_msg_t *dci_msg,

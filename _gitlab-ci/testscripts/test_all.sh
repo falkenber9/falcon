@@ -21,7 +21,8 @@ cd $scriptdir
 set -e
 
 ./test_build.sh $builddir $workdir
-./test_FalconEye.sh $builddir $workdir
 ./test_imdea_cc_decoder.sh $builddir $workdir
+#./test_FalconEye_histogram.sh $builddir $workdir
+./test_FalconEye.sh $builddir $workdir
 
 cd $oldpwd

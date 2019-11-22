@@ -1,23 +1,47 @@
 #!/bin/bash 
 
+echo -e "\n********************* STARTING TEST *********************\n"
+
 templatedir="../testdata"
 builddir=$1
 workdir=$2
 
 uut="imdeaowl/imdea_cc_decoder"
-uut_params="-i $templatedir/template-iq.bin -p 50 -P 2 -c 392 -n 1000 -D $workdir/test-owl-dci.csv -E $workdir/test-owl-stats.csv -d"
+
+subtest="normal-10-MHz"
+source "$templatedir/$subtest/args.sh"
+variant="-owl"
+
+input_dir=$templatedir/$subtest
+input_iq=$basename-$iq_suffix
+input_dci=$basename$variant-$dci_suffix
+input_stats=$basename$variant-$stats_suffix
+
+output_dir=$workdir
+output_dci=test$variant-$dci_suffix
+output_stats=test$variant-$stats_suffix
+
+uut_params="-i $input_dir/$input_iq -p $nof_prb -P $antenna_ports -c $cell_id -n $nof_subframes -D $output_dir/$output_dci -E $output_dir/$output_stats -d"
 
 #exit immediately if any command fails
 set -e
 
-echo "Testing OWL"
+echo "Running subtest '$subtest', variant '$variant': $uut $uut_params"
 $builddir/$uut $uut_params
 
-#strip timestamp from dci
-#sed 's/\([^\t]*\)\t\(.*\)/\2/' $workdir/test-falcon-dci.csv > $workdir/stripped-falcon-dci.csv
-#sed 's/\([^\t]*\)\t\(.*\)/\2/' $templatedir/template-falcon-dci.csv > $workdir/template-falcon-dci.csv
+#copy dci to tmp (e.g. for updating tests)
+mkdir -p /tmp/tmp-host/$subtest
+cp $output_dir/$output_dci /tmp/tmp-host/$subtest
+cp $input_dir/$input_dci /tmp/tmp-host/$subtest
 
-cmp $workdir/test-owl-dci.csv $templatedir/template-owl-dci.csv
-cmp $workdir/test-owl-stats.csv $templatedir/template-owl-stats.csv
+#copy stats to tmp
+cp $output_dir/$output_stats /tmp/tmp-host/$subtest
+cp $input_dir/$input_stats /tmp/tmp-host/$subtest
 
-echo "Done"
+echo "Comparing DCI"
+cmp $output_dir/$output_dci $input_dir/$input_dci
+
+echo "Comparing stats"
+cmp $output_dir/$output_stats $input_dir/$input_stats
+
+echo "Success"

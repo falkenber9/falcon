@@ -18,47 +18,59 @@
  * the LICENSE file in the top-level directory of this distribution
  * and at http://www.gnu.org/licenses/.
  */
-#ifndef GLWIDGET_H
-#define GLWIDGET_H
+#pragma once
 
 #include <QOpenGLWidget>
 #include "falcon/definitions.h"
 #include "QMouseEvent"
 #include "QWheelEvent"
+#include "QElapsedTimer"
 #include <qopengl.h>
 #include "settings.h"
+
+#define SPECTROGRAM_NOF_TEXTURES 2
+
+#define PRINT_FPS 0
+
+#if PRINT_FPS
+#include "QTimer"
+#endif
 
 class Spectrum : public QOpenGLWidget {
   Q_OBJECT
 public:
-  explicit Spectrum(QWidget *parent = 0, Settings *glob_settings = 0);
-  virtual ~Spectrum();
-  void addLine(const float* data);
+  explicit Spectrum(QWidget *parent = nullptr, Settings *glob_settings = nullptr);
+  virtual ~Spectrum() override;
+  void addLine(const uint16_t* data);
   void scroll_up();
   void scroll_down();
 
-  float intensity_factor = 1.0; // MoHAcks
+  float intensity_factor = 1.0;
   float min_intensity = 0.0;
   float max_intensity = 500000.0;
   bool paused = false;
-  int pos_y_buff = 0;  // Position Buffer for scrolling
+  int pos_y_buff = 0;  // Position buffer for scrolling
   int view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1; // Position for scrolling    
 
 protected:
-  void initializeGL();
-  void resizeGL(int width, int height);
-  void paintGL();
-  void mousePressEvent(QMouseEvent *event) override;    // Klick and scroll per mousewheel
-  //void wheelEvent(QWheelEvent *event) override;         //
+  void initializeGL() override;
+  void resizeGL(int width, int height) override;
+  void paintGL() override;
+  void mousePressEvent(QMouseEvent *event) override;
 
 private:
-  GLuint textureHandles[2] = {0,0};
-  unsigned int hasTextures;
-  GLubyte *textureBuffer;  
   Settings *settings;
-
-
-  int nextLine = SPECTROGRAM_LINE_COUNT - 1; //0
+  GLuint textureHandles[SPECTROGRAM_NOF_TEXTURES];
+  GLubyte *textureBuffer;  
+  int nextLine = SPECTROGRAM_LINE_COUNT - 1;
+  volatile bool textureUpdateNeeded;
+  QElapsedTimer lastUpdate;
+#if PRINT_FPS
+  QTimer fps_timer;
+  uint32_t dataChangeCount;
+  uint32_t textureUpdateCount;
+  uint32_t textureDrawCount;
+#endif
 
   void initializeTextureBuffer();
   void loadTexture();
@@ -67,9 +79,10 @@ private:
 
 signals:
   void subwindow_click();
-  //void subwindow_scroll(QMouseEvent *event);
+
+public slots:
+#if PRINT_FPS
+  void printFrameCount();
+#endif
 
 };
-
-
-#endif // GLWIDGET_H

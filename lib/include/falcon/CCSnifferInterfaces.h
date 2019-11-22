@@ -23,8 +23,10 @@
 #include <vector>
 #include <algorithm>
 #include <stdint.h>
+#include <vector>
 
 #include "definitions.h"
+#include "falcon/util/RNTIManager.h"
 
 class CCSnifferInterface {
 
@@ -32,18 +34,6 @@ class CCSnifferInterface {
 
 class SnifferConfigInterface {
 
-};
-
-class PushData {
-public:
-  virtual ~PushData() {}
-     // Example container class for data to be pushed directly to the subscribers
-};
-
-class LineData {
-public:
-  virtual ~LineData() {}
-  // Example container class for data to be pulled by the subscribers
 };
 
 template <typename PushDataType>
@@ -98,12 +88,13 @@ typedef enum {
   SCAN_LINE_PERF_PLOT_B   = 6
 } ScanLineType_t;
 
-class ScanLineLegacy : public LineData, public PushData {
+class ScanLineLegacy{
 public:
   virtual ~ScanLineLegacy(){}
   ScanLineType_t type;
-  float linebuf[SPECTROGRAM_LINE_WIDTH];
-  uint32_t rnti_hist[65536];
+  uint16_t linebuf[SPECTROGRAM_LINE_WIDTH];
+  std::vector<uint32_t> rnti_hist;
+  std::vector<rnti_manager_active_set_t> rnti_active_set;
 
   uint32_t sf_idx;
   uint32_t mcs_idx;

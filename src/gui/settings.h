@@ -18,17 +18,17 @@
  * the LICENSE file in the top-level directory of this distribution
  * and at http://www.gnu.org/licenses/.
  */
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#pragma once
 
 #include <QWidget>
 #include <QDebug>
 #include <QString>
 #include <QFile>
-#include "model_dummy/cni_cc_decoder.h"
+//#include "model_dummy/cni_cc_decoder.h"
+#include "eye/ArgManager.h"
 #include <QSettings>
 
-typedef struct{
+typedef struct {
     //bool settings:
     bool save_settings;
     bool use_file_as_source;
@@ -49,46 +49,36 @@ typedef struct{
     //Int Values:
     int spectrum_color_start;
     int spectrum_color_stop;
+} Gui_SettingsType_t;
 
-}Gui_SettingsType_t;
-
-typedef struct{
-
+typedef struct {
     //int settings:
     int mouse_wheel_sens;
     int spectrum_line_count;
     int spectrum_line_width;
     int spectrum_line_shown;
-
-}Spectrum_SettingsType_t;
+} Spectrum_SettingsType_t;
 
 typedef struct {
-
     Gui_SettingsType_t      gui_args;
     Spectrum_SettingsType_t spectrum_args;
-    prog_args_t             decoder_args;
+    Args  eyeArgs;
+    //prog_args_t             decoder_args;
 
-}Global_SettingsType_t;
+} Global_SettingsType_t;
 
-class Settings
-{
-
+class Settings {
 private:
-
     QSettings *settings;
 
 public:
-
     Global_SettingsType_t glob_args;
+    Args test_args;
+    std::string test_string;
 
     explicit Settings();
     virtual ~Settings();
 
     void load_settings();
     void store_settings();
-
 };
-
-
-
-#endif // SETTINGS_H

@@ -15,7 +15,8 @@ set(CMAKE_AUTOUIC ON)
 #include headers
 include_directories("${PROJECT_BINARY_DIR}")
 
-add_subdirectory(model_dummy)
+add_subdirectory(model)
+#add_subdirectory(model_dummy)
 add_subdirectory(adapters_qt)
 
 qt5_add_resources(IMAGES ${PROJECT_SOURCE_DIR}/gfx/images.qrc)  #Dir for ResourceFile with Images
@@ -38,6 +39,7 @@ set(gui
 include_directories("gui")
 
 add_executable(gui ${gui})
+target_compile_options(gui PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
 
 target_link_libraries(gui  
   Qt5::Core
@@ -46,7 +48,8 @@ target_link_libraries(gui
   Qt5::Charts
   ${OPENGL_LIBRARIES}
   ${Boost_LIBRARIES}
-  model_dummy
+  model
+#  model_dummy
   adapters_qt
   falcon_common
   falcon_meas

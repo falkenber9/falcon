@@ -22,26 +22,4 @@
 
 gov=$1
 
-APP=""
-APP_CPUPOWER="cpupower"
-APP_CPUFREQ="cpufreq-set"
-
-command -v $APP_CPUPOWER > /dev/null
-if [ $? -eq 0 ]; then
-	echo "Using $APP_CPUPOWER"
-	APP="$APP_CPUPOWER frequency-set -g"
-fi
-
-command -v $APP_CPUFREQ > /dev/null
-if [ $? -eq 0 ]; then
-	echo "Using $APP_CPUFREQ"
-	APP="$APP_CPUFREQ -r -g"
-fi
-
-if [ "$APP" = "" ]; then
-	echo "Could not find $APP_CPUPOWER or $APP_CPUFREQ"
-else
-	echo "Setting all CPU governors to '$gov'"
-	sudo $APP $gov
-fi
-
+for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo "$gov" | sudo tee $file; done

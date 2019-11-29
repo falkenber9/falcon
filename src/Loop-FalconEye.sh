@@ -20,6 +20,9 @@
 ## and at http://www.gnu.org/licenses/.
 ##
 
+# Set CPUs into performance mode
+./performance-mode.sh
+
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 #BUILDDIR="$SCRIPTDIR/../build/src/examples"

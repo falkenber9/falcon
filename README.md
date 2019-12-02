@@ -230,7 +230,8 @@ In most cases, the base station only transmits a signal on actually occupied CCE
 FALCON uses this circumstance for performance and skips empty CCEs.
 
 Some open-source eNodeBs (e.g. Open Air Interface) still send a significant signal on empty CCEs. In typical applications, this does not lead to any disadvantages, only to increased interference on the control channel when several cells are used.
-However such CCEs (depending on the actual content) can lead to false detections by FALCON's *short-cut* detector. To counteract this, the *short-cut* detector can be deactivated (option ``-H`` in FALCON Eye). The detection of the participants then takes place exclusively via random access or with the help of histograms based on the frequency of occurrence of individual RNTIs. In the latter case, however, RNTIs are only accepted and activated with a time delay after a threshold value has been reached.
+However such CCEs (depending on the actual content) can lead to false detections by FALCON's *short-cut* detector. To counteract this, the *short-cut* detector can be deactivated (option ``-L`` in FALCON Eye). The detection of the participants then takes place exclusively via random access or with the help of histograms based on the frequency of occurrence of individual RNTIs. In the latter case, however, RNTIs are only accepted and activated with a time delay after a threshold value has been reached.
+The threshold value can be configured by the option ``-H <threshold>`` in FALCON Eye.
 
 
 ## Comparison with IMDEA OWL

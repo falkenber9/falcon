@@ -47,6 +47,7 @@
 #define ENABLE_AGC_DEFAULT
 //#define CORRECT_SAMPLE_OFFSET
 
+#define HISTOGRAM_NOT_USED_BY_THIS_PROGRAM 99999
 
 #ifdef ENABLE_GUI
 #include "srsgui/srsgui.h"
@@ -544,7 +545,8 @@ int main(int argc, char **argv) {
                         prog_args.rf_nof_rx_ant,
                         prog_args.dci_file_name,
                         prog_args.stats_file_name,
-                        false))
+                        false,
+                        HISTOGRAM_NOT_USED_BY_THIS_PROGRAM))
   {
   //if (srslte_ue_dl_init(&ue_dl, sf_buffer, cell.nof_prb, prog_args.rf_nof_rx_ant)) {
     fprintf(stderr, "Error initiating UE downlink processing module\n");
@@ -617,7 +619,7 @@ int main(int argc, char **argv) {
 
   // Initialize Histogram
   for(int hst=0; hst<nof_falcon_ue_all_formats; hst++)
-      rnti_histogram_init(&falcon_ue_dl.rnti_histogram[hst]);
+      rnti_histogram_init(&falcon_ue_dl.rnti_histogram[hst], HISTOGRAM_NOT_USED_BY_THIS_PROGRAM);
 
   INFO("\nEntering main loop...\n\n");
   /* Main loop */

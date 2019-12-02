@@ -2,10 +2,16 @@
 
 #include <iostream>
 
-Phy::Phy(uint32_t nof_rx_antennas, uint32_t nof_workers, const std::string& dciFilenName, const std::string& statsFileName, bool skipSecondaryMetaFormats, double metaFormatSplitRatio) :
+Phy::Phy(uint32_t nof_rx_antennas,
+         uint32_t nof_workers,
+         const std::string& dciFilenName,
+         const std::string& statsFileName,
+         bool skipSecondaryMetaFormats,
+         double metaFormatSplitRatio,
+         uint32_t histogramThreshold) :
   nof_rx_antennas(nof_rx_antennas),
   nof_workers(nof_workers),
-  common(FALCON_MAX_PRB, nof_rx_antennas, dciFilenName, statsFileName),
+  common(FALCON_MAX_PRB, nof_rx_antennas, dciFilenName, statsFileName, histogramThreshold),
   metaFormats(nof_falcon_ue_all_formats, metaFormatSplitRatio),
   workers(),
   workerThread(avail, pending)

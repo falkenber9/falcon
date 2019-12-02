@@ -3,11 +3,12 @@
 
 PhyCommon::PhyCommon(uint32_t max_prb,
                      uint32_t nof_rx_antennas,
-                     const std::string& dciFilenName,
-                     const std::string& statsFileName) :
+                     const std::string& dciFileName,
+                     const std::string& statsFileName,
+                     uint32_t histogramThreshold) :
   max_prb(max_prb),
   nof_rx_antennas(nof_rx_antennas),
-  rntiManager(nof_falcon_ue_all_formats, RNTI_PER_SUBFRAME),
+  rntiManager(nof_falcon_ue_all_formats, RNTI_PER_SUBFRAME, histogramThreshold),
   stats(),
   defaultDCIConsumer(new DCIToFile()),
   dciConsumer(defaultDCIConsumer),
@@ -15,8 +16,8 @@ PhyCommon::PhyCommon(uint32_t max_prb,
 {
 
 
-  if(dciFilenName.length() > 0) {
-    dci_file = fopen(dciFilenName.c_str(), "w");
+  if(dciFileName.length() > 0) {
+    dci_file = fopen(dciFileName.c_str(), "w");
   }
   else {
     dci_file = stdout;

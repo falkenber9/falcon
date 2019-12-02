@@ -87,7 +87,7 @@ echo "Passed"
 variant="-falcon-histogram"
 load_variant
 
-uut_params="-i $input_dir/$input_iq -p $nof_prb -P $antenna_ports -c $cell_id -n $nof_subframes -D $output_dir/$output_dci -E $output_dir/$output_stats -r -H"
+uut_params="-i $input_dir/$input_iq -p $nof_prb -P $antenna_ports -c $cell_id -n $nof_subframes -D $output_dir/$output_dci -E $output_dir/$output_stats -r -L"
 run_falcon
 
 postprocess_falcon
@@ -116,7 +116,7 @@ echo "Passed"
 variant="-histogram"
 load_variant
 
-uut_params="-i $input_dir/$input_iq -p $nof_prb -P $antenna_ports -c $cell_id -D $output_dir/$output_dci -E $output_dir/$output_stats -r -H"
+uut_params="-i $input_dir/$input_iq -p $nof_prb -P $antenna_ports -c $cell_id -D $output_dir/$output_dci -E $output_dir/$output_stats -r -L"
 run_falcon
 
 postprocess_falcon

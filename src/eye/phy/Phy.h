@@ -22,7 +22,8 @@ public:
       const std::string& dciFilenName,
       const std::string& statsFileName,
       bool skipSecondaryMetaFormats,
-      double metaFormatSplitRatio);
+      double metaFormatSplitRatio,
+      uint32_t histogramThreshold);
   ~Phy();
   std::shared_ptr<SubframeWorker> getAvail();
   std::shared_ptr<SubframeWorker> getAvailImmediate();

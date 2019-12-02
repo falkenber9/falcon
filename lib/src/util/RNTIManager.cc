@@ -29,8 +29,8 @@ using namespace std;
 /// C wrapper functions for legacy support
 //////////////////////////////////////////////
 
-void* rnti_manager_create(uint32_t n_formats, uint32_t maxCandidatesPerStepPerFormat) {
-  return new RNTIManager(n_formats, maxCandidatesPerStepPerFormat);
+void* rnti_manager_create(uint32_t n_formats, uint32_t maxCandidatesPerStepPerFormat, uint32_t histogramThreshold) {
+  return new RNTIManager(n_formats, maxCandidatesPerStepPerFormat, histogramThreshold);
 }
 
 void rnti_manager_free(void* h) {
@@ -128,7 +128,7 @@ const char* rnti_manager_activation_reason_string(rnti_manager_activation_reason
 /// C++ class functions
 ////////////////////////
 
-RNTIManager::RNTIManager(uint32_t nformats, uint32_t maxCandidatesPerStepPerFormat) :
+RNTIManager::RNTIManager(uint32_t nformats, uint32_t maxCandidatesPerStepPerFormat, uint32_t histogramThreshold) :
   nformats(nformats),
   histograms(nformats, Histogram(RNTI_HISTORY_DEPTH, RNTI_HISTOGRAM_ELEMENT_COUNT)),
   evergreen(nformats, vector<Interval>()),
@@ -139,7 +139,7 @@ RNTIManager::RNTIManager(uint32_t nformats, uint32_t maxCandidatesPerStepPerForm
   assocFormatIdx(RNTI_HISTOGRAM_ELEMENT_COUNT, 0),
   timestamp(0),
   lifetime(RRC_INACTIVITY_TIMER_MS),
-  threshold(RNTI_HISTOGRAM_THRESHOLD),
+  threshold(histogramThreshold),
   maxCandidatesPerStepPerFormat(maxCandidatesPerStepPerFormat),
   remainingCandidates(nformats, static_cast<int32_t>(maxCandidatesPerStepPerFormat))
 {
@@ -425,4 +425,8 @@ void RNTIManager::stepTime(uint32_t nSteps) {
   for(uint32_t i=0; i<nSteps; i++) {
     stepTime();
   }
+}
+
+void RNTIManager::setHistogramThreshold(uint32_t threshold) {
+  this->threshold = threshold;
 }

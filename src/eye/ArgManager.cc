@@ -70,10 +70,12 @@ void ArgManager::defaultArgs(Args& args) {
   args.dci_format_split_ratio = DEFAULT_DCI_FORMAT_SPLIT_RATIO;
   args.skip_secondary_meta_formats = false;
   args.enable_shortcut_discovery = true;
+  args.rnti_histogram_threshold = DEFAULT_RNTI_HISTOGRAM_THRESHOLD;
 }
 
 void ArgManager::usage(Args& args, const std::string& prog) {
-  printf("Usage: %s [aAcCdfgHilnoOpPrRsStTvwyY] -f rx_frequency (in Hz) | -i input_file\n", prog.c_str());
+  printf("Usage: %s [aAcCdfghHilLnoOpPrRsStTvwyY] -f rx_frequency (in Hz) | -i input_file\n", prog.c_str());
+  printf("\t-h show this help message\n");
 #ifndef DISABLE_RF
   printf("\t-a RF args [Default %s]\n", args.rf_args.c_str());
   printf("\t-A Number of RX antennas [Default %d]\n", args.rf_nof_rx_ant);
@@ -85,7 +87,8 @@ void ArgManager::usage(Args& args, const std::string& prog) {
 #else
   printf("\t   RF is disabled.\n");
 #endif
-  printf("\t-H disable shortcut discovery (stick to histogram and random access)\n");
+  printf("\t-H histogram threshold value [Default %d]\n", args.rnti_histogram_threshold);
+  printf("\t-L lazy: disable shortcut discovery (stick to histogram and random access)\n");
   printf("\t-i input_file [Default use RF board]\n");
   printf("\t-w wrap input_file after reading all samples\n");
   printf("\t-D output filename for DCI [default stdout]\n");
@@ -118,7 +121,7 @@ void ArgManager::usage(Args& args, const std::string& prog) {
 void ArgManager::parseArgs(Args& args, int argc, char **argv) {
   int opt;
   defaultArgs(args);
-  while ((opt = getopt(argc, argv, "aAcCDEfgHilnpPrRsStTvwyY")) != -1) {
+  while ((opt = getopt(argc, argv, "aAcCDEfghHilLnpPrRsStTvwyY")) != -1) {
     switch (opt) {
       case 'a':
         args.rf_args = argv[optind];
@@ -129,8 +132,11 @@ void ArgManager::parseArgs(Args& args, int argc, char **argv) {
       case 'g':
         args.rf_gain = strtod(argv[optind], nullptr);
         break;
-      case 'H':
+      case 'L':
         args.enable_shortcut_discovery = false;
+        break;
+      case 'H':
+        args.rnti_histogram_threshold = static_cast<uint32_t>(strtoul(argv[optind], nullptr, 0));
         break;
       case 'i':
         args.input_file_name = argv[optind];
@@ -198,6 +204,7 @@ void ArgManager::parseArgs(Args& args, int argc, char **argv) {
       case 'f':
         args.rf_freq = strtod(argv[optind], nullptr);
         break;
+      case 'h':
       default:
         usage(args, argv[0]);
         exit(-1);

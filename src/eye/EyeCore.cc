@@ -76,7 +76,8 @@ EyeCore::EyeCore(const Args& args) :
                 args.dci_file_name,
                 args.stats_file_name,
                 args.skip_secondary_meta_formats,
-                args.dci_format_split_ratio);
+                args.dci_format_split_ratio,
+                args.rnti_histogram_threshold);
   phy->getCommon().setShortcutDiscovery(args.enable_shortcut_discovery);
   std::shared_ptr<DCIConsumerList> cons(new DCIConsumerList());
   if(args.dci_file_name != "") {

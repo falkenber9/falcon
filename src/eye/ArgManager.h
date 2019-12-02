@@ -54,6 +54,7 @@ struct Args {
   double dci_format_split_ratio;
   bool skip_secondary_meta_formats;
   bool enable_shortcut_discovery;
+  uint32_t rnti_histogram_threshold;
 };
 
 class ArgManager {

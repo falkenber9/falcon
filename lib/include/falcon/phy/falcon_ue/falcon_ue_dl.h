@@ -118,7 +118,8 @@ SRSLTE_API int falcon_ue_dl_init(falcon_ue_dl_t *q,
                                  uint32_t nof_rx_antennas,
                                  const char* dci_file_name,
                                  const char* stats_file_name,
-                                 bool skip_secondary_meta_formats);
+                                 bool skip_secondary_meta_formats,
+                                 uint32_t histogramThreshold);
 SRSLTE_API void falcon_ue_dl_free(falcon_ue_dl_t *q);
 SRSLTE_API dci_candidate_t* falcon_alloc_candidates(uint32_t nof_candidates);
 SRSLTE_API void falcon_free_candidates(dci_candidate_t* candidates);

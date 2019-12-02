@@ -20,8 +20,22 @@
 ## and at http://www.gnu.org/licenses/.
 ##
 
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+RESET='\033[0m' # No Color
+
+include_if_exist () {
+    [[ -f "$1" ]] && echo -e "${GREEN}[INFO]${RESET} Loading custom settings from $1" && source "$1"
+}
+
 # Set CPUs into performance mode
 ./performance-mode.sh
+
+# Allow realtime priority for FalconEye
+./allow-realtime.sh
+
+# Filename for settings
+SETTINGS_FILE_NAME="Settings-Loop-FalconEye.sh"
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -49,13 +63,16 @@ FREQ="1815e6"
 #CELL_PCI="-l 1"		# West
 #CELL_PCI="-l 2"		# East
 
-source "Settings-Loop-FalconEye.sh"
+# Load settings (from here)
+include_if_exist $SETTINGS_FILE_NAME
+# Load settings (from user's home)
+include_if_exist "$HOME/.falcon/$SETTINGS_FILE_NAME"
 
 APP_CONST_PARAMS="-r -f $FREQ -n $NOF_SUBFRAMES $CELL_PCI"
 
-echo  $SCRIPTDIR
-echo  $APPLICATION
-echo  $APP_CONST_PARAMS
+echo -e "${GREEN}[INFO]${RESET} $SCRIPTDIR"
+echo -e "${GREEN}[INFO]${RESET} $APPLICATION"
+echo -e "${GREEN}[INFO]${RESET} $APP_CONST_PARAMS"
 
 while true;
 do
@@ -63,9 +80,9 @@ do
 	BASENAME="$THE_DATE-$OPERATOR-falcon"
 	APP_STDOUT="$LOGDIR/$BASENAME.log"
 	
-	echo "Starting Measurement $BASENAME" | tee -a $APP_STDOUT
-	echo ./$APPLICATION $APP_CONST_PARAMS -D "$BASENAME-dci.csv" -E "$BASENAME-stats.csv" | tee -a $APP_STDOUT
+	echo -e "${GREEN}[INFO]${RESET} Starting Measurement $BASENAME" | tee -a $APP_STDOUT
+	echo -e "${GREEN}[INFO]${RESET} ./$APPLICATION $APP_CONST_PARAMS -D $BASENAME-dci.csv -E $BASENAME-stats.csv | tee -a $APP_STDOUT"
 	./$APPLICATION $APP_CONST_PARAMS -D "$BASENAME-dci.csv" -E "$BASENAME-stats.csv" 2>&1 | tee -a $APP_STDOUT
-	echo "Pause for $INTERVAL_SEC s" | tee -a $APP_STDOUT
+	echo -e "${GREEN}[INFO]${RESET} Pause for $INTERVAL_SEC s" | tee -a $APP_STDOUT
 	sleep $INTERVAL_SEC
 done;

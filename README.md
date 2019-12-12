@@ -267,7 +267,6 @@ To acknowledge us in your publication(s) please refer to the following (upcoming
 	Title = {{FALCON}: {An} accurate real-time monitor for client-based mobile network data analytics},
 	Booktitle = {GLOBECOM 2019 - 2019 IEEE Global Communications Conference},
 	Year = {2019},
-	Publishingstatus = {accepted for presentation},
 	Address = {Waikoloa, Hawaii, USA},
 	Month = {Dec},
 	Publisher = {IEEE},

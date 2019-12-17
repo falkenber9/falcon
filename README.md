@@ -92,7 +92,16 @@ $ cmake ../
 $ make
 ```
 
-## Hardware Requirements / Performance
+## SDR Hardware
+FALCON has been tested with the following Software Defined Radios (SDRs):
+
+* Ettus Research: USRP B210
+* Ettus Research: USRP B205mini
+* Lime Microsystems: LimeSDR Mini
+
+In addition, any SDR supported by [srsLTE library][srslte] should work as well.
+
+## Computer Hardware Requirements / Performance
 Real-time decoding of LTE signals requires a mature multicore CPU, especially when monitoring busy cells and large bandwidths (i.e. 15MHz and 20MHz cells). Large sample rates, wide FFTs, and larger search spaces make heavy use of the CPU, memory and involved buses.
 
 In case of minor/sporadic performance issues, FALCON starts skipping/dropping single subframes in favor of maintaining synchronization if the processing of previous (buffered) subframes takes too long.

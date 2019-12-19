@@ -17,11 +17,11 @@ public:
   ~PerformancePlot();
   QMdiSubWindow* getSubwindow();
   QWidget* getWindow();
-  void update_plot_color();
 
 public slots:
   void activate();
   void deactivate();
+  void update_plot_color();
 
 private:
   QMdiArea* mdiArea = nullptr;

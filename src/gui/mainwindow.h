@@ -38,6 +38,7 @@
 #include "plots.h"
 #include "performance_plot.h"
 #include "waterfall.h"
+#include "colorpicker.h"
 #include <QColorDialog>
 
 #include "qcustomplot/qcustomplot.h"
@@ -76,12 +77,12 @@ private slots:
   void on_actionUse_File_as_Source_changed();
   void on_actionTile_Windows_triggered();
   void on_actionDownlink_Plots_changed();
-  void on_pushButton_downlink_color_clicked();
   void on_spinBox_Prb_valueChanged(int arg1);
 
+  // Color
   //Color:
   void on_pushButton_uplink_color_clicked();
-  void set_color(const QColor &color);
+  void on_pushButton_downlink_color_clicked();
   void range_slider_value_changed(int value);
 
 protected:
@@ -112,23 +113,10 @@ private:
   void handle_perf_plot(bool start);
 
   // Color Menu:
-  void setup_color_menu();
-
-  bool downlink_color_active;
-  QColorDialog *color_dialog = nullptr;
-  RangeWidget *color_range_slider = nullptr;
-  QPalette downlink_palette;
-  QPalette uplink_palette;
-
+  Colorpicker* cp;
 
   // Setting Class:
   Settings glob_settings;
-
-  // Spectrogram:
-  Spectrum *spectrum_view_ul   = nullptr;
-  Spectrum *spectrum_view_dl   = nullptr;
-  Spectrum *spectrum_view      = nullptr;
-  Spectrum *spectrum_view_diff = nullptr;
 
   //Objects
   SpectrumAdapter spectrumAdapter;

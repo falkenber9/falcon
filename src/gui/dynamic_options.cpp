@@ -21,7 +21,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-//   [SUBWINDOW]_start(bool) functions. true = start, false = stop
 
 void MainWindow::handle_dl_alloc(bool nexist){
   if(nexist){
@@ -77,9 +76,15 @@ void MainWindow::handle_dl_spec(bool nexist){
       //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
       if(dl_spec != nullptr){delete dl_spec; dl_spec = nullptr;}
       dl_spec = new Waterfall_SPEC(&glob_settings, &spectrumAdapter, ui->mdiArea);
-    if(active_eye){ dl_spec->activate(); }
+      connect(cp->get_color_range_slider(),SIGNAL(secondValueChanged(int)),SLOT(range_slider_value_changed(int)));
+      connect(cp->get_color_range_slider(),SIGNAL(firstValueChanged(int)),SLOT(range_slider_value_changed(int)));
+    if(active_eye){
+      dl_spec->activate();
+      this->range_slider_value_changed(0);  // initially apply slider values
+    }
   }else{
     if (dl_spec != nullptr){
+      disconnect(dl_spec);
       delete dl_spec;
       dl_spec = nullptr;
     }
@@ -93,9 +98,11 @@ void MainWindow::handle_perf_plot(bool nexist){
       //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
       if(perf_plot != nullptr){delete perf_plot; perf_plot = nullptr;}
       perf_plot = new PerformancePlot(&glob_settings, &spectrumAdapter, ui->mdiArea);
+      connect(cp, SIGNAL(color_change()),perf_plot, SLOT(update_plot_color()));
     if(active_eye){ perf_plot->activate(); }
   }else{
     if (perf_plot != nullptr){
+      disconnect(perf_plot);
       delete perf_plot;
       perf_plot = nullptr;
     }
@@ -103,80 +110,9 @@ void MainWindow::handle_perf_plot(bool nexist){
   ui->mdiArea->tileSubWindows();
 }
 
-void MainWindow::set_color(const QColor &color){
-
-  // Change color of display Label:
-  if(downlink_color_active){
-    glob_settings.glob_args.gui_args.downlink_plot_color = color;
-    downlink_palette.setColor(QPalette::Window, glob_settings.glob_args.gui_args.downlink_plot_color);
-    ui->color_label_downlink->setPalette(downlink_palette);
-  }else{
-    glob_settings.glob_args.gui_args.uplink_plot_color = color;
-    uplink_palette.setColor(QPalette::Window, glob_settings.glob_args.gui_args.uplink_plot_color);
-    ui->color_label_uplink->setPalette(uplink_palette);
-  }
-
-  if(active_eye) perf_plot->update_plot_color();
-
-}
-
-void MainWindow::setup_color_menu(){
-
-  glob_settings.glob_args.gui_args.downlink_plot_color = QColor(40,110,255); //Blue
-  glob_settings.glob_args.gui_args.uplink_plot_color   = QColor(255,110,40); //Orange
-
-  downlink_palette.setColor(QPalette::Window, glob_settings.glob_args.gui_args.downlink_plot_color);
-  uplink_palette.  setColor(QPalette::Window, glob_settings.glob_args.gui_args.uplink_plot_color);
-
-  ui->color_label_downlink->setAutoFillBackground(true);
-  ui->color_label_downlink->setPalette(downlink_palette);
-  ui->color_label_uplink->setAutoFillBackground(true);
-  ui->color_label_uplink->setPalette(uplink_palette);
-  //ui->color_label->setText("What ever text");
-
-  color_dialog = new QColorDialog(ui->color_settings);
-  color_dialog->setObjectName("CD");
-  color_dialog->setWindowTitle("Color Dialog");
-  color_dialog->setGeometry(0,0,100,100);
-
-  connect(color_dialog,SIGNAL(currentColorChanged(const QColor)),SLOT(set_color(const QColor)));
-
-
-
-  color_range_slider = new RangeWidget(Qt::Horizontal,ui->color_settings);
-  color_range_slider->setObjectName(QStringLiteral("horizontalSlider"));
-  color_range_slider->setGeometry(QRect(30, 130, 160, 20));
-  // color_range_slider->setOrientation(Qt::Horizontal);
-  color_range_slider->setRange(0,50000);
-  color_range_slider->setFirstValue(0);
-  color_range_slider->setSecondValue(50000);
-  connect(color_range_slider,SIGNAL(secondValueChanged(int)),SLOT(range_slider_value_changed(int)));
-  connect(color_range_slider,SIGNAL(firstValueChanged(int)),SLOT(range_slider_value_changed(int)));
-
-}
-
-
-void MainWindow::on_pushButton_downlink_color_clicked()
-{
-  downlink_color_active = true;
-  color_dialog->show();
-}
-
-void MainWindow::on_pushButton_uplink_color_clicked()
-{
-  downlink_color_active = false;
-  color_dialog->show();
-}
-
 void MainWindow::range_slider_value_changed(int value){
-  if(color_range_slider->firstValue() > color_range_slider->secondValue()){
-    //qDebug()<< "Min: " << color_range_slider->secondValue() << " Max: "<< color_range_slider->firstValue() ;
-    spectrum_view->max_intensity = color_range_slider->firstValue();
-    spectrum_view->min_intensity = color_range_slider->secondValue();
-  }else{
-    //qDebug()<< "Min: " << color_range_slider->firstValue() << " Max: "<< color_range_slider->secondValue() ;
-    spectrum_view->max_intensity = color_range_slider->secondValue();
-    spectrum_view->min_intensity = color_range_slider->firstValue();
+  if(dl_spec != nullptr){
+    Waterfall_SPEC* spec = dynamic_cast<Waterfall_SPEC*>(dl_spec);
+    spec->range_slider_value_changed(cp->get_color_range_slider()->firstValue() , cp->get_color_range_slider()->secondValue());
   }
-  spectrum_view->intensity_factor = (1.125 * (float)USHRT_MAX) / (spectrum_view->max_intensity - spectrum_view->min_intensity);   // Calculate Intensity factor for dynamic spectrum
 }

@@ -30,8 +30,6 @@
 #include "plots.h"
 
 #include "qcustomplot/qcustomplot.h"
-#include "rangewidget/RangeWidget.h"
-#include <QColorDialog>
 
 #include "settings.h"
 
@@ -45,6 +43,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    cp = new Colorpicker(&glob_settings, ui);    //For Color Menu
+
     setAccessibleName(QString("FALCON GUI"));
     ui->mdiArea->tileSubWindows();
 
@@ -93,8 +93,6 @@ MainWindow::MainWindow(QWidget *parent) :
     //Init Path to File:
     setAcceptDrops(true);  //For Drag and Drop
 
-    setup_color_menu();    //For Color Menu
-
     ui->doubleSpinBox_rf_freq->setValue(glob_settings.glob_args.eyeArgs.rf_freq/(1000*1000));
     ui->lcdNumber_rf_freq->display(glob_settings.glob_args.eyeArgs.rf_freq/(1000*1000));
 
@@ -103,6 +101,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow() {
     eyeThread.stop();
     eyeThread.unsubscribe(&spectrumAdapter);
+    delete cp;
     delete ui;
 }
 
@@ -335,3 +334,5 @@ void MainWindow::on_actionTile_Windows_triggered() {
 void MainWindow::on_spinBox_Prb_valueChanged(int value) {
     eyeArgs.file_nof_prb = static_cast<uint32_t>(value);
 }
+void MainWindow::on_pushButton_uplink_color_clicked(){cp->on_pushButton_uplink_color_clicked();}
+void MainWindow::on_pushButton_downlink_color_clicked(){cp->on_pushButton_downlink_color_clicked();}

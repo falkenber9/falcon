@@ -79,6 +79,7 @@ public:
   virtual void activate() override;
   virtual void deactivate() override;
   virtual void decorate() override;
+  void range_slider_value_changed(int _1st, int _2nd);
 };
 
 #endif // WATERFALL_H

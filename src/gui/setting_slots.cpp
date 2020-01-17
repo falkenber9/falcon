@@ -71,7 +71,7 @@ void MainWindow::on_actionSpectrum_changed() {
   if(glob_settings.glob_args.gui_args.save_settings) {
     glob_settings.store_settings();  //If save_settings = true, save to file.
   }
-  spectrum_start(glob_settings.glob_args.gui_args.show_spectrum);
+  handle_dl_spec(glob_settings.glob_args.gui_args.show_spectrum);
 }
 
 void MainWindow::on_actionDifference_changed() {
@@ -80,7 +80,7 @@ void MainWindow::on_actionDifference_changed() {
   if(glob_settings.glob_args.gui_args.save_settings) {
     glob_settings.store_settings();  //If save_settings = true, save to file.
   }
-  diff_start(glob_settings.glob_args.gui_args.show_diff);
+  handle_diff_alloc(glob_settings.glob_args.gui_args.show_diff);
 }
 
 void MainWindow::on_actionUplink_changed() {
@@ -89,7 +89,7 @@ void MainWindow::on_actionUplink_changed() {
   if(glob_settings.glob_args.gui_args.save_settings) {
     glob_settings.store_settings();  //If save_settings = true, save to file.
   }
-  uplink_start(glob_settings.glob_args.gui_args.show_uplink);
+  handle_ul_alloc(glob_settings.glob_args.gui_args.show_uplink);
 }
 
 void MainWindow::on_actionDownlink_changed() {
@@ -98,7 +98,7 @@ void MainWindow::on_actionDownlink_changed() {
   if(glob_settings.glob_args.gui_args.save_settings) {
     glob_settings.store_settings();  //If save_settings = true, save to file.
   }
-  downlink_start(glob_settings.glob_args.gui_args.show_downlink);
+  handle_dl_alloc(glob_settings.glob_args.gui_args.show_downlink);
 }
 
 void MainWindow::on_actionSave_Settings_changed() {
@@ -109,7 +109,7 @@ void MainWindow::on_actionSave_Settings_changed() {
 void MainWindow::on_actionplot1_changed() {
   glob_settings.glob_args.gui_args.show_performance_plot = ui->actionplot1->isChecked();
   if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();
-  performance_plots_start(glob_settings.glob_args.gui_args.show_performance_plot);
+  handle_perf_plot(glob_settings.glob_args.gui_args.show_performance_plot);
 }
 
 void MainWindow::on_actionDownlink_Plots_changed(){

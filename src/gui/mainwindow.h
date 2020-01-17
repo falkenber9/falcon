@@ -26,7 +26,6 @@
 #include "spectrum.h"
 #include "falcon/CCSnifferInterfaces.h"
 #include "adapters_qt/SpectrumAdapter.h"
-//#include "model_dummy/ScanThread.h"
 
 #include "model/EyeThread.h"
 #include "model_dummy/cni_cc_decoderThread.h"
@@ -37,6 +36,8 @@
 #include "QtCharts/QLineSeries"
 #include "settings.h"
 #include "plots.h"
+#include "performance_plot.h"
+#include "waterfall.h"
 #include <QColorDialog>
 
 #include "qcustomplot/qcustomplot.h"
@@ -58,19 +59,6 @@ public:
 
 private slots:
 
-  void draw_ul(const ScanLineLegacy*);
-  void draw_dl(const ScanLineLegacy*);
-  void draw_spectrum(const ScanLineLegacy*);
-  void draw_spectrum_diff(const ScanLineLegacy*);
-  void calc_performance_data(const ScanLineLegacy*);
-  void replot_perf();
-  void draw_plot_uplink();
-  void draw_plot_downlink();
-  //void draw_plot_a(const ScanLineLegacy*);
-  //void draw_plot_b(const ScanLineLegacy*);
-  void draw_rnti_hist(const ScanLineLegacy *line);
-  //void draw_rnti_hist_b(const ScanLineLegacy *line);
-  //void spectrum_window_destroyed();
   void on_actionStart_triggered();
   void on_doubleSpinBox_rf_freq_editingFinished();
   void exampleSlot();
@@ -89,7 +77,6 @@ private slots:
   void on_actionTile_Windows_triggered();
   void on_actionDownlink_Plots_changed();
   void on_pushButton_downlink_color_clicked();
-  void SubWindow_mousePressEvent();
   void on_spinBox_Prb_valueChanged(int arg1);
 
   //Color:
@@ -98,13 +85,18 @@ private slots:
   void range_slider_value_changed(int value);
 
 protected:
-  //void mousePressEvent(QMouseEvent *event) override;    // Klick and scroll per mousewheel
   void wheelEvent(QWheelEvent *event) override;         //
 
   void dropEvent(QDropEvent *event) override;
   void dragEnterEvent(QDragEnterEvent *e) override;
 
 private:
+
+  PerformancePlot *perf_plot = nullptr;
+  Waterfall *dl_alloc = nullptr;
+  Waterfall *ul_alloc = nullptr;
+  Waterfall *diff_alloc = nullptr;
+  Waterfall *dl_spec = nullptr;
 
   // Functions:
 
@@ -113,98 +105,20 @@ private:
 
   //  [SUBWINDOW]_start(bool)
 
-  void downlink_start(bool start);
-  void uplink_start(bool start);
-  void diff_start(bool start);
-  void spectrum_start(bool start);
-  void performance_plots_start(bool start);
+  void handle_dl_alloc(bool start);
+  void handle_ul_alloc(bool start);
+  void handle_diff_alloc(bool start);
+  void handle_dl_spec(bool start);
+  void handle_perf_plot(bool start);
 
   // Color Menu:
   void setup_color_menu();
 
   bool downlink_color_active;
-  QColorDialog *color_dialog;
-  RangeWidget *color_range_slider;
+  QColorDialog *color_dialog = nullptr;
+  RangeWidget *color_range_slider = nullptr;
   QPalette downlink_palette;
   QPalette uplink_palette;
-
-
-  // QCustomPlots:
-
-  QGridLayout *gridLayout_a;
-  //  QGridLayout *gridLayout_b;
-
-  void setupPlot(PlotsType_t plottype, QCustomPlot *plot);
-  void addData(PlotsType_t plottype, QCustomPlot *plot, const ScanLineLegacy *data);
-  void update_plot_color();
-
-  QCustomPlot *plot_mcs_idx;
-  QCustomPlot *plot_throughput;
-  QCustomPlot *plot_prb;
-  QCustomPlot *plot_rnti_hist;
-  QWidget *plot_a_window;
-  QMdiSubWindow *plot_a_subwindow = NULL;
-  QSlider *plot_mean_slider_a;
-  QLabel  *plot_mean_slider_label_a;
-  QLabel  *plot_mean_slider_label_b;
-
-  QTimer fps_timer;
-  QTimer avg_timer_uplink;
-  QTimer avg_timer_downlink;
-
-  // QCP graphs
-  QCPGraph* graph_current = nullptr;
-  QCPGraph* graph_mcs_idx = nullptr;
-  QCPGraph* graph_throughput   =  nullptr;
-  QCPGraph* graph_prb = nullptr;
-
-  //Variables for plots:
-  std::vector<double> rnti_x_axis;
-  xAxisTicks xAT;
-  QSharedPointer<QCPAxisTickerText> xTicker;
-
-  /*  Pointer to counter pairs:
-     *  T* ptr;
-     *  T  cnt_uplink;
-     *  T  cnt_downlink;     *
-     */
-  // Mutex
-  std::mutex perf_mutex;
-
-  // Timestamps
-  double* last_timestamp = nullptr;
-  double last_timestamp_uplink = 0;
-  double last_timestamp_downlink = 0;
-
-  // Subframe index
-  uint32_t* sf_idx_old = nullptr;
-  uint32_t sf_idx_old_uplink        = 0;
-  uint32_t sf_idx_old_downlink      = 0;
-
-  // Number of received subframes
-  double* nof_received_sf = nullptr;
-  double nof_received_sf_uplink    = 0;
-  double nof_received_sf_downlink    = 0;
-
-  // Modulation and coding scheme index
-  double* mcs_idx = nullptr;
-  double mcs_idx_uplink    = 0;
-  double mcs_idx_sum_downlink    = 0;
-
-  // Number of allocations
-  int* nof_allocations = nullptr;
-  int nof_allocations_uplink = 0;
-  int nof_allocations_downlink = 0;
-
-  // Transportblocksize
-  double* mcs_tbs = nullptr;
-  double mcs_tbs_sum_uplink    = 0;
-  double mcs_tbs_sum_downlink    = 0;
-
-  // Length of resource blocks
-  double* l_prb = nullptr;
-  double l_prb_sum_uplink      = 0;
-  double l_prb_sum_downlink      = 0;
 
 
   // Setting Class:
@@ -235,14 +149,12 @@ private:
   QMdiSubWindow *spectrum_subwindow = nullptr;
   QMdiSubWindow *diff_subwindow = nullptr;
 
-  bool spectrum_view_on   = false;
+  bool active_eye   = false;
   //Files
 
   FILE *settings;
 
   Ui::MainWindow *ui;
 };
-
-
 
 #endif // MAINWINDOW_H

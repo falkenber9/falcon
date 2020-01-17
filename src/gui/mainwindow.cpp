@@ -45,15 +45,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    setAccessibleName(QString("FALCON GUI"));
     ui->mdiArea->tileSubWindows();
 
     //  ui->mdiArea->setActivationOrder(QMdiArea::CreationOrder); // Former default value
     ui->mdiArea->setActivationOrder(QMdiArea::ActivationHistoryOrder);
-
-
-    rnti_x_axis = std::vector<double>(65536);
-    int x = 0;
-    std::generate(rnti_x_axis.begin(), rnti_x_axis.end(), [&]{ return x++; });
 
     //if store settings true: load settings
     if(glob_settings.glob_args.gui_args.save_settings)glob_settings.load_settings();
@@ -75,7 +71,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionSpectrum->            setChecked(glob_settings.glob_args.gui_args.show_spectrum);
     ui->actionUplink->              setChecked(glob_settings.glob_args.gui_args.show_uplink);
     ui->actionplot1->               setChecked(glob_settings.glob_args.gui_args.show_performance_plot);
-    //ui->actionDownlink_Plots->      setChecked(glob_settings.glob_args.gui_args.show_plot_downlink);
 
     ui->lineEdit_FileName->         setText(glob_settings.glob_args.gui_args.path_to_file);
     ui->actionSave_Settings->       setChecked(glob_settings.glob_args.gui_args.save_settings);
@@ -88,9 +83,14 @@ MainWindow::MainWindow(QWidget *parent) :
             return;
         }
     }
+
+    // After setting checkboxes, call on_ActionX_changed slots manually to ensure that the object get created (if necessary) even if the checkbox didn't change
+    on_actionDownlink_changed();
+    on_actionUplink_changed();
+    on_actionSpectrum_changed();
+    on_actionDifference_changed();
+
     //Init Path to File:
-
-
     setAcceptDrops(true);  //For Drag and Drop
 
     setup_color_menu();    //For Color Menu
@@ -106,89 +106,13 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::draw_ul(const ScanLineLegacy *data) {
-    if (glob_settings.glob_args.spectrum_args.spectrum_line_width != data->l_prb){
-        glob_settings.glob_args.spectrum_args.spectrum_line_width = data->l_prb;
-    }
-    if(glob_settings.glob_args.gui_args.show_uplink) {
-        spectrum_view_ul->addLine(data->linebuf);
-
-        //Autoscaling for Spectrum
-
-        if(uplink_window->size().height() != spectrum_view_ul->height() ||
-                uplink_window->size().width() != spectrum_view_ul->width() )
-        {
-            spectrum_view_ul->setFixedSize(uplink_window->size().width(),uplink_window->size().height());
-        }
-    }
-
-    delete data;
-}
-
-void MainWindow::draw_dl(const ScanLineLegacy *data) {
-    if (glob_settings.glob_args.spectrum_args.spectrum_line_width != data->l_prb){
-        glob_settings.glob_args.spectrum_args.spectrum_line_width = data->l_prb;
-    }
-    if(glob_settings.glob_args.gui_args.show_downlink) {
-        spectrum_view_dl->addLine(data->linebuf);
-
-        //Autoscaling for Spectrum
-
-        if(downlink_window->size().height() != spectrum_view_dl->height() ||
-                downlink_window->size().width() != spectrum_view_dl->width() )
-        {
-            spectrum_view_dl->setFixedSize(downlink_window->size().width(),downlink_window->size().height());
-        }
-    }
-    delete data;
-}
-
-void MainWindow::draw_spectrum(const ScanLineLegacy *data){
-    if (glob_settings.glob_args.spectrum_args.spectrum_line_width != data->l_prb){
-        glob_settings.glob_args.spectrum_args.spectrum_line_width = data->l_prb;
-    }
-    if(glob_settings.glob_args.gui_args.show_spectrum) {
-        spectrum_view->addLine(data->linebuf);
-
-        //Autoscaling for Spectrum
-
-        if(spectrum_window->size().height() != spectrum_view->height() ||
-                spectrum_window->size().width() != spectrum_view->width() ){
-
-            spectrum_view->setFixedSize(spectrum_window->size().width(),spectrum_window->size().height());
-        }
-    }
-
-    delete data;
-}
-
-void MainWindow::draw_spectrum_diff(const ScanLineLegacy *data){
-    if (glob_settings.glob_args.spectrum_args.spectrum_line_width != data->l_prb){
-        glob_settings.glob_args.spectrum_args.spectrum_line_width = data->l_prb;
-    }
-    if(glob_settings.glob_args.gui_args.show_diff) {
-        spectrum_view_diff->addLine(data->linebuf);
-
-        //Autoscaling for Spectrum
-
-        if(diff_window->size().height() != spectrum_view_diff->height() ||
-                diff_window->size().width() != spectrum_view_diff->width() ){
-
-            spectrum_view_diff->setFixedSize(diff_window->size().width(),diff_window->size().height());
-        }
-    }
-
-    delete data;
-
-}
-
 void MainWindow::on_actionStart_triggered() {
-    if(spectrum_view_on) {
+    if(active_eye) {
         qDebug() << "Window exists";
     }
     else {
 
-        spectrum_view_on = true;
+        active_eye = true;
 
         // Setup prog args (from GUI)
         eyeArgs.file_nof_ports  = static_cast<uint32_t>(ui->spinBox_Ports->value());
@@ -214,35 +138,32 @@ void MainWindow::on_actionStart_triggered() {
         spectrumAdapter.emit_downlink   = false;
         spectrumAdapter.emit_spectrum   = false;
         spectrumAdapter.emit_difference = false;
-        spectrumAdapter.emit_rnti_hist  = false;
-        spectrumAdapter.emit_perf_plot_a= false;
-        spectrumAdapter.emit_perf_plot_b= false;
 
         //Start Windows:
 
         //Uplink:
         if(glob_settings.glob_args.gui_args.show_uplink){
-            uplink_start(true);
+            ul_alloc->activate();
         }
 
         //Downlink:
         if(glob_settings.glob_args.gui_args.show_downlink){
-            downlink_start(true);
+            dl_alloc->activate();
         }
 
         // Pure Spectrum:
         if(glob_settings.glob_args.gui_args.show_spectrum){
-            spectrum_start(true);
+            dl_spec->activate();
         }
 
         // Spectrum - Downlink
         if(glob_settings.glob_args.gui_args.show_diff){
-            diff_start(true);
+          diff_alloc->activate();
         }
 
         // Performance Plot extern:
         if(glob_settings.glob_args.gui_args.show_performance_plot){
-            performance_plots_start(true);
+            perf_plot->activate();
         }
 
         // Organise Windows:
@@ -264,10 +185,12 @@ void MainWindow::on_actionStart_triggered() {
 void MainWindow::on_actionStop_triggered()
 {
     eyeThread.stop();
-    ui->mdiArea->closeAllSubWindows();
-    // Hotfix for properly disconnecting timer. Needs to be improved
-    performance_plots_start(false);
-    spectrum_view_on = false;
+    if(perf_plot != nullptr) perf_plot->deactivate();
+    if(ul_alloc != nullptr) ul_alloc->deactivate();
+    if(dl_alloc != nullptr) dl_alloc->deactivate();
+    if(diff_alloc != nullptr) diff_alloc->deactivate();
+    if(dl_spec != nullptr) dl_spec->deactivate();
+    active_eye = false;
     spectrumAdapter.disconnect();  //Disconnect all Signals
 }
 
@@ -381,56 +304,13 @@ bool MainWindow::get_args_from_file(const QString filename) {
     return true;
 }
 
-void MainWindow::SubWindow_mousePressEvent(){
-
-    if(spectrum_view_on){
-        if(glob_settings.glob_args.gui_args.show_downlink){
-            spectrum_view_dl->paused = !spectrum_view_dl->paused;
-            spectrum_view_dl->view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1;
-        }
-        if(glob_settings.glob_args.gui_args.show_uplink){
-            spectrum_view_ul->paused = !spectrum_view_ul->paused;
-            spectrum_view_ul->view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1;
-        }
-        if(glob_settings.glob_args.gui_args.show_diff){
-            spectrum_view_diff->paused = !spectrum_view_diff->paused;
-            spectrum_view_diff->view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1;
-        }
-        if(glob_settings.glob_args.gui_args.show_spectrum){
-            spectrum_view->paused = !spectrum_view->paused;
-            spectrum_view->view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1;
-        }
-    }
-
-}
-
 void MainWindow::wheelEvent(QWheelEvent *event){
-    if(spectrum_view_on){
-        if(glob_settings.glob_args.gui_args.show_downlink){
-            if(spectrum_view_dl->paused){
-                if(event->delta() > 0) spectrum_view_dl->scroll_up();
-                else spectrum_view_dl->scroll_down();
-            }
-        }
-        if(glob_settings.glob_args.gui_args.show_uplink){
-            if(spectrum_view_ul->paused){
-                if(event->delta() > 0) spectrum_view_ul->scroll_up();
-                else spectrum_view_ul->scroll_down();
-            }
-        }
-        if(glob_settings.glob_args.gui_args.show_diff){
-            if(spectrum_view_diff->paused){
-                if(event->delta() > 0) spectrum_view_diff->scroll_up();
-                else spectrum_view_diff->scroll_down();
-            }
-        }
-        if(glob_settings.glob_args.gui_args.show_spectrum){
-            if(spectrum_view->paused){
-                if(event->delta() > 0) spectrum_view->scroll_up();
-                else spectrum_view->scroll_down();
-            }
-        }
-    }
+    // As the wheel event can only be captured in main window, forward the delta to waterfall's wheelEvent method
+
+    if(dl_alloc != nullptr){dl_alloc->wheelEvent(event->delta());}
+    if(ul_alloc != nullptr){ul_alloc->wheelEvent(event->delta());}
+    if(diff_alloc != nullptr){diff_alloc->wheelEvent(event->delta());}
+    if(dl_spec != nullptr){dl_spec->wheelEvent(event->delta());}
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *e)

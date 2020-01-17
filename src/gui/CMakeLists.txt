@@ -30,9 +30,10 @@ set(gui
     spectrum.cpp
     file_input_output.cpp
     settings.cpp   
-    plots.cpp
     setting_slots.cpp
     dynamic_options.cpp
+    performance_plot.cpp
+    waterfall.cpp
     ${IMAGES}
   )
 

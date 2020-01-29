@@ -3,7 +3,13 @@ FALCON - Fast Analysis of LTE Control channels
 
 ![Logo](gfx/FALCON_banner_small.png "FALCON")
 
-**FALCON** is an open-source software collection for real-time analysis of radio resources in private or commercial LTE/LTE-A networks. Based on [srsLTE library][srslte] v18.12, the software can be run on a plain x86 general-purpose PCs with any compatible SDR.
+**FALCON** is an open-source software collection for real-time analysis of radio resources in private or commercial LTE/LTE-A networks.
+
+It decodes the Physical Downlink Control Channel (PDCCH) of a base station and reveals the number of currently active devices including their Radio Network Temporary Identifiers (RNTIs) and their individual resource allocations.
+
+FALCON enables an exact determination of the current network load and the identification of bottlenecks. This information can be used to predict the achievable data rate of an additional subscriber by purely observing the current activity. Based on this criterion, congestion situations can be detected and avoidance strategies can be applied, e.g. switching to another network or postponing delay-tolerant transmissions.
+
+Based on [srsLTE library][srslte] v18.12, the software can be run on a plain x86 general-purpose PCs with any compatible SDR.
 
 
 
@@ -16,7 +22,22 @@ The research around this project has been supported by *Deutsche Forschungsgemei
 “Providing Information by Resource-Constrained Analysis”, project A4 at TU Dortmund University.
 
 A preprint of the **corresponding scientific publication** (IEEE GLOBECOM 2019) is available on ArXiV: 
-https://arxiv.org/abs/1907.10110. Please see section [Acknowledgements](#acknowledgements) of how to reference this project.
+https://arxiv.org/abs/1907.10110. 
+
+To acknowledge us in your publication(s) please cite the following publication:
+
+```tex
+@InProceedings{Falkenberg2019a,
+	Author = {Robert Falkenberg and Christian Wietfeld},
+	Title = {{FALCON}: {An} accurate real-time monitor for client-based mobile network data analytics},
+	Booktitle = {GLOBECOM 2019 - 2019 IEEE Global Communications Conference},
+	Year = {2019},
+	Address = {Waikoloa, Hawaii, USA},
+	Month = {Dec},
+	Publisher = {IEEE},
+	Url = {https://arxiv.org/abs/1907.10110}
+}
+```
 
 ## Related Software
 This software is an alternative to [IMDEA OWL][imdea-owl] which provides comparable functionalities for long-term monitoring of LTE cells. Other than OWL, FALCON additionally targets use cases that require short-term monitoring, mobility or non-ideal radio conditions. For convenience purposes, the interface is mostly kept compatible with OWL and an [updated port of OWL](#comparison-with-imdea-owl) is also included in this framework.
@@ -266,24 +287,11 @@ However, we noticed the following (minor) differences:
 
 
 
-## Acknowledgements
-
-To acknowledge us in your publication(s) please refer to the following (upcoming) publication:
-
-```tex
-@InProceedings{Falkenberg2019a,
-	Author = {Robert Falkenberg and Christian Wietfeld},
-	Title = {{FALCON}: {An} accurate real-time monitor for client-based mobile network data analytics},
-	Booktitle = {GLOBECOM 2019 - 2019 IEEE Global Communications Conference},
-	Year = {2019},
-	Address = {Waikoloa, Hawaii, USA},
-	Month = {Dec},
-	Publisher = {IEEE},
-	Url = {https://arxiv.org/abs/1907.10110},
-	Authorsversion = {https://www.kn.e-technik.tu-dortmund.de/.cni-bibliography/publications/cni-publications/Falkenberg2019a.pdf}
-}
-```
-
+## Related Publications
+- B. Sliwa, R. Falkenberg, C. Wietfeld, [**Towards cooperative data rate prediction for future mobile and vehicular 6G networks**](https://arxiv.org/abs/2001.09452), In *2nd 6G Wireless Summit (6G SUMMIT)*, 2020.
+- R. Falkenberg, C. Wietfeld, [**FALCON: An accurate real-time monitor for client-based mobile network data analytics**](https://arxiv.org/abs/1907.10110), In *GLOBECOM 2019 - 2019 IEEE Global Communications Conference*, 2019.
+- R. Falkenberg, K. Heimann, C. Wietfeld, [**Discover your competition in LTE: client-based passive data rate prediction by machine learning**](https://arxiv.org/abs/1711.06820), In *GLOBECOM 2017 - 2017 IEEE Global Communications Conference*, 2017.
+- R. Falkenberg, C. Ide, C. Wietfeld, [**Client-based control channel analysis for connectivity estimation in LTE networks**](https://arxiv.org/abs/1701.03304), In *IEEE Vehicular Technology Conference (VTC-Fall)*, 2016.
 
 <!-- Identifiers, in alphabetical order -->
 

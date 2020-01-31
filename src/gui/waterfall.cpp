@@ -43,26 +43,26 @@ void Waterfall::draw(const ScanLineLegacy *data){
 }
 
 void Waterfall::wheelEvent(int delta){
-    if(active){
-      if(spectrum_view->paused){
-        if(delta > 0) spectrum_view->scroll_up();
-        else spectrum_view->scroll_down();
-      }
+  if(active){
+    if(spectrum_view->paused){
+      if(delta > 0) spectrum_view->scroll_up();
+      else spectrum_view->scroll_down();
     }
+  }
 }
 
 void Waterfall::SubWindow_mousePressEvent(){
-    if(active){
-      spectrum_view->paused = !spectrum_view->paused;
-      spectrum_view->view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1;
-    }
+  if(active){
+    spectrum_view->paused = !spectrum_view->paused;
+    spectrum_view->view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1;
+  }
 }
 
 // Waterfall_UL
 
 Waterfall_UL::Waterfall_UL(Settings* p_glob_settings, SpectrumAdapter* p_spectrumAdapter, QMdiArea* p_mdiArea):
-Waterfall(p_glob_settings, p_spectrumAdapter, p_mdiArea){
- this->decorate();
+  Waterfall(p_glob_settings, p_spectrumAdapter, p_mdiArea){
+  this->decorate();
 }
 
 Waterfall_UL::~Waterfall_UL(){
@@ -99,8 +99,8 @@ void Waterfall_UL::decorate(){
 // Waterfall_DL
 
 Waterfall_DL::Waterfall_DL(Settings* p_glob_settings, SpectrumAdapter* p_spectrumAdapter, QMdiArea* p_mdiArea):
-Waterfall(p_glob_settings, p_spectrumAdapter, p_mdiArea){
- this->decorate();
+  Waterfall(p_glob_settings, p_spectrumAdapter, p_mdiArea){
+  this->decorate();
 }
 
 Waterfall_DL::~Waterfall_DL(){
@@ -137,8 +137,8 @@ void Waterfall_DL::decorate(){
 // Waterfall_DIFF
 
 Waterfall_DIFF::Waterfall_DIFF(Settings* p_glob_settings, SpectrumAdapter* p_spectrumAdapter, QMdiArea* p_mdiArea):
-Waterfall(p_glob_settings, p_spectrumAdapter, p_mdiArea){
- this->decorate();
+  Waterfall(p_glob_settings, p_spectrumAdapter, p_mdiArea){
+  this->decorate();
 }
 
 Waterfall_DIFF::~Waterfall_DIFF(){
@@ -175,8 +175,8 @@ void Waterfall_DIFF::decorate(){
 // Waterfall_SPEC
 
 Waterfall_SPEC::Waterfall_SPEC(Settings* p_glob_settings, SpectrumAdapter* p_spectrumAdapter, QMdiArea* p_mdiArea):
-Waterfall(p_glob_settings, p_spectrumAdapter, p_mdiArea){
- this->decorate();
+  Waterfall(p_glob_settings, p_spectrumAdapter, p_mdiArea){
+  this->decorate();
 }
 
 Waterfall_SPEC::~Waterfall_SPEC(){
@@ -201,7 +201,7 @@ void Waterfall_SPEC::deactivate(){
 
   disconnect(spectrumAdapter, SIGNAL(update_spectrum(const ScanLineLegacy*)),this,SLOT(draw(const ScanLineLegacy*)));
   spectrum_view->disconnect();
-  }
+}
 
 void Waterfall_SPEC::decorate(){
   // Set properties

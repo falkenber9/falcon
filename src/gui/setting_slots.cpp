@@ -112,6 +112,12 @@ void MainWindow::on_actionplot1_changed() {
   handle_perf_plot(glob_settings.glob_args.gui_args.show_performance_plot);
 }
 
+void MainWindow::on_actionRNTI_Table_changed() {
+  glob_settings.glob_args.gui_args.show_rnti = ui->actionRNTI_Table->isChecked();
+  if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();
+  handle_rnti_table(glob_settings.glob_args.gui_args.show_rnti);
+}
+
 void MainWindow::on_actionDownlink_Plots_changed(){
   /* glob_settings.glob_args.gui_args.show_plot_downlink = ui->actionDownlink_Plots->isChecked();
   if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();*/

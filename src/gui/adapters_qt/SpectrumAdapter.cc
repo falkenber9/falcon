@@ -61,6 +61,10 @@ void SpectrumAdapter::push(const ScanLineLegacy* data) {
       if(emit_perf_plot_b) emit update_perf_plot_b(data);
       else delete data;
       break;
+    case(ScanLineType_t::TABLE_LINE):
+      if(emit_table_update) emit update_table(data);
+      else delete data;
+      break;
   }
 }
 

@@ -2,8 +2,8 @@
 
 
 Colorpicker::Colorpicker(Settings* p_glob_settings, Ui::MainWindow* p_ui):
-glob_settings(p_glob_settings),
-ui(p_ui)
+  glob_settings(p_glob_settings),
+  ui(p_ui)
 {
   glob_settings->glob_args.gui_args.downlink_plot_color = QColor(40,110,255); //Blue
   glob_settings->glob_args.gui_args.uplink_plot_color   = QColor(255,110,40); //Orange
@@ -38,7 +38,7 @@ ui(p_ui)
   color_range_slider->setRange(0,50000);
   color_range_slider->setFirstValue(0);
   color_range_slider->setSecondValue(50000);
-  }
+}
 
 void Colorpicker::set_color(const QColor &color){
 
@@ -57,12 +57,12 @@ void Colorpicker::set_color(const QColor &color){
 }
 
 void Colorpicker::restore_color(){
-    bool old_val = downlink_color_active;
-    downlink_color_active = true;
-    set_color(dl_old);
-    downlink_color_active = false;
-    set_color(ul_old);
-    downlink_color_active = old_val;
+  bool old_val = downlink_color_active;
+  downlink_color_active = true;
+  set_color(dl_old);
+  downlink_color_active = false;
+  set_color(ul_old);
+  downlink_color_active = old_val;
 }
 
 void Colorpicker::on_pushButton_downlink_color_clicked()

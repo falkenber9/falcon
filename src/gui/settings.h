@@ -37,6 +37,7 @@ typedef struct {
     bool show_uplink;
     bool show_downlink;
     bool show_performance_plot;
+    bool show_rnti;
     //bool show_plot_downlink;
 
     //String settings:
@@ -49,6 +50,8 @@ typedef struct {
     //Int Values:
     int spectrum_color_start;
     int spectrum_color_stop;
+    int sort_by_column;
+    int sort_order;
 } Gui_SettingsType_t;
 
 typedef struct {

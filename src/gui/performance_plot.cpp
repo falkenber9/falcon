@@ -454,7 +454,7 @@ void PerformancePlot::addData(PlotsType_t plottype, QCustomPlot *plot, const Sca
     }
 
   }
-
+#ifdef LEGACYCODE
   if(plottype == RB_OCCUPATION || plottype == CELL_THROUGHPUT){
     // calculate two new data points:
     double key = QTime::currentTime().msecsSinceStartOfDay()*0.001; // time elapsed since start of demo, in seconds
@@ -469,6 +469,7 @@ void PerformancePlot::addData(PlotsType_t plottype, QCustomPlot *plot, const Sca
     plot->xAxis->setRange(key, 8, Qt::AlignRight);
     plot->replot();
   }
+#endif // LEGACYCODE
 }
 
 QMdiSubWindow* PerformancePlot::getSubwindow(){

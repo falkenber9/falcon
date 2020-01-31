@@ -34,6 +34,7 @@ set(gui
     dynamic_options.cpp
     performance_plot.cpp
     waterfall.cpp
+    rnti_table.cpp
     colorpicker.cpp
     ${IMAGES}
   )

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019 Robert Falkenberg.
  *
- * This file is part of FALCON 
+ * This file is part of FALCON
  * (see https://github.com/falkenber9/falcon).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,17 +40,17 @@ Spectrum::Spectrum(QWidget *parent, Settings *glob_settings) :
   textureUpdateNeeded(false),
   lastUpdate()
 #if PRINT_FPS
-  ,fps_timer(this)
+,fps_timer(this)
 #endif
 {
-    settings = glob_settings;
-    lastUpdate.start();
+  settings = glob_settings;
+  lastUpdate.start();
 #if PRINT_FPS
-    dataChangeCount = 0;
-    textureUpdateCount = 0;
-    textureDrawCount = 0;
-    connect(&fps_timer, SIGNAL(timeout()), this, SLOT(printFrameCount()));
-    fps_timer.start(1000);
+  dataChangeCount = 0;
+  textureUpdateCount = 0;
+  textureDrawCount = 0;
+  connect(&fps_timer, SIGNAL(timeout()), this, SLOT(printFrameCount()));
+  fps_timer.start(1000);
 #endif
 }
 

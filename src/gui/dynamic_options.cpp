@@ -40,10 +40,10 @@ void MainWindow::handle_dl_alloc(bool nexist){
 
 void MainWindow::handle_ul_alloc(bool nexist){
   if(nexist){
-      //  If ul allocation object does not exist (by flag), create a new one and activate it instantly if eye is active
-      //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
-      if(ul_alloc != nullptr){delete ul_alloc; ul_alloc = nullptr;}
-      ul_alloc = new Waterfall_UL(&glob_settings, &spectrumAdapter, ui->mdiArea);
+    //  If ul allocation object does not exist (by flag), create a new one and activate it instantly if eye is active
+    //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
+    if(ul_alloc != nullptr){delete ul_alloc; ul_alloc = nullptr;}
+    ul_alloc = new Waterfall_UL(&glob_settings, &spectrumAdapter, ui->mdiArea);
     if(active_eye){ ul_alloc->activate(); }
   }else{
     if (ul_alloc != nullptr){
@@ -72,12 +72,12 @@ void MainWindow::handle_diff_alloc(bool nexist){
 
 void MainWindow::handle_dl_spec(bool nexist){
   if(nexist){
-      //  If spectrum object does not exist (by flag), create a new one and activate it instantly if eye is active
-      //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
-      if(dl_spec != nullptr){delete dl_spec; dl_spec = nullptr;}
-      dl_spec = new Waterfall_SPEC(&glob_settings, &spectrumAdapter, ui->mdiArea);
-      connect(cp->get_color_range_slider(),SIGNAL(secondValueChanged(int)),SLOT(range_slider_value_changed(int)));
-      connect(cp->get_color_range_slider(),SIGNAL(firstValueChanged(int)),SLOT(range_slider_value_changed(int)));
+    //  If spectrum object does not exist (by flag), create a new one and activate it instantly if eye is active
+    //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
+    if(dl_spec != nullptr){delete dl_spec; dl_spec = nullptr;}
+    dl_spec = new Waterfall_SPEC(&glob_settings, &spectrumAdapter, ui->mdiArea);
+    connect(cp->get_color_range_slider(),SIGNAL(secondValueChanged(int)),SLOT(range_slider_value_changed(int)));
+    connect(cp->get_color_range_slider(),SIGNAL(firstValueChanged(int)),SLOT(range_slider_value_changed(int)));
     if(active_eye){
       dl_spec->activate();
       this->range_slider_value_changed(0);  // initially apply slider values
@@ -92,13 +92,29 @@ void MainWindow::handle_dl_spec(bool nexist){
   ui->mdiArea->tileSubWindows();
 }
 
+void MainWindow::handle_rnti_table(bool nexist){
+  if(nexist){
+    //  If rnti table object does not exist (by flag), create a new one and activate it instantly if eye is active
+    //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
+    if(rnti_table != nullptr){delete rnti_table; rnti_table = nullptr;}
+    rnti_table = new RNTITable(&glob_settings, &spectrumAdapter, ui->mdiArea);
+    if(active_eye){ rnti_table->activate(); }
+  }else{
+    if (rnti_table != nullptr){
+      delete rnti_table;
+      rnti_table = nullptr;
+    }
+  }
+  ui->mdiArea->tileSubWindows();
+}
+
 void MainWindow::handle_perf_plot(bool nexist){
   if(nexist){
-      //  If perf plot object does not exist (by flag), create a new one and activate it instantly if eye is active
-      //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
-      if(perf_plot != nullptr){delete perf_plot; perf_plot = nullptr;}
-      perf_plot = new PerformancePlot(&glob_settings, &spectrumAdapter, ui->mdiArea);
-      connect(cp, SIGNAL(color_change()),perf_plot, SLOT(update_plot_color()));
+    //  If perf plot object does not exist (by flag), create a new one and activate it instantly if eye is active
+    //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
+    if(perf_plot != nullptr){delete perf_plot; perf_plot = nullptr;}
+    perf_plot = new PerformancePlot(&glob_settings, &spectrumAdapter, ui->mdiArea);
+    connect(cp, SIGNAL(color_change()),perf_plot, SLOT(update_plot_color()));
     if(active_eye){ perf_plot->activate(); }
   }else{
     if (perf_plot != nullptr){

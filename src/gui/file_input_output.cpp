@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019 Robert Falkenberg.
  *
- * This file is part of FALCON 
+ * This file is part of FALCON
  * (see https://github.com/falkenber9/falcon).
  *
  * This program is free software: you can redistribute it and/or modify

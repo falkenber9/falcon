@@ -82,6 +82,7 @@
      <addaction name="actionUplink"/>
      <addaction name="actionplot1"/>
      <addaction name="actionDownlink"/>
+     <addaction name="actionRNTI_Table"/>
     </widget>
     <widget class="QMenu" name="menuUtilities">
      <property name="title">
@@ -121,6 +122,7 @@
    <addaction name="actionUplink"/>
    <addaction name="actionDifference"/>
    <addaction name="actionplot1"/>
+   <addaction name="actionRNTI_Table"/>
    <addaction name="separator"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -612,6 +614,14 @@
    </property>
    <property name="text">
     <string>Do&amp;wnlink Plots</string>
+   </property>
+  </action>
+  <action name="actionRNTI_Table">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>RNTI Table</string>
    </property>
   </action>
   <zorder>dockWidget</zorder>

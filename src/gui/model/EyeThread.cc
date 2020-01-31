@@ -66,10 +66,10 @@ void plot_scanLines(EyeThread *inst, const std::vector<uint16_t> *data_ul, const
 
 void update_perfPlot(EyeThread* inst, uint16_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb, ScanLineType_t sl_type){
 
-    if (dynamic_cast<EyeThread*>(inst) == nullptr){
-      ERROR("Handed wrong object type to function >>\tupdate_perfPlot\t<<!");
-    }
-    else{
+  if (dynamic_cast<EyeThread*>(inst) == nullptr){
+    ERROR("Handed wrong object type to function >>\tupdate_perfPlot\t<<!");
+  }
+  else{
 
     ScanLineLegacy *scanline_perf_plots = new ScanLineLegacy;
 
@@ -78,14 +78,14 @@ void update_perfPlot(EyeThread* inst, uint16_t sfn, uint32_t sf_idx,uint32_t mcs
       ERROR("Wrong scanline type submitted!");
     }
     else{
-    scanline_perf_plots->type     = sl_type;
-    scanline_perf_plots->sf_idx   = sf_idx;
-    scanline_perf_plots->sfn      = sfn;
-    scanline_perf_plots->mcs_tbs  = mcs_tbs;
-    scanline_perf_plots->mcs_idx  = mcs_idx;
-    scanline_perf_plots->l_prb    = l_prb;
+      scanline_perf_plots->type     = sl_type;
+      scanline_perf_plots->sf_idx   = sf_idx;
+      scanline_perf_plots->sfn      = sfn;
+      scanline_perf_plots->mcs_tbs  = mcs_tbs;
+      scanline_perf_plots->mcs_idx  = mcs_idx;
+      scanline_perf_plots->l_prb    = l_prb;
 
-    inst->pushToSubscribers(scanline_perf_plots);
+      inst->pushToSubscribers(scanline_perf_plots);
     }
   }
 }
@@ -98,11 +98,28 @@ void plot_rnti(EyeThread *inst, uint32_t *rnti_hist){
     ScanLineLegacy *scanline_rnti = new ScanLineLegacy;
     scanline_rnti->type = SCAN_LINE_RNTI_HIST;
     scanline_rnti->rnti_active_set = inst->getRNTIManager().getActiveSet();
-
+    
     inst-> pushToSubscribers(scanline_rnti);
-   }
+  }
 }
 
+void update_tableEntry(EyeThread *inst, uint16_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb, uint16_t rnti){
+  if (dynamic_cast<EyeThread*>(inst) == nullptr){
+    ERROR("Handed wrong object type to function >>\tupdate_tableEntry\t<<!");
+  }
+  else{
+    ScanLineLegacy *tableLine = new ScanLineLegacy;
+    tableLine->type = TABLE_LINE;
+    tableLine->sf_idx   = sf_idx;
+    tableLine->sfn      = sfn;
+    tableLine->mcs_tbs  = mcs_tbs;
+    tableLine->mcs_idx  = mcs_idx;
+    tableLine->l_prb    = l_prb;
+    tableLine->rnti = rnti;
+
+    inst-> pushToSubscribers(tableLine);
+  }
+}
 
 void EyeThread::init() {
   // setup dependencies of this instance
@@ -213,12 +230,14 @@ void DCIGUIConsumer::consumeDCICollection(const SubframeInfo& subframeInfo) {
       case SRSLTE_DCI_FORMAT1C:
       case SRSLTE_DCI_FORMAT1B:
       case SRSLTE_DCI_FORMAT1D:
-        update_perfPlot(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_dl_it->dl_grant->mcs[0].idx, dci_dl_it->dl_grant->mcs[0].tbs, dci_dl_it->dl_grant->nof_prb, SCAN_LINE_PERF_PLOT_B);
+        update_perfPlot  (m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_dl_it->dl_grant->mcs[0].idx, dci_dl_it->dl_grant->mcs[0].tbs, dci_dl_it->dl_grant->nof_prb, SCAN_LINE_PERF_PLOT_B);
+        update_tableEntry(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_dl_it->dl_grant->mcs[0].idx, dci_dl_it->dl_grant->mcs[0].tbs, dci_dl_it->dl_grant->nof_prb, dci_dl_it->rnti);
         break;
       case SRSLTE_DCI_FORMAT2:
       case SRSLTE_DCI_FORMAT2A:
       case SRSLTE_DCI_FORMAT2B:
-        update_perfPlot(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_dl_it->dl_grant->mcs[0].idx, dci_dl_it->dl_grant->mcs[0].tbs, dci_dl_it->dl_grant->nof_prb, SCAN_LINE_PERF_PLOT_B);
+        update_perfPlot  (m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_dl_it->dl_grant->mcs[0].idx, dci_dl_it->dl_grant->mcs[0].tbs, dci_dl_it->dl_grant->nof_prb, SCAN_LINE_PERF_PLOT_B);
+        update_tableEntry(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_dl_it->dl_grant->mcs[0].idx, dci_dl_it->dl_grant->mcs[0].tbs, dci_dl_it->dl_grant->nof_prb, dci_dl_it->rnti);
         break;
         //case SRSLTE_DCI_FORMAT3:
         //case SRSLTE_DCI_FORMAT3A:
@@ -232,10 +251,12 @@ void DCIGUIConsumer::consumeDCICollection(const SubframeInfo& subframeInfo) {
   for(std::vector<DCI_UL>::const_iterator dci_ul_it = dci_ul.begin(); dci_ul_it != dci_ul.end(); ++dci_ul_it) {
     // TODO: Ask for explantion here
     if (dci_ul_it->ul_dci_unpacked->mcs_idx < 29) {
-      update_perfPlot(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_ul_it->ul_grant->mcs.idx, dci_ul_it->ul_grant->mcs.tbs, dci_ul_it->ul_grant->L_prb, SCAN_LINE_PERF_PLOT_A);
+      update_perfPlot  (m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_ul_it->ul_grant->mcs.idx, dci_ul_it->ul_grant->mcs.tbs, dci_ul_it->ul_grant->L_prb, SCAN_LINE_PERF_PLOT_A);
+      update_tableEntry(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_ul_it->ul_grant->mcs.idx, dci_ul_it->ul_grant->mcs.tbs, dci_ul_it->ul_grant->L_prb, dci_ul_it->rnti);
     }
     else {
-      update_perfPlot(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_ul_it->ul_grant->mcs.idx, 0, dci_ul_it->ul_grant->L_prb, SCAN_LINE_PERF_PLOT_A);
+      update_perfPlot  (m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_ul_it->ul_grant->mcs.idx, 0, dci_ul_it->ul_grant->L_prb, SCAN_LINE_PERF_PLOT_A);
+      update_tableEntry(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_ul_it->ul_grant->mcs.idx, 0, dci_ul_it->ul_grant->L_prb, dci_ul_it->rnti);
     }
   }
 }

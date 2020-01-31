@@ -55,6 +55,9 @@ Settings::Settings() : glob_args() {
     glob_args.gui_args.show_uplink          = true;
     glob_args.gui_args.use_file_as_source   = true;
     glob_args.gui_args.show_performance_plot= false;
+    glob_args.gui_args.show_rnti = false;
+    glob_args.gui_args.sort_by_column = 0;
+    glob_args.gui_args.sort_order = 0;
     // glob_args.gui_args.show_plot_downlink   = false;
 
     //Spectrum args:
@@ -85,6 +88,7 @@ void Settings::load_settings() {
   glob_args.gui_args.show_uplink          = settings->value("SHOW_UPLINK").toBool();
   glob_args.gui_args.use_file_as_source   = settings->value("USE_FILE_AS_SOURCE").toBool();
   glob_args.gui_args.show_performance_plot= settings->value("SHOW_PERFORMANCE_PLOT").toBool();
+  glob_args.gui_args.show_rnti            = settings->value("SHOW_RNTI").toBool();
   //glob_args.gui_args.show_plot_downlink   = settings->value("SHOW_DOWNLINK_PLOT").toBool();
   settings->endGroup();
 
@@ -108,6 +112,13 @@ void Settings::load_settings() {
 
   settings->endGroup();
 
+  // Load RNTI table settings:
+
+  settings->beginGroup("RNTI_TABLE");
+  glob_args.gui_args.sort_by_column = settings->value("SORT_BY_COLUMN").toInt();
+  glob_args.gui_args.sort_order = settings->value("SORT_ORDER").toInt();
+  settings->endGroup();
+
 }
 
 void Settings::store_settings(){
@@ -123,6 +134,7 @@ void Settings::store_settings(){
   settings->setValue("SHOW_UPLINK"          , glob_args.gui_args.show_uplink);
   settings->setValue("USE_FILE_AS_SOURCE"   , glob_args.gui_args.use_file_as_source);
   settings->setValue("SHOW_PERFORMANCE_PLOT", glob_args.gui_args.show_performance_plot);
+  settings->setValue("SHOW_RNTI"            , glob_args.gui_args.show_rnti );
   //settings->setValue("SHOW_DOWNLINK_PLOT" , glob_args.gui_args.show_plot_downlink);
 
   settings->endGroup();
@@ -147,5 +159,10 @@ void Settings::store_settings(){
 
   settings->endGroup();
 
+  // Load RNTI table settings:
+  settings->beginGroup("RNTI_TABLE");
+  settings->setValue("SORT_BY_COLUMN" , glob_args.gui_args.sort_by_column);
+  settings->setValue("SORT_ORDER", glob_args.gui_args.sort_order);
+  settings->endGroup();
 
 }

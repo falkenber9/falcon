@@ -43,6 +43,7 @@ public:
   bool emit_rnti_hist   = false;
   bool emit_perf_plot_a = false;
   bool emit_perf_plot_b = false;
+  bool emit_table_update = false;
 
 signals:
   void update_ul(const ScanLineLegacy* line);
@@ -53,5 +54,6 @@ signals:
   void update_rnti_hist(const ScanLineLegacy* line);
   void update_perf_plot_a(const ScanLineLegacy* line);
   void update_perf_plot_b(const ScanLineLegacy* line);
+  void update_table(const ScanLineLegacy* line);
 
 };

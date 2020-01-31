@@ -38,6 +38,7 @@
 #include "plots.h"
 #include "performance_plot.h"
 #include "waterfall.h"
+#include "rnti_table.h"
 #include "colorpicker.h"
 #include <QColorDialog>
 
@@ -77,6 +78,7 @@ private slots:
   void on_actionUse_File_as_Source_changed();
   void on_actionTile_Windows_triggered();
   void on_actionDownlink_Plots_changed();
+  void on_actionRNTI_Table_changed();
   void on_spinBox_Prb_valueChanged(int arg1);
 
   // Color
@@ -94,6 +96,7 @@ protected:
 private:
 
   PerformancePlot *perf_plot = nullptr;
+  RNTITable *rnti_table = nullptr;
   Waterfall *dl_alloc = nullptr;
   Waterfall *ul_alloc = nullptr;
   Waterfall *diff_alloc = nullptr;
@@ -111,6 +114,7 @@ private:
   void handle_diff_alloc(bool start);
   void handle_dl_spec(bool start);
   void handle_perf_plot(bool start);
+  void handle_rnti_table(bool start);
 
   // Color Menu:
   Colorpicker* cp;

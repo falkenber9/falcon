@@ -36,9 +36,8 @@ protected:
     QMdiSubWindow *m_subwindow = nullptr;
 
 protected slots:
-    void draw(const ScanLineLegacy*);
-private slots:
     void SubWindow_mousePressEvent();
+    void draw(const ScanLineLegacy*);
 };
 
 class Waterfall_UL : public Waterfall{

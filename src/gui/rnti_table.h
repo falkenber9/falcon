@@ -8,6 +8,7 @@
 #include "adapters_qt/SpectrumAdapter.h"
 #include "plots.h"
 
+#include <mutex>
 #include <iostream>
 
 struct RNTITableDataStorage{

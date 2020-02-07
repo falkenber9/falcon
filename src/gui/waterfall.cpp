@@ -1,5 +1,8 @@
 #include "waterfall.h"
 
+// Initial state of spectra
+bool Spectrum::paused = false;
+
 Waterfall::Waterfall(Settings* p_glob_settings, SpectrumAdapter* p_spectrumAdapter, QMdiArea* p_mdiArea) :
   glob_settings(p_glob_settings),
   spectrumAdapter(p_spectrumAdapter),
@@ -43,12 +46,10 @@ void Waterfall::draw(const ScanLineLegacy *data){
 }
 
 void Waterfall::wheelEvent(int delta){
-  if(active){
-    if(spectrum_view->paused){
+    if(spectrum_view->paused || !active){   // Waterfall needs to be paused if EyeThread is still running or if it stopped scrolling can still be allowed
       if(delta > 0) spectrum_view->scroll_up();
       else spectrum_view->scroll_down();
     }
-  }
 }
 
 void Waterfall::SubWindow_mousePressEvent(){
@@ -57,7 +58,6 @@ void Waterfall::SubWindow_mousePressEvent(){
     spectrum_view->view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1;
   }
 }
-
 // Waterfall_UL
 
 Waterfall_UL::Waterfall_UL(Settings* p_glob_settings, SpectrumAdapter* p_spectrumAdapter, QMdiArea* p_mdiArea):
@@ -76,7 +76,7 @@ void Waterfall_UL::activate(){
 
   // Connect signals/slots
   connect (spectrumAdapter, SIGNAL(update_ul(const ScanLineLegacy*)),SLOT(draw(const ScanLineLegacy*)));
-  connect (spectrum_view, SIGNAL(subwindow_click()),SLOT(SubWindow_mousePressEvent()));
+  connect (spectrum_view, SIGNAL(subwindow_click()) ,SLOT(SubWindow_mousePressEvent()));
   spectrumAdapter->emit_uplink = true;
 
   spectrum_view->paused = false;

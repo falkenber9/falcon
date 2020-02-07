@@ -48,7 +48,7 @@ public:
   float intensity_factor = 1.0;
   float min_intensity = 0.0;
   float max_intensity = 500000.0;
-  bool paused = false;
+  static bool paused;
   int pos_y_buff = 0;  // Position buffer for scrolling
   int view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1; // Position for scrolling    
 

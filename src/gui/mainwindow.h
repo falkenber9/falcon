@@ -81,6 +81,7 @@ private slots:
   void on_actionRNTI_Table_changed();
   void on_spinBox_Prb_valueChanged(int arg1);
 
+
   // Color
   //Color:
   void on_pushButton_uplink_color_clicked();
@@ -88,8 +89,7 @@ private slots:
   void range_slider_value_changed(int value);
 
 protected:
-  void wheelEvent(QWheelEvent *event) override;         //
-
+  void wheelEvent(QWheelEvent *event) override;
   void dropEvent(QDropEvent *event) override;
   void dragEnterEvent(QDragEnterEvent *e) override;
 

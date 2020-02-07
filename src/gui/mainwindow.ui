@@ -165,7 +165,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="rf_settings">
       <attribute name="title">
@@ -362,7 +362,7 @@
      </widget>
      <widget class="QWidget" name="color_settings">
       <attribute name="title">
-       <string>Color</string>
+       <string>Display</string>
       </attribute>
       <widget class="QLabel" name="color_label_downlink">
        <property name="geometry">

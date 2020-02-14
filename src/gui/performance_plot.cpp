@@ -439,17 +439,13 @@ void PerformancePlot::addData(PlotsType_t plottype, QCustomPlot *plot, const Sca
     static QTime time(QTime::currentTime());
     double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
     static double lastPointKey = 0;
-    std::vector<double> rnti_hist_sum(65536);
-
     if(abs(xAT.getPrevW() - plot_rnti_hist->width()) > HO_MARGIN_RESCALE){
       xTicker->setTicks(xAT.getTicks(plot_rnti_hist->width()));
     }
 
     if ((key - lastPointKey)*1000 > plot_mean_slider_a->value()){ // Update RNTI according to slider
-
-      std::for_each(data->rnti_active_set.begin(), data->rnti_active_set.end(), [&rnti_hist_sum](rnti_manager_active_set_t i){ rnti_hist_sum[i.rnti] = i.frequency;});
-      plot->graph(UPLINK)->setData(QVector<double>::fromStdVector(rnti_x_axis), QVector<double>::fromStdVector(rnti_hist_sum));
-
+      plot->graph(UPLINK)->data()->clear();
+      std::for_each(data->rnti_active_set.begin(), data->rnti_active_set.end(), [plot](rnti_manager_active_set_t i){plot->graph(UPLINK)->data()->add(QCPGraphData(i.rnti, i.frequency));});
       lastPointKey = key;
     }
 

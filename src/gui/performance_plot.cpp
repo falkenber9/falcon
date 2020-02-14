@@ -8,7 +8,6 @@
 #define TIMEFORMAT "%h:%m:%s"
 
 
-
 PerformancePlot::PerformancePlot(Settings* p_glob_settings, SpectrumAdapter* p_spectrumAdapter, QMdiArea* p_mdiArea){
   glob_settings = p_glob_settings;
   spectrumAdapter = p_spectrumAdapter;
@@ -116,6 +115,9 @@ void PerformancePlot::activate(){
 
   connect (&avg_timer_downlink, SIGNAL(timeout()), this, SLOT(draw_plot_downlink()));
   avg_timer_downlink.start(plot_mean_slider_a->value());
+
+  connect(&throughput_rescale_timer, SIGNAL(timeout()), this, SLOT(throughput_upper_limit_decay()));
+  
   connect(plot_mean_slider_a, SIGNAL(valueChanged(int)), &avg_timer_downlink, SLOT(start(int)));
 
   connect (spectrumAdapter, SIGNAL(update_perf_plot_b(const ScanLineLegacy*)),SLOT(calc_performance_data(const ScanLineLegacy*)));
@@ -137,10 +139,12 @@ void PerformancePlot::deactivate(){
   fps_timer.stop();
   avg_timer_uplink.stop();
   avg_timer_downlink.stop();
+  throughput_rescale_timer.stop();
 
   fps_timer.disconnect();
   avg_timer_uplink.disconnect();
   avg_timer_downlink.disconnect();
+  throughput_rescale_timer.disconnect();
 
   plot_a_window->disconnect();
   plot_mean_slider_a->disconnect();
@@ -157,6 +161,11 @@ void PerformancePlot::replot_perf(){
 
 void PerformancePlot::calc_performance_data(const ScanLineLegacy *line){
   perf_mutex.lock();
+  if (glob_settings->glob_args.spectrum_args.spectrum_line_width != line->total_prb){
+    glob_settings->glob_args.spectrum_args.spectrum_line_width = line->total_prb;
+    glob_settings->store_settings();
+    plot_prb->yAxis->setRange(0, glob_settings->glob_args.spectrum_args.spectrum_line_width);
+  }
   // Fix axes
   if(plot_mcs_idx->width()/TA_DIGITS_PER_DISPLAY - TA_SPACING != plot_mcs_idx->xAxis->ticker()->tickCount()){
     plot_mcs_idx->xAxis->ticker()->setTickCount(std::max(plot_mcs_idx->width()/TA_DIGITS_PER_DISPLAY - TA_SPACING, 1));
@@ -233,8 +242,17 @@ void PerformancePlot::draw_plot_downlink(){
     /*  CALCULATION:
      *  mcs_tbs_sum_sum_a/elapsed/1024/1024*1000 [bit/ms] --> /1024^2 --> [Mbit/ms] --> /1000 --> [Mbit/s]
      */
+    double throughput_val = *mcs_tbs / *nof_received_sf *1000/1024/1024;
+    if (throughput_val > throughput_upper*OVERSCAN){
+      throughput_upper = throughput_val;
+      plot_throughput->yAxis->setRangeUpper(throughput_upper*OVERSCAN);
+      #ifdef THRESHOLD_DECAY
+      throughput_rescale_timer.start(10000);
+      #endif
+    }
+
     graph_mcs_idx ->addData(timestamp,*mcs_idx / *nof_allocations);
-    graph_throughput     ->addData(timestamp,*mcs_tbs / *nof_received_sf *1000/1024/1024);
+    graph_throughput     ->addData(timestamp,throughput_val);
     graph_prb   ->addData(timestamp,*l_prb  / *nof_received_sf);
   }
   else{
@@ -252,21 +270,20 @@ void PerformancePlot::draw_plot_downlink(){
 
   // make timestamp axis range scroll with the data (at a constant range size of 10 sec):
   plot_mcs_idx->xAxis->setRange(timestamp, 10, Qt::AlignRight);
-  plot_mcs_idx->yAxis->rescale(true);
-  plot_mcs_idx->yAxis->scaleRange(OVERSCAN);
-  plot_mcs_idx->yAxis->setRangeLower(0);
-
-  plot_throughput->xAxis->setRange(timestamp, 10, Qt::AlignRight);
-  plot_throughput->yAxis->rescale(true);
-  plot_throughput->yAxis->scaleRange(OVERSCAN);
-  plot_throughput->yAxis->setRangeLower(0);
-
   plot_prb    ->xAxis->setRange(timestamp, 10, Qt::AlignRight);
-  plot_prb->yAxis->rescale(true);
-  plot_prb->yAxis->scaleRange(OVERSCAN);
-  plot_prb->yAxis->setRangeLower(0);
-
+  plot_throughput->xAxis->setRange(timestamp, 10, Qt::AlignRight);
+ 
   perf_mutex.unlock();
+}
+
+void PerformancePlot::throughput_upper_limit_decay(){
+  #ifdef THRESHOLD_DECAY
+  perf_mutex.lock();
+  // Make upper value smaller to ensure recovery of the plot if only smaller values come in within next time
+  // Divide by OVERSCAN^2 to have a decay and compensate the previous overscan
+  throughput_upper = throughput_upper/1.5;
+  perf_mutex.unlock();
+  #endif
 }
 
 void PerformancePlot::draw_plot_uplink(){
@@ -287,8 +304,17 @@ void PerformancePlot::draw_plot_uplink(){
     /*  CALCULATION:
      *  mcs_tbs_sum_sum_a/elapsed/1024/1024*1000 [bit/ms] --> /1024^2 --> [Mbit/ms] --> /1000 --> [Mbit/s]
      */
+    double throughput_val = *mcs_tbs / *nof_received_sf *1000/1024/1024;
+    if (throughput_val > throughput_upper*OVERSCAN){
+      throughput_upper = throughput_val;
+      plot_throughput->yAxis->setRangeUpper(throughput_upper*OVERSCAN);
+      #ifdef THRESHOLD_DECAY
+      throughput_rescale_timer.start(10000);
+      #endif
+    }
+
     graph_mcs_idx ->addData(timestamp,*mcs_idx / *nof_allocations);
-    graph_throughput     ->addData(timestamp,*mcs_tbs / *nof_received_sf *1000/1024/1024);
+    graph_throughput     ->addData(timestamp, throughput_val);
     graph_prb   ->addData(timestamp,*l_prb  / *nof_received_sf);
   }
   else{
@@ -297,6 +323,7 @@ void PerformancePlot::draw_plot_uplink(){
     graph_throughput     ->addData(timestamp, 0);
     graph_prb   ->addData(timestamp, 0);
   }
+
   *mcs_idx = 0;
   *mcs_tbs = 0;
   *l_prb   = 0;
@@ -305,19 +332,8 @@ void PerformancePlot::draw_plot_uplink(){
 
   // make timestamp axis range scroll with the data (at a constant range size of 10 sec):
   plot_mcs_idx->xAxis->setRange(timestamp, 10, Qt::AlignRight);
-  plot_mcs_idx->yAxis->rescale(true);
-  plot_mcs_idx->yAxis->scaleRange(OVERSCAN);
-  plot_mcs_idx->yAxis->setRangeLower(0);
-
-  plot_throughput->xAxis->setRange(timestamp, 10, Qt::AlignRight);
-  plot_throughput->yAxis->rescale(true);
-  plot_throughput->yAxis->scaleRange(OVERSCAN);
-  plot_throughput->yAxis->setRangeLower(0);
-
   plot_prb    ->xAxis->setRange(timestamp, 10, Qt::AlignRight);
-  plot_prb->yAxis->rescale(true);
-  plot_prb->yAxis->scaleRange(OVERSCAN);
-  plot_prb->yAxis->setRangeLower(0);
+  plot_throughput->xAxis->setRange(timestamp, 10, Qt::AlignRight);
 
   perf_mutex.unlock();
 }
@@ -382,6 +398,7 @@ void PerformancePlot::setupPlot(PlotsType_t plottype, QCustomPlot *plot){
     timeTicker->setTickStepStrategy(QCPAxisTicker::TickStepStrategy::tssReadability);
     plot->xAxis->setTicker(timeTicker);
     plot->xAxis2->setLabel("Cell Throughput (TBS) [Mbit/s]");
+    plot->yAxis->setRange(0,1);
     plot->axisRect()->setupFullAxesBox();
     plot->legend->setVisible(true);
     plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
@@ -404,7 +421,7 @@ void PerformancePlot::setupPlot(PlotsType_t plottype, QCustomPlot *plot){
     plot->xAxis->setTicker(timeTicker);
     plot->xAxis2->setLabel("MCS Index");
     plot->axisRect()->setupFullAxesBox();
-    plot->yAxis->setRange(0, 100);
+    plot->yAxis->setRange(0, 29);
     plot->legend->setVisible(true);
     plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
   }
@@ -427,7 +444,7 @@ void PerformancePlot::setupPlot(PlotsType_t plottype, QCustomPlot *plot){
     plot->xAxis->setTicker(timeTicker);
     plot->xAxis2->setLabel("Resourceblocks/Subframe");
     plot->axisRect()->setupFullAxesBox();
-    plot->yAxis->setRange(0, SPECTROGRAM_MAX_LINE_WIDTH);
+    plot->yAxis->setRange(0, glob_settings->glob_args.spectrum_args.spectrum_line_width); //SPECTROGRAM_MAX_LINE_WIDTH); // todo: Get correct prb from
     plot->legend->setVisible(true);
     plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
   }

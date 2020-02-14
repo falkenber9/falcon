@@ -90,8 +90,10 @@ private:
 
   // Transportblocksize
   double* mcs_tbs = nullptr;
+  double throughput_upper = 0;
   double mcs_tbs_sum_uplink      = 0;
   double mcs_tbs_sum_downlink    = 0;
+  QTimer throughput_rescale_timer;
 
   // Length of resource blocks
   double* l_prb = nullptr;
@@ -108,6 +110,7 @@ private slots:
   void draw_plot_downlink();
   void draw_rnti_hist(const ScanLineLegacy *line);
   void calc_performance_data(const ScanLineLegacy*);
+  void throughput_upper_limit_decay();
 
 };
 

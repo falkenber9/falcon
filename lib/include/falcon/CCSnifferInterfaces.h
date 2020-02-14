@@ -102,6 +102,7 @@ public:
   int      mcs_tbs;
   uint32_t l_prb;
   uint16_t sfn;
+  uint32_t total_prb;
 };
 
 class ScanLine {

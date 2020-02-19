@@ -98,8 +98,9 @@ MainWindow::MainWindow(QWidget *parent) :
   setAcceptDrops(true);  //For Drag and Drop
 
   ui->doubleSpinBox_rf_freq->setValue(glob_settings.glob_args.eyeArgs.rf_freq/(1000*1000));
+#ifdef LCDDISPLAY
   ui->lcdNumber_rf_freq->display(glob_settings.glob_args.eyeArgs.rf_freq/(1000*1000));
-
+#endif
 }
 
 MainWindow::~MainWindow() {
@@ -180,7 +181,9 @@ void MainWindow::on_actionStart_triggered() {
 
     eyeThread.start(eyeArgs);
     ui->doubleSpinBox_rf_freq->setValue(eyeArgs.rf_freq/(1000*1000));
+#ifdef LCDDISPLAY
     ui->lcdNumber_rf_freq->display(eyeArgs.rf_freq/(1000*1000));
+#endif
     ui->spinBox_Ports->setValue(eyeArgs.file_nof_ports);
     ui->spinBox_CellId->setValue(eyeArgs.file_cell_id);
     ui->spinBox_Prb->setValue(eyeArgs.file_nof_prb);
@@ -234,7 +237,9 @@ void MainWindow::on_lineEdit_FileName_textChanged(const QString &arg1)
 
 void MainWindow::update_cell_config_fields() {
   ui->spinBox_CellId->setValue(static_cast<int>(eyeArgs.file_cell_id));
+#ifdef LCDDISPLAY
   ui->lcdNumber_rf_freq->display(eyeArgs.rf_freq / (1000*1000));
+#endif
   ui->doubleSpinBox_rf_freq->setValue(eyeArgs.rf_freq / (1000*1000));
   ui->spinBox_Prb->setValue(eyeArgs.file_nof_prb);
 }

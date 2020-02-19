@@ -321,10 +321,12 @@ bool MainWindow::get_args_from_file(const QString filename) {
 void MainWindow::wheelEvent(QWheelEvent *event){
   // As the wheel event can only be captured in main window, forward the delta to waterfall's wheelEvent method
 
-  if(dl_alloc != nullptr){dl_alloc->wheelEvent(event->delta());}
-  if(ul_alloc != nullptr){ul_alloc->wheelEvent(event->delta());}
-  if(diff_alloc != nullptr){diff_alloc->wheelEvent(event->delta());}
-  if(dl_spec != nullptr){dl_spec->wheelEvent(event->delta());}
+  if (ui->mdiArea->underMouse()){
+    if(dl_alloc != nullptr){dl_alloc->wheelEvent(event->delta());}
+    if(ul_alloc != nullptr){ul_alloc->wheelEvent(event->delta());}
+    if(diff_alloc != nullptr){diff_alloc->wheelEvent(event->delta());}
+    if(dl_spec != nullptr){dl_spec->wheelEvent(event->delta());}
+  }
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *e)

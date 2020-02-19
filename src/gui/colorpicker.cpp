@@ -15,29 +15,28 @@ Colorpicker::Colorpicker(Settings* p_glob_settings, Ui::MainWindow* p_ui):
   downlink_palette.setColor(QPalette::Window, glob_settings->glob_args.gui_args.downlink_plot_color);
   uplink_palette.  setColor(QPalette::Window, glob_settings->glob_args.gui_args.uplink_plot_color);
 
-  ui->color_label_downlink->setAutoFillBackground(true);
-  ui->color_label_downlink->setPalette(downlink_palette);
-  ui->color_label_uplink->setAutoFillBackground(true);
-  ui->color_label_uplink->setPalette(uplink_palette);
+  ui->label_dl_color->setAutoFillBackground(true);
+  ui->label_dl_color->setPalette(downlink_palette);
+  ui->label_ul_color->setAutoFillBackground(true);
+  ui->label_ul_color->setPalette(uplink_palette);
   //ui->color_label->setText("What ever text");
 
-  color_dialog = new QColorDialog(ui->color_settings);
+  color_dialog = new QColorDialog(ui->waterfall_frame);
   color_dialog->setObjectName("CD");
   color_dialog->setWindowTitle("Color Dialog");
   color_dialog->setGeometry(0,0,100,100);
 
   connect(color_dialog,SIGNAL(currentColorChanged(const QColor)),SLOT(set_color(const QColor)));
   connect(color_dialog, SIGNAL(rejected()), SLOT(restore_color()));
-  slider_label = new QLabel(ui->color_settings);
-  slider_label->setGeometry(QRect(0, 110, 160, 20));
-  slider_label->setText("Contrast Adjustment:");
-  color_range_slider = new RangeWidget(Qt::Horizontal,ui->color_settings);
+  // ! Contrast adjustment
+  color_range_slider = new RangeWidget(Qt::Horizontal,ui->waterfall_frame);
   color_range_slider->setObjectName(QStringLiteral("horizontalSlider"));
-  color_range_slider->setGeometry(QRect(0, 130, 160, 20));
   // color_range_slider->setOrientation(Qt::Horizontal);
   color_range_slider->setRange(0,50000);
   color_range_slider->setFirstValue(0);
   color_range_slider->setSecondValue(50000);
+
+  ui->contrast_adjustment_layout->replaceWidget(ui->contrast_adjustment_widget, color_range_slider);
 }
 
 void Colorpicker::set_color(const QColor &color){
@@ -46,11 +45,11 @@ void Colorpicker::set_color(const QColor &color){
   if(downlink_color_active){
     glob_settings->glob_args.gui_args.downlink_plot_color = color;
     downlink_palette.setColor(QPalette::Window, glob_settings->glob_args.gui_args.downlink_plot_color);
-    ui->color_label_downlink->setPalette(downlink_palette);
+    ui->label_dl_color->setPalette(downlink_palette);
   }else{
     glob_settings->glob_args.gui_args.uplink_plot_color = color;
     uplink_palette.setColor(QPalette::Window, glob_settings->glob_args.gui_args.uplink_plot_color);
-    ui->color_label_uplink->setPalette(uplink_palette);
+    ui->label_ul_color->setPalette(uplink_palette);
   }
 
   emit color_change();

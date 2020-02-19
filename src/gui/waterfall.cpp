@@ -211,11 +211,9 @@ void Waterfall_SPEC::decorate(){
 }
 void Waterfall_SPEC::range_slider_value_changed(int _1st, int _2nd){
   if(_1st > _2nd){
-    //qDebug()<< "Min: " << color_range_slider->secondValue() << " Max: "<< color_range_slider->firstValue() ;
     spectrum_view->max_intensity = _1st;
     spectrum_view->min_intensity = _2nd;
   }else{
-    //qDebug()<< "Min: " << color_range_slider->firstValue() << " Max: "<< color_range_slider->secondValue() ;
     spectrum_view->max_intensity = _2nd;
     spectrum_view->min_intensity = _1st;
   }

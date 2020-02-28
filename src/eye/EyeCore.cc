@@ -547,6 +547,9 @@ void EyeCore::handleSignal() {
 }
 
 void EyeCore::setRNTIThreshold(int val){
-//  rnti_threshold = val;
   if(phy){phy->getCommon().getRNTIManager().setThreshold(val);}
+}
+
+void EyeCore::refreshShortcutDiscovery(bool val){
+  phy->getCommon().setShortcutDiscovery(val);
 }

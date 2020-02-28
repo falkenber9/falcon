@@ -177,6 +177,10 @@ void EyeThread::storeRNTIThresholdInEyeThread(int val){
   if(eye){eye->setRNTIThreshold(rnti_threshold);}
 }
 
+void EyeThread::refreshShortcutDiscovery(bool val){
+  if(eye){eye->refreshShortcutDiscovery(val);}
+}
+
 EyeThread::~EyeThread() {
   stop();
 }

@@ -191,7 +191,6 @@ void MainWindow::on_actionStart_triggered() {
 
     qDebug() << "Spectrum View on";
     glob_settings.store_settings();
-    ui->checkBox_enable_shortcut->setEnabled(false);
   }
 }
 
@@ -206,7 +205,6 @@ void MainWindow::on_actionStop_triggered()
   if(rnti_table != nullptr) rnti_table->deactivate();
   active_eye = false;
   spectrumAdapter.disconnect();  //Disconnect all Signals
-  ui->checkBox_enable_shortcut->setEnabled(true);
 }
 
 void MainWindow::on_Select_file_button_clicked()

@@ -37,6 +37,7 @@ public:
     void attachConsumer(std::shared_ptr<SubframeInfoConsumer> consumer);
     RNTIManager &getRNTIManager();
     void storeRNTIThresholdInEyeThread(int val);
+    void refreshShortcutDiscovery(bool val);
 
 private:
     void run();

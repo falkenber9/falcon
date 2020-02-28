@@ -67,6 +67,7 @@ public:
   void resetDCIConsumer();
 
   void setRNTIThreshold(int val);
+  void refreshShortcutDiscovery(bool val);
 
 private:
   //incoming interfaces

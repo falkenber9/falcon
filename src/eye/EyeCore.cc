@@ -96,7 +96,7 @@ EyeCore::~EyeCore() {
   phy = nullptr;
 }
 
-bool EyeCore::run() {
+bool EyeCore::run() { 
   state = DECODE_MIB;
   int n, ret;
   int decimate = 1;
@@ -544,4 +544,9 @@ void EyeCore::resetDCIConsumer() {
 
 void EyeCore::handleSignal() {
   stop();
+}
+
+void EyeCore::setRNTIThreshold(int val){
+//  rnti_threshold = val;
+  if(phy){phy->getCommon().getRNTIManager().setThreshold(val);}
 }

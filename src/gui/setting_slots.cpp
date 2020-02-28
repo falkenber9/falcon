@@ -129,3 +129,13 @@ void MainWindow::on_checkBox_enable_shortcut_clicked(){
     glob_settings.store_settings();  //If save_settings = true, save to file.
   }
 }
+
+
+void MainWindow::on_slider_hist_threshold_valueChanged(int val){
+  glob_settings.glob_args.eyeArgs.rnti_threshold = val;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+  eyeThread.storeRNTIThresholdInEyeThread(glob_settings.glob_args.eyeArgs.rnti_threshold);
+}
+

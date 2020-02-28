@@ -145,6 +145,7 @@ void EyeThread::start(const Args& args) {
   }
 
   eye = new EyeCore(args);
+  eye->setRNTIThreshold(rnti_threshold);
   eye->setDCIConsumer(m_consumer);
   theThread = new boost::thread(boost::bind(&EyeThread::run, this));
 }
@@ -169,6 +170,11 @@ void EyeThread::stop() {
 
 bool EyeThread::isInitialized() {
   return initialized;
+}
+
+void EyeThread::storeRNTIThresholdInEyeThread(int val){
+  rnti_threshold = val;
+  if(eye){eye->setRNTIThreshold(rnti_threshold);}
 }
 
 EyeThread::~EyeThread() {

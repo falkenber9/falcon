@@ -139,7 +139,6 @@ RNTIManager::RNTIManager(uint32_t nformats, uint32_t maxCandidatesPerStepPerForm
   assocFormatIdx(RNTI_HISTOGRAM_ELEMENT_COUNT, 0),
   timestamp(0),
   lifetime(RRC_INACTIVITY_TIMER_MS),
-  threshold(RNTI_HISTOGRAM_THRESHOLD),
   maxCandidatesPerStepPerFormat(maxCandidatesPerStepPerFormat),
   remainingCandidates(nformats, static_cast<int32_t>(maxCandidatesPerStepPerFormat))
 {
@@ -257,6 +256,10 @@ void RNTIManager::printActiveSet() {
   std::cout << "Total: " << n_active << std::endl;
   std::cout << "-----------------------------------------------------------" << std::endl;
 
+}
+
+void RNTIManager::setThreshold(int value){
+  threshold = value;
 }
 
 string RNTIManager::getActivationReasonString(ActivationReason reason) {

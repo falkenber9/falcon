@@ -90,6 +90,7 @@ MainWindow::MainWindow(QWidget *parent) :
   // Set the timer sliders here as the values are needed on setup
   ui->slider_perf_fps->setValue(glob_settings.glob_args.gui_args.perf_fps);
   ui->slider_wf_fps->setValue(glob_settings.glob_args.gui_args.wf_fps);
+  ui->slider_hist_threshold->setValue(glob_settings.glob_args.eyeArgs.rnti_threshold);
 
   // After setting checkboxes, call on_ActionX_changed slots manually to ensure that the object get created (if necessary) even if the checkbox didn't change
   on_actionDownlink_changed();

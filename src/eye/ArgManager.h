@@ -47,6 +47,7 @@ struct Args {
   double rf_freq;
   double rf_gain;
   int decimate;
+  int rnti_threshold;
 
   // other config args
   uint32_t dci_format_split_update_interval_ms;

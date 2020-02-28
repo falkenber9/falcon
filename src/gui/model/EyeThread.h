@@ -36,6 +36,7 @@ public:
     inline int getScanLineWidth() {return scanline_width;};
     void attachConsumer(std::shared_ptr<SubframeInfoConsumer> consumer);
     RNTIManager &getRNTIManager();
+    void storeRNTIThresholdInEyeThread(int val);
 
 private:
     void run();
@@ -43,6 +44,7 @@ private:
     bool initialized;
     int scanline_width;
     EyeCore* eye;
+    int rnti_threshold;
     boost::thread* theThread;
     std::shared_ptr<SubframeInfoConsumer> m_consumer = nullptr;
 };

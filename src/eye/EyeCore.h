@@ -66,6 +66,8 @@ public:
   void setDCIConsumer(std::shared_ptr<SubframeInfoConsumer> consumer);
   void resetDCIConsumer();
 
+  void setRNTIThreshold(int val);
+
 private:
   //incoming interfaces
   void handleSignal() override;

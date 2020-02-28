@@ -81,6 +81,7 @@ private slots:
   void on_actionDownlink_Plots_changed();
   void on_actionRNTI_Table_changed();
   void on_spinBox_Prb_valueChanged(int arg1);
+  void on_slider_hist_threshold_valueChanged(int val);
 
 
   // Color

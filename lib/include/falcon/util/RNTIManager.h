@@ -37,9 +37,6 @@
 // RRC Inactivity Timer
 #define RRC_INACTIVITY_TIMER_MS 10000   // Range 0..60000, default 10000
 
-// RNTI Threshold
-#define RNTI_HISTOGRAM_THRESHOLD 5
-
 // RNTI histogram and circular buffer
 #define RNTI_HISTOGRAM_ELEMENT_COUNT 65536
 
@@ -93,6 +90,7 @@ public:
   virtual void getHistogramSummary(uint32_t* buf);
   virtual std::vector<rnti_manager_active_set_t> getActiveSet();
   virtual void printActiveSet();
+  virtual void setThreshold(int value);
 
   static std::string getActivationReasonString(ActivationReason reason);
 private:

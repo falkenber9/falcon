@@ -66,6 +66,7 @@ private slots:
   void exampleSlot();
   void on_actionStop_triggered();
   void on_checkBox_FileAsSource_clicked();
+  void on_checkBox_enable_shortcut_clicked();
   void on_lineEdit_FileName_editingFinished();
   void on_actionSpectrum_changed();
   void on_actionDifference_changed();

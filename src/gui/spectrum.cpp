@@ -30,7 +30,6 @@
 #include <iostream>
 
 #define FPS_TO_DELTA_MS(x) (1000.0/(x))
-#define MAX_UPDATE_FRAMES_PER_SECOND 60
 #define MOUSEWHEEL_STEP_SIZE 4   // ToDo: move into options (mousewheel)
 
 Spectrum::Spectrum(QWidget *parent, Settings *glob_settings) :
@@ -104,7 +103,7 @@ void Spectrum::addLine(const uint16_t *data) {
     nextLine--;
     if(nextLine < 0) nextLine = SPECTROGRAM_LINE_COUNT - 1;
     textureUpdateNeeded = true;
-    if(lastUpdate.elapsed() > FPS_TO_DELTA_MS(MAX_UPDATE_FRAMES_PER_SECOND)) {
+    if(lastUpdate.elapsed() > FPS_TO_DELTA_MS(settings->glob_args.gui_args.wf_fps)) {
       lastUpdate.restart();
       update();
     }

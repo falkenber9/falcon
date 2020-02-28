@@ -58,6 +58,12 @@ void Waterfall::SubWindow_mousePressEvent(){
     spectrum_view->view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1;
   }
 }
+
+void Waterfall::setFPS(int fps){
+  // fps is in 1/s --> we need msec!
+  glob_settings->glob_args.gui_args.wf_fps = fps;
+  glob_settings->store_settings();
+}
 // Waterfall_UL
 
 Waterfall_UL::Waterfall_UL(Settings* p_glob_settings, SpectrumAdapter* p_spectrumAdapter, QMdiArea* p_mdiArea):

@@ -121,3 +121,11 @@ void MainWindow::on_actionDownlink_Plots_changed(){
   /* glob_settings.glob_args.gui_args.show_plot_downlink = ui->actionDownlink_Plots->isChecked();
   if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();*/
 }
+
+void MainWindow::on_checkBox_enable_shortcut_clicked(){
+  glob_settings.glob_args.eyeArgs.enable_shortcut_discovery = ui->checkBox_enable_shortcut->isChecked(); //Store checkbox Flag
+
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+}

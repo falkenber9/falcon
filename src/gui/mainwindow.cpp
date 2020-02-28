@@ -87,17 +87,23 @@ MainWindow::MainWindow(QWidget *parent) :
     }
   }
 
+  // Set the timer sliders here as the values are needed on setup
+  ui->slider_perf_fps->setValue(glob_settings.glob_args.gui_args.perf_fps);
+  ui->slider_wf_fps->setValue(glob_settings.glob_args.gui_args.wf_fps);
+
   // After setting checkboxes, call on_ActionX_changed slots manually to ensure that the object get created (if necessary) even if the checkbox didn't change
   on_actionDownlink_changed();
   on_actionUplink_changed();
   on_actionSpectrum_changed();
   on_actionDifference_changed();
   on_actionRNTI_Table_changed();
+  on_actionplot1_changed();
 
   //Init Path to File:
   setAcceptDrops(true);  //For Drag and Drop
 
   ui->doubleSpinBox_rf_freq->setValue(glob_settings.glob_args.eyeArgs.rf_freq/(1000*1000));
+  ui->checkBox_enable_shortcut->setChecked(glob_settings.glob_args.eyeArgs.enable_shortcut_discovery);
 }
 
 MainWindow::~MainWindow() {
@@ -184,6 +190,7 @@ void MainWindow::on_actionStart_triggered() {
 
     qDebug() << "Spectrum View on";
     glob_settings.store_settings();
+    ui->checkBox_enable_shortcut->setEnabled(false);
   }
 }
 
@@ -198,6 +205,7 @@ void MainWindow::on_actionStop_triggered()
   if(rnti_table != nullptr) rnti_table->deactivate();
   active_eye = false;
   spectrumAdapter.disconnect();  //Disconnect all Signals
+  ui->checkBox_enable_shortcut->setEnabled(true);
 }
 
 void MainWindow::on_Select_file_button_clicked()

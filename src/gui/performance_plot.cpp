@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 
-#define FPS_TIME_INTERVAL_MS 16
 #define TA_DIGITS_PER_DISPLAY 80
 #define TA_SPACING 2
 #define OVERSCAN 1.15
@@ -107,7 +106,7 @@ void PerformancePlot::activate(){
 
   connect (plot_mean_slider_a, SIGNAL(valueChanged(int)),plot_mean_slider_label_a,SLOT(setNum(int)));
   connect (&fps_timer, SIGNAL(timeout()), this, SLOT(replot_perf()));
-  fps_timer.start(FPS_TIME_INTERVAL_MS);
+  fps_timer.start(1000/glob_settings->glob_args.gui_args.perf_fps);
 
   connect (&avg_timer_uplink, SIGNAL(timeout()), this, SLOT(draw_plot_uplink()));
   avg_timer_uplink.start(plot_mean_slider_a->value());
@@ -491,6 +490,15 @@ QMdiSubWindow* PerformancePlot::getSubwindow(){
 
 QWidget* PerformancePlot::getWindow(){
   return plot_a_window;
+}
+
+void PerformancePlot::setFPS(int fps){
+  // fps is in 1/s --> we need msec!
+  glob_settings->glob_args.gui_args.perf_fps = fps;
+  glob_settings->store_settings();
+  if(fps_timer.isActive()){
+    fps_timer.start(1000/glob_settings->glob_args.gui_args.perf_fps);
+  }
 }
 
 PerformancePlot::~PerformancePlot(){

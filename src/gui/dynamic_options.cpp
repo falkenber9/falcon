@@ -28,11 +28,17 @@ void MainWindow::handle_dl_alloc(bool nexist){
     //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
     if(dl_alloc != nullptr){delete dl_alloc; dl_alloc = nullptr;}
     dl_alloc = new Waterfall_DL(&glob_settings, &spectrumAdapter, ui->mdiArea);
+    connect(ui->slider_wf_fps, SIGNAL(valueChanged(int)), dl_alloc, SLOT(setFPS(int)));
     if(active_eye){ dl_alloc->activate(); }
+    ui->waterfall_frame->setEnabled(true);
   }else{
     if (dl_alloc != nullptr){
+      disconnect(dl_alloc);
       delete dl_alloc;
       dl_alloc = nullptr;
+    }
+    if (!ul_alloc && !diff_alloc && !dl_spec){
+      ui->waterfall_frame->setEnabled(false);
     }
   }
   ui->mdiArea->tileSubWindows();
@@ -44,11 +50,17 @@ void MainWindow::handle_ul_alloc(bool nexist){
     //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
     if(ul_alloc != nullptr){delete ul_alloc; ul_alloc = nullptr;}
     ul_alloc = new Waterfall_UL(&glob_settings, &spectrumAdapter, ui->mdiArea);
+    connect(ui->slider_wf_fps, SIGNAL(valueChanged(int)), ul_alloc, SLOT(setFPS(int)));
     if(active_eye){ ul_alloc->activate(); }
+    ui->waterfall_frame->setEnabled(true);
   }else{
     if (ul_alloc != nullptr){
+      disconnect(ul_alloc);
       delete ul_alloc;
       ul_alloc = nullptr;
+    }
+    if (!dl_alloc && !diff_alloc && !dl_spec){
+      ui->waterfall_frame->setEnabled(false);
     }
   }
   ui->mdiArea->tileSubWindows();
@@ -60,11 +72,17 @@ void MainWindow::handle_diff_alloc(bool nexist){
     //  Additionally ensure that if there is an old object, it gets deleted first before creating a new one.
     if(diff_alloc != nullptr){delete diff_alloc; diff_alloc = nullptr;}
     diff_alloc = new Waterfall_DIFF(&glob_settings, &spectrumAdapter, ui->mdiArea);
+    connect(ui->slider_wf_fps, SIGNAL(valueChanged(int)), diff_alloc, SLOT(setFPS(int)));
     if(active_eye){ diff_alloc->activate(); }
+    ui->waterfall_frame->setEnabled(true);
   }else{
     if (diff_alloc != nullptr){
+      disconnect(diff_alloc);
       delete diff_alloc;
       diff_alloc = nullptr;
+    }
+    if (!dl_alloc && !ul_alloc && !dl_spec){
+      ui->waterfall_frame->setEnabled(false);
     }
   }
   ui->mdiArea->tileSubWindows();
@@ -78,15 +96,20 @@ void MainWindow::handle_dl_spec(bool nexist){
     dl_spec = new Waterfall_SPEC(&glob_settings, &spectrumAdapter, ui->mdiArea);
     connect(cp->get_color_range_slider(),SIGNAL(secondValueChanged(int)),SLOT(range_slider_value_changed(int)));
     connect(cp->get_color_range_slider(),SIGNAL(firstValueChanged(int)),SLOT(range_slider_value_changed(int)));
+    connect(ui->slider_wf_fps, SIGNAL(valueChanged(int)), dl_spec, SLOT(setFPS(int)));
     if(active_eye){
       dl_spec->activate();
       this->range_slider_value_changed(0);  // initially apply slider values
     }
+    ui->waterfall_frame->setEnabled(true);
   }else{
     if (dl_spec != nullptr){
       disconnect(dl_spec);
       delete dl_spec;
       dl_spec = nullptr;
+    }
+    if (!dl_alloc && !ul_alloc && !diff_alloc){
+      ui->waterfall_frame->setEnabled(false);
     }
   }
   ui->mdiArea->tileSubWindows();
@@ -115,13 +138,16 @@ void MainWindow::handle_perf_plot(bool nexist){
     if(perf_plot != nullptr){delete perf_plot; perf_plot = nullptr;}
     perf_plot = new PerformancePlot(&glob_settings, &spectrumAdapter, ui->mdiArea);
     connect(cp, SIGNAL(color_change()),perf_plot, SLOT(update_plot_color()));
+    connect(ui->slider_perf_fps, SIGNAL(valueChanged(int)), perf_plot, SLOT(setFPS(int)));
     if(active_eye){ perf_plot->activate(); }
+    ui->performance_plot_frame->setEnabled(true);
   }else{
     if (perf_plot != nullptr){
       disconnect(perf_plot);
       delete perf_plot;
       perf_plot = nullptr;
     }
+    ui->performance_plot_frame->setEnabled(false);
   }
   ui->mdiArea->tileSubWindows();
 }

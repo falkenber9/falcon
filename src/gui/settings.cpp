@@ -58,6 +58,9 @@ Settings::Settings() : glob_args() {
     glob_args.gui_args.show_rnti = false;
     glob_args.gui_args.sort_by_column = 0;
     glob_args.gui_args.sort_order = 0;
+    glob_args.gui_args.perf_fps = 4;
+    glob_args.gui_args.wf_fps = 60;
+
     // glob_args.gui_args.show_plot_downlink   = false;
 
     //Spectrum args:
@@ -100,7 +103,13 @@ void Settings::load_settings() {
   glob_args.spectrum_args.spectrum_line_count  = settings->value("SPECTRUM_LINE_COUNT").toInt();
   glob_args.spectrum_args.spectrum_line_shown  = settings->value("SPECTRUM_LINE_SHOWN").toInt();
   glob_args.spectrum_args.spectrum_line_width  = settings->value("SPECTRUM_LINE_WIDTH").toInt();
+  glob_args.gui_args.wf_fps   = settings->value("WF_FPS").toInt();
 
+
+  settings->endGroup();
+
+  settings->beginGroup("PERFORMANCE_PLOTS");
+  glob_args.gui_args.perf_fps   = settings->value("PERF_FPS").toInt();
   settings->endGroup();
 
   //Load EYE Settings:
@@ -109,6 +118,7 @@ void Settings::load_settings() {
 
   glob_args.eyeArgs.rf_freq          = settings->value("RF_FREQ").toDouble();
   glob_args.gui_args.path_to_file    = settings->value("PATH_TO_FILE").toString().toLocal8Bit();
+  glob_args.eyeArgs.enable_shortcut_discovery = true; //settings->value("ENABLE_SHORTCUTDISCOVERY").toBool();
 
   settings->endGroup();
 
@@ -147,7 +157,12 @@ void Settings::store_settings(){
   settings->setValue("SPECTRUM_LINE_COUNT"    , glob_args.spectrum_args.spectrum_line_count);
   settings->setValue("SPECTRUM_LINE_SHOWN"    , glob_args.spectrum_args.spectrum_line_shown);
   settings->setValue("SPECTRUM_LINE_WIDTH"    , glob_args.spectrum_args.spectrum_line_width);
+  settings->setValue("WF_FPS"     ,glob_args.gui_args.wf_fps);
 
+  settings->endGroup();
+
+  settings->beginGroup("PERFORMANCE_PLOTS");
+  settings->setValue("PERF_FPS", glob_args.gui_args.perf_fps);
   settings->endGroup();
 
   //Save EYE Settings:
@@ -156,6 +171,8 @@ void Settings::store_settings(){
 
   settings->setValue("RF_FREQ"            , glob_args.eyeArgs.rf_freq);
   settings->setValue("PATH_TO_FILE"       , glob_args.gui_args.path_to_file);
+  settings->value("ENABLE_SHORTCUTDISCOVERY", glob_args.eyeArgs.enable_shortcut_discovery);
+
 
   settings->endGroup();
 

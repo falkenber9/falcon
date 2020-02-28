@@ -22,6 +22,7 @@ public slots:
   void activate();
   void deactivate();
   void update_plot_color();
+  void setFPS(int fps);
 
 private:
   QMdiArea* mdiArea = nullptr;

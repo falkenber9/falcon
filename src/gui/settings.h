@@ -52,6 +52,8 @@ typedef struct {
     int spectrum_color_stop;
     int sort_by_column;
     int sort_order;
+    int perf_fps;
+    int wf_fps;
 } Gui_SettingsType_t;
 
 typedef struct {

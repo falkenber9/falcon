@@ -150,7 +150,7 @@
           <enum>Qt::ScrollBarAlwaysOff</enum>
          </property>
          <property name="sizeAdjustPolicy">
-          <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+          <enum>QAbstractScrollArea::AdjustToContents</enum>
          </property>
          <property name="widgetResizable">
           <bool>true</bool>
@@ -170,6 +170,9 @@
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
             <widget class="QFrame" name="radio_frame">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
              </property>
@@ -616,6 +619,9 @@
            </item>
            <item>
             <widget class="QFrame" name="waterfall_frame">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
              </property>
@@ -625,6 +631,9 @@
              <layout class="QGridLayout" name="gridLayout_4">
               <item row="1" column="0">
                <widget class="QFrame" name="frame_wf_fps">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
                 <property name="frameShape">
                  <enum>QFrame::NoFrame</enum>
                 </property>
@@ -669,6 +678,9 @@
                  </item>
                  <item row="1" column="0" colspan="3">
                   <widget class="QSlider" name="slider_wf_fps">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
                    <property name="minimum">
                     <number>1</number>
                    </property>
@@ -839,6 +851,9 @@
               </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_cap_wf">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
                 <property name="font">
                  <font>
                   <weight>75</weight>
@@ -855,6 +870,9 @@
            </item>
            <item>
             <widget class="QFrame" name="performance_plot_frame">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
              </property>
@@ -939,6 +957,9 @@
               </item>
               <item row="1" column="0" colspan="2">
                <widget class="QFrame" name="frame_perf_fps">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
                 <property name="frameShape">
                  <enum>QFrame::NoFrame</enum>
                 </property>
@@ -963,6 +984,9 @@
                  </property>
                  <item>
                   <widget class="QLabel" name="label_perf_fps_cap">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
                    <property name="text">
                     <string>FPS limit</string>
                    </property>
@@ -1162,11 +1186,20 @@
               </item>
               <item row="2" column="0">
                <widget class="QSlider" name="slider_perf_fps">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <number>100</number>
                 </property>
                 <property name="value">
                  <number>4</number>
@@ -1198,6 +1231,9 @@
                 </property>
                 <property name="text">
                  <string>Enable shortcut decoding</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>

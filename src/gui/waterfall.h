@@ -38,6 +38,7 @@ protected:
 protected slots:
     void SubWindow_mousePressEvent();
     void draw(const ScanLineLegacy*);
+    void setFPS(int fps);
 };
 
 class Waterfall_UL : public Waterfall{

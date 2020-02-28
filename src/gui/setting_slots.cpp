@@ -145,3 +145,23 @@ void MainWindow::on_spinBox_nof_sf_workers_valueChanged(int val){
     glob_settings.store_settings();  //If save_settings = true, save to file.
   }
 }
+
+void MainWindow::on_slider_scrollback_buffer_valueChanged(int val){
+  glob_settings.glob_args.spectrum_args.spectrum_line_count = val;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+}
+void MainWindow::on_slider_viewport_valueChanged(int val){
+  glob_settings.glob_args.spectrum_args.spectrum_line_shown= val;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+}
+
+void MainWindow::on_slider_mouse_sensivity_valueChanged(int val){
+  glob_settings.glob_args.spectrum_args.mouse_wheel_sens= val;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+}

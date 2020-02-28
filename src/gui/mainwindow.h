@@ -83,6 +83,9 @@ private slots:
   void on_spinBox_Prb_valueChanged(int arg1);
   void on_slider_hist_threshold_valueChanged(int val);
   void on_spinBox_nof_sf_workers_valueChanged(int val);
+  void on_slider_scrollback_buffer_valueChanged(int val);
+  void on_slider_viewport_valueChanged(int val);
+  void on_slider_mouse_sensivity_valueChanged(int val);
 
 
   // Color

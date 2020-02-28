@@ -48,6 +48,7 @@ struct Args {
   double rf_gain;
   int decimate;
   int rnti_threshold;
+  int nof_subframe_workers;
 
   // other config args
   uint32_t dci_format_split_update_interval_ms;

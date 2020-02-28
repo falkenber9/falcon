@@ -91,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->slider_perf_fps->setValue(glob_settings.glob_args.gui_args.perf_fps);
   ui->slider_wf_fps->setValue(glob_settings.glob_args.gui_args.wf_fps);
   ui->slider_hist_threshold->setValue(glob_settings.glob_args.eyeArgs.rnti_threshold);
+  ui->spinBox_nof_sf_workers->setValue(glob_settings.glob_args.eyeArgs.nof_subframe_workers);
 
   // After setting checkboxes, call on_ActionX_changed slots manually to ensure that the object get created (if necessary) even if the checkbox didn't change
   on_actionDownlink_changed();
@@ -192,6 +193,7 @@ void MainWindow::on_actionStart_triggered() {
     qDebug() << "Spectrum View on";
     glob_settings.store_settings();
   }
+  ui->spinBox_nof_sf_workers->setEnabled(false);
 }
 
 void MainWindow::on_actionStop_triggered()
@@ -205,6 +207,7 @@ void MainWindow::on_actionStop_triggered()
   if(rnti_table != nullptr) rnti_table->deactivate();
   active_eye = false;
   spectrumAdapter.disconnect();  //Disconnect all Signals
+  ui->spinBox_nof_sf_workers->setEnabled(true);
 }
 
 void MainWindow::on_Select_file_button_clicked()

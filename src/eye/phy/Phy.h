@@ -12,7 +12,6 @@
 
 #include "srslte/common/common.h"
 
-#define DEFAULT_NOF_WORKERS 20
 #define FALCON_MAX_PRB 110
 
 //Phy main object

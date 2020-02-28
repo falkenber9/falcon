@@ -693,15 +693,18 @@
                   </spacer>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="spinBox">
+                  <widget class="QSpinBox" name="spinBox_nof_sf_workers">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
                    <property name="maximum">
-                    <number>500</number>
+                    <number>50</number>
                    </property>
                    <property name="value">
                     <number>20</number>

@@ -72,7 +72,7 @@ EyeCore::EyeCore(const Args& args) :
   state(DECODE_MIB)
 {
   phy = new Phy(args.rf_nof_rx_ant,
-                DEFAULT_NOF_WORKERS,
+                args.nof_subframe_workers,
                 args.dci_file_name,
                 args.stats_file_name,
                 args.skip_secondary_meta_formats,

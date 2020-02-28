@@ -139,3 +139,9 @@ void MainWindow::on_slider_hist_threshold_valueChanged(int val){
   eyeThread.storeRNTIThresholdInEyeThread(glob_settings.glob_args.eyeArgs.rnti_threshold);
 }
 
+void MainWindow::on_spinBox_nof_sf_workers_valueChanged(int val){
+  glob_settings.glob_args.eyeArgs.nof_subframe_workers = val;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+}

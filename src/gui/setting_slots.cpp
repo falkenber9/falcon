@@ -32,9 +32,6 @@
 
 void MainWindow::on_doubleSpinBox_rf_freq_editingFinished() { //RF-Freq changed:
   glob_settings.glob_args.eyeArgs.rf_freq = ui->doubleSpinBox_rf_freq->value() * (1000 * 1000);   //Save Value to glob_args
-#ifdef LCDDISPLAY
-  ui->lcdNumber_rf_freq->display(glob_settings.glob_args.eyeArgs.rf_freq / (1000 * 1000));  //Display rf_freq
-#endif
 
   if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();  //If save_settings = true, save to file.
 }

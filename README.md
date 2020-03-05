@@ -15,8 +15,9 @@ FALCON - Fast Analysis of LTE Control channels
 The research around this project has been supported by *Deutsche Forschungsgemeinschaft* (DFG) within the Collaborative Research Center SFB 876
 “Providing Information by Resource-Constrained Analysis”, project A4 at TU Dortmund University.
 
-A preprint of the **corresponding scientific publication** (IEEE GLOBECOM 2019) is available on ArXiV: 
-https://arxiv.org/abs/1907.10110. Please see section [Acknowledgements](#acknowledgements) of how to reference this project.
+A **corresponding scientific publication** (IEEE GLOBECOM 2019) is available on [IEEE Xplore](https://dx.doi.org/10.1109/GLOBECOM38437.2019.9014096) and on [ArXiV](https://arxiv.org/abs/1907.10110).
+
+Please see section [Acknowledgements](#acknowledgements) of how to reference this project.
 
 ## Related Software
 This software is an alternative to [IMDEA OWL][imdea-owl] which provides comparable functionalities for long-term monitoring of LTE cells. Other than OWL, FALCON additionally targets use cases that require short-term monitoring, mobility or non-ideal radio conditions. For convenience purposes, the interface is mostly kept compatible with OWL and an [updated port of OWL](#comparison-with-imdea-owl) is also included in this framework.
@@ -275,13 +276,15 @@ To acknowledge us in your publication(s) please refer to the following (upcoming
 @InProceedings{Falkenberg2019a,
 	Author = {Robert Falkenberg and Christian Wietfeld},
 	Title = {{FALCON}: {An} accurate real-time monitor for client-based mobile network data analytics},
-	Booktitle = {GLOBECOM 2019 - 2019 IEEE Global Communications Conference},
+	Booktitle = {2019 IEEE Global Communications Conference (GLOBECOM)},
 	Year = {2019},
 	Address = {Waikoloa, Hawaii, USA},
-	Month = {Dec},
+	Month = dec,
 	Publisher = {IEEE},
-	Url = {https://arxiv.org/abs/1907.10110},
-	Authorsversion = {https://www.kn.e-technik.tu-dortmund.de/.cni-bibliography/publications/cni-publications/Falkenberg2019a.pdf}
+	Doi = {10.1109/GLOBECOM38437.2019.9014096},
+	Eprint = {1907.10110},
+	Eprinttype = {arxiv},
+	Url = {https://arxiv.org/abs/1907.10110}
 }
 ```
 

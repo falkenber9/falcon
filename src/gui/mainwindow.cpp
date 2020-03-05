@@ -90,7 +90,6 @@ MainWindow::MainWindow(QWidget *parent) :
   // Set the timer sliders here as the values are needed on setup
   ui->slider_perf_fps->setValue(glob_settings.glob_args.gui_args.perf_fps);
   ui->slider_wf_fps->setValue(glob_settings.glob_args.gui_args.wf_fps);
-  ui->slider_hist_threshold->setValue(glob_settings.glob_args.eyeArgs.rnti_threshold);
   ui->spinBox_nof_sf_workers->setValue(glob_settings.glob_args.eyeArgs.nof_subframe_workers);
   ui->slider_mouse_sensivity->setValue(glob_settings.glob_args.spectrum_args.mouse_wheel_sens);
   ui->slider_scrollback_buffer->setValue(glob_settings.glob_args.spectrum_args.spectrum_line_count);

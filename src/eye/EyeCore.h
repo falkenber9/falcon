@@ -66,7 +66,6 @@ public:
   void setDCIConsumer(std::shared_ptr<SubframeInfoConsumer> consumer);
   void resetDCIConsumer();
 
-  void setRNTIThreshold(int val);
   void refreshShortcutDiscovery(bool val);
 
 private:

@@ -60,7 +60,6 @@ Settings::Settings() : glob_args() {
     glob_args.gui_args.sort_order = 0;
     glob_args.gui_args.perf_fps = 4;
     glob_args.gui_args.wf_fps = 60;
-    glob_args.eyeArgs.rnti_threshold  = 5;
     glob_args.eyeArgs.nof_subframe_workers = 20;
 
     // glob_args.gui_args.show_plot_downlink   = false;
@@ -121,7 +120,6 @@ void Settings::load_settings() {
   glob_args.eyeArgs.rf_freq          = settings->value("RF_FREQ").toDouble();
   glob_args.gui_args.path_to_file    = settings->value("PATH_TO_FILE").toString().toLocal8Bit();
   glob_args.eyeArgs.enable_shortcut_discovery = settings->value("ENABLE_SHORTCUTDISCOVERY").toBool();
-  glob_args.eyeArgs.rnti_threshold  = settings->value("RNTI_THRESHOLD").toInt();
   glob_args.eyeArgs.nof_subframe_workers = settings->value("NOF_SUBFRAME_WORKERS").toInt();
 
   settings->endGroup();
@@ -176,9 +174,6 @@ void Settings::store_settings(){
   settings->setValue("RF_FREQ"            , glob_args.eyeArgs.rf_freq);
   settings->setValue("PATH_TO_FILE"       , glob_args.gui_args.path_to_file);
   settings->setValue("ENABLE_SHORTCUTDISCOVERY", glob_args.eyeArgs.enable_shortcut_discovery);
-  settings->setValue("RNTI_THRESHOLD", glob_args.eyeArgs.rnti_threshold);
-  settings->setValue("NOF_SUBFRAME_WORKERS", glob_args.eyeArgs.nof_subframe_workers);
-
 
   settings->endGroup();
 

@@ -63,6 +63,7 @@ void ArgManager::defaultArgs(Args& args) {
   //args.net_port_signal = -1;
   //args.net_address_signal = "127.0.0.1";
   args.decimate = 0;
+  args.nof_subframe_workers = DEFAULT_NOF_WORKERS;
 
   // other args
   args.dci_format_split_update_interval_ms = DEFAULT_DCI_FORMAT_SPLIT_UPDATE_INTERVAL_MS;

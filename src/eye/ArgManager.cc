@@ -74,7 +74,7 @@ void ArgManager::defaultArgs(Args& args) {
 }
 
 void ArgManager::usage(Args& args, const std::string& prog) {
-  printf("Usage: %s [aAcCdfghHilLnoOpPrRsStTvwyY] -f rx_frequency (in Hz) | -i input_file\n", prog.c_str());
+  printf("Usage: %s [aAcCdfghHilLnoOpPrRsStTvwWyY] -f rx_frequency (in Hz) | -i input_file\n", prog.c_str());
   printf("\t-h show this help message\n");
 #ifndef DISABLE_RF
   printf("\t-a RF args [Default %s]\n", args.rf_args.c_str());
@@ -106,6 +106,7 @@ void ArgManager::usage(Args& args, const std::string& prog) {
   printf("\t-y set the cpu affinity mask [Default %d]\n", args.cpu_affinity);
   printf("\t-Y set the decimate value [Default %d]\n", args.decimate);
   printf("\t-n nof_subframes [Default %d]\n", args.nof_subframes);
+  printf("\t-W nof_subframe_workers [2..W, Default %d]\n", args.nof_subframe_workers);
   //printf("\t-s remote UDP port to send input signal (-1 does nothing with it) [Default %d]\n", args.net_port_signal);
   //printf("\t-S remote UDP address to send input signal [Default %s]\n", args.net_address_signal);
   //printf("\t-u remote TCP port to send data (-1 does nothing with it) [Default %d]\n", args.net_port);
@@ -121,7 +122,7 @@ void ArgManager::usage(Args& args, const std::string& prog) {
 void ArgManager::parseArgs(Args& args, int argc, char **argv) {
   int opt;
   defaultArgs(args);
-  while ((opt = getopt(argc, argv, "aAcCDEfghHilLnpPrRsStTvwyY")) != -1) {
+  while ((opt = getopt(argc, argv, "aAcCDEfghHilLnpPrRsStTvwWyY")) != -1) {
     switch (opt) {
       case 'a':
         args.rf_args = argv[optind];
@@ -198,6 +199,9 @@ void ArgManager::parseArgs(Args& args, int argc, char **argv) {
       case 'n':
         args.nof_subframes = static_cast<uint32_t>(strtoul(argv[optind], nullptr, 0));
         break;
+      case 'W':
+        args.nof_subframe_workers = static_cast<uint32_t>(strtoul(argv[optind], nullptr, 0));
+      break;
       case 'v':
         srslte_verbose++;
         break;

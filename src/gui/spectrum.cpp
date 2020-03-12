@@ -30,11 +30,12 @@
 #include <iostream>
 
 #define FPS_TO_DELTA_MS(x) (1000.0/(x))
+#define MAXIMUM_LINE_COUNT 1000
 
 Spectrum::Spectrum(QWidget *parent, Settings *glob_settings) :
   QOpenGLWidget(parent),
   textureHandles{0, 0},
-  textureBuffer(new GLubyte[glob_settings->glob_args.spectrum_args.spectrum_line_count * SPECTROGRAM_LINE_WIDTH * 4]),
+  textureBuffer(new GLubyte[MAXIMUM_LINE_COUNT * SPECTROGRAM_LINE_WIDTH * 4]),
   textureUpdateNeeded(false),
   lastUpdate()
 #if PRINT_FPS
@@ -42,6 +43,9 @@ Spectrum::Spectrum(QWidget *parent, Settings *glob_settings) :
 #endif
 {
   settings = glob_settings;
+  int view_port = settings->glob_args.spectrum_args.spectrum_line_count - settings->glob_args.spectrum_args.spectrum_line_shown - 1;
+  int nextLine = settings->glob_args.spectrum_args.spectrum_line_count - 1;
+
   lastUpdate.start();
 #if PRINT_FPS
   dataChangeCount = 0;
@@ -117,9 +121,7 @@ void Spectrum::loadTexture() {
     textureUpdateNeeded = false;
     glDeleteTextures(SPECTROGRAM_NOF_TEXTURES, textureHandles);
     glGenTextures(SPECTROGRAM_NOF_TEXTURES, textureHandles);
-
-    if(settings->glob_args.spectrum_args.spectrum_line_shown + view_port <= nextLine) {
-      // Newer Buffer
+    if (view_port + settings->glob_args.spectrum_args.spectrum_line_shown < settings->glob_args.spectrum_args.spectrum_line_count){  // nextLine hits buffer linearly
       glBindTexture(GL_TEXTURE_2D, textureHandles[0]);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -128,41 +130,28 @@ void Spectrum::loadTexture() {
                    settings->glob_args.spectrum_args.spectrum_line_width, settings->glob_args.spectrum_args.spectrum_line_shown,
                    0, GL_RGBA,
                    GL_UNSIGNED_BYTE,
-                   textureBuffer + (nextLine - (view_port + settings->glob_args.spectrum_args.spectrum_line_shown)) * settings->glob_args.spectrum_args.spectrum_line_width * 4);
-    }
-    else if(view_port >= nextLine) {
+                   textureBuffer + (view_port /*+ settings->glob_args.spectrum_args.spectrum_line_shown*/) * settings->glob_args.spectrum_args.spectrum_line_width * 4);
+    } else {
       // Newer Buffer
       glBindTexture(GL_TEXTURE_2D, textureHandles[0]);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexImage2D(GL_TEXTURE_2D,
                    0,  GL_RGBA,
-                   settings->glob_args.spectrum_args.spectrum_line_width, settings->glob_args.spectrum_args.spectrum_line_shown,
+                   settings->glob_args.spectrum_args.spectrum_line_width, settings->glob_args.spectrum_args.spectrum_line_count - 1 - view_port,
                    0, GL_RGBA,
                    GL_UNSIGNED_BYTE,
-                   textureBuffer + (settings->glob_args.spectrum_args.spectrum_line_count - (view_port - nextLine) - settings->glob_args.spectrum_args.spectrum_line_shown) * settings->glob_args.spectrum_args.spectrum_line_width * 4);
-    }
-    else if(settings->glob_args.spectrum_args.spectrum_line_shown + view_port > nextLine && view_port < nextLine) {  // evtl without && view_port < nextLine
-      // Newer Buffer
-      glBindTexture(GL_TEXTURE_2D, textureHandles[0]);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexImage2D(GL_TEXTURE_2D,
-                   0,  GL_RGBA,
-                   settings->glob_args.spectrum_args.spectrum_line_width, nextLine - view_port,
-                   0, GL_RGBA,
-                   GL_UNSIGNED_BYTE,
-                   textureBuffer);
+                   textureBuffer + /*(settings->glob_args.spectrum_args.spectrum_line_count - 1)*/view_port * settings->glob_args.spectrum_args.spectrum_line_width * 4);
       // Older Buffer
       glBindTexture(GL_TEXTURE_2D, textureHandles[1]);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexImage2D(GL_TEXTURE_2D,
                    0,  GL_RGBA,
-                   settings->glob_args.spectrum_args.spectrum_line_width, settings->glob_args.spectrum_args.spectrum_line_shown - (nextLine - view_port),
+                   settings->glob_args.spectrum_args.spectrum_line_width, settings->glob_args.spectrum_args.spectrum_line_shown - (settings->glob_args.spectrum_args.spectrum_line_count - 1 - view_port) ,
                    0, GL_RGBA,
                    GL_UNSIGNED_BYTE,
-                   textureBuffer + (settings->glob_args.spectrum_args.spectrum_line_count - (settings->glob_args.spectrum_args.spectrum_line_shown - (nextLine - view_port))) * settings->glob_args.spectrum_args.spectrum_line_width * 4);
+                   textureBuffer/* + (settings->glob_args.spectrum_args.spectrum_line_shown - (settings->glob_args.spectrum_args.spectrum_line_count - 1 - view_port)) * settings->glob_args.spectrum_args.spectrum_line_width * 4*/);
     }
   }
 }
@@ -175,7 +164,7 @@ void Spectrum::drawSpectrogram() {
   glClear(GL_COLOR_BUFFER_BIT);
   glEnable(GL_TEXTURE_2D);
 
-  if(settings->glob_args.spectrum_args.spectrum_line_shown + view_port <= nextLine || view_port >= nextLine) {
+  if(view_port + settings->glob_args.spectrum_args.spectrum_line_shown < settings->glob_args.spectrum_args.spectrum_line_count) {
     // Draw newer buffer
     float startX = 0.0;
     float startY = 0.0;
@@ -183,22 +172,18 @@ void Spectrum::drawSpectrogram() {
     float endY = 1.0;
     glBindTexture(GL_TEXTURE_2D, textureHandles[0]);
     glBegin(GL_QUADS);
-    glTexCoord2d(0.0, 1.0);
-    glVertex3f(startX, startY, 0.0);
-    glTexCoord2d(1.0, 1.0);
-    glVertex3f(endX, startY, 0.0);
-    glTexCoord2d(1.0, 0.0);
-    glVertex3f(endX, endY, 0.0);
-    glTexCoord2d(0.0, 0.0);
-    glVertex3f(startX, endY, 0.0);
+    glTexCoord2d(0.0, 1.0); glVertex3f(startX, startY, 0.0);
+    glTexCoord2d(1.0, 1.0); glVertex3f(endX, startY, 0.0);
+    glTexCoord2d(1.0, 0.0); glVertex3f(endX, endY, 0.0);
+    glTexCoord2d(0.0, 0.0); glVertex3f(startX, endY, 0.0);
     glEnd();
   }
-  else if(settings->glob_args.spectrum_args.spectrum_line_shown + view_port > nextLine && view_port < nextLine) {
+  else { // More lines to see than available
     // Draw newer buffer
     float startX = 0.0;
     float startY = 0.0;
     float endX = 1.0;
-    float endY = static_cast<float>(nextLine - view_port) / settings->glob_args.spectrum_args.spectrum_line_shown;
+    float endY = static_cast<float>((settings->glob_args.spectrum_args.spectrum_line_count - 1 - view_port)) / settings->glob_args.spectrum_args.spectrum_line_shown;  // What is the (percentage) of waterfall that can be filled with the available lines?
     glBindTexture(GL_TEXTURE_2D, textureHandles[0]);
     glBegin(GL_QUADS);
     glTexCoord2d(0.0, 1.0); glVertex3f(startX, startY, 0.0);
@@ -207,7 +192,7 @@ void Spectrum::drawSpectrogram() {
     glTexCoord2d(0.0, 0.0); glVertex3f(startX, endY, 0.0);
     glEnd();
 
-    // Draw older buffer
+    // Draw older buffer to fill rest of waterfall area
     startY = endY;
     endY = 1.0;
     glBindTexture(GL_TEXTURE_2D, textureHandles[1]);
@@ -234,17 +219,15 @@ void Spectrum::mousePressEvent(QMouseEvent * event) {
 }
 
 void Spectrum::scroll_up() {
-  if(view_port <= settings->glob_args.spectrum_args.spectrum_line_count - settings->glob_args.spectrum_args.spectrum_line_shown - settings->glob_args.spectrum_args.mouse_wheel_sens) {
-    view_port += settings->glob_args.spectrum_args.mouse_wheel_sens;
-  }
+  view_port += settings->glob_args.spectrum_args.mouse_wheel_sens;
+  if (view_port > settings->glob_args.spectrum_args.spectrum_line_count - settings->glob_args.spectrum_args.spectrum_line_shown - 1){view_port = settings->glob_args.spectrum_args.spectrum_line_count - settings->glob_args.spectrum_args.spectrum_line_shown - 1;}
   textureUpdateNeeded = true;
   update();
 }
 
 void Spectrum::scroll_down() {
-  if(view_port >= settings->glob_args.spectrum_args.mouse_wheel_sens) {
-    view_port -= settings->glob_args.spectrum_args.mouse_wheel_sens;
-  }
+  view_port -= settings->glob_args.spectrum_args.mouse_wheel_sens;
+  if (view_port < 0){view_port = 0;}
   textureUpdateNeeded = true;
   update();
 }

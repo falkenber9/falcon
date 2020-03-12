@@ -37,6 +37,8 @@ public:
     void attachConsumer(std::shared_ptr<SubframeInfoConsumer> consumer);
     RNTIManager &getRNTIManager();
     void refreshShortcutDiscovery(bool val);
+    void forwardRNTIHistogramThresholdToEyeCore(int val);
+
 
 private:
     void run();

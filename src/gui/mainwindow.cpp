@@ -91,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->slider_perf_fps->setValue(glob_settings.glob_args.gui_args.perf_fps);
   ui->slider_wf_fps->setValue(glob_settings.glob_args.gui_args.wf_fps);
   ui->spinBox_nof_sf_workers->setValue(glob_settings.glob_args.eyeArgs.nof_subframe_workers);
+  ui->slider_hist_threshold->setValue(glob_settings.glob_args.eyeArgs.rnti_histogram_threshold);
   ui->slider_mouse_sensivity->setValue(glob_settings.glob_args.spectrum_args.mouse_wheel_sens);
   ui->slider_scrollback_buffer->setValue(glob_settings.glob_args.spectrum_args.spectrum_line_count);
   ui->slider_viewport->setValue(glob_settings.glob_args.spectrum_args.spectrum_line_shown);
@@ -187,6 +188,8 @@ void MainWindow::on_actionStart_triggered() {
     ui->mdiArea->tileSubWindows();
 
     eyeThread.start(eyeArgs);
+    // Emit signal to initially set rnti histogram threshold
+    emit(on_slider_hist_threshold_valueChanged(ui->slider_hist_threshold->value()));
     ui->doubleSpinBox_rf_freq->setValue(eyeArgs.rf_freq/(1000*1000));
     ui->spinBox_Ports->setValue(eyeArgs.file_nof_ports);
     ui->spinBox_CellId->setValue(eyeArgs.file_cell_id);

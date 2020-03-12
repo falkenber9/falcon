@@ -175,6 +175,11 @@ void EyeThread::refreshShortcutDiscovery(bool val){
   if(eye){eye->refreshShortcutDiscovery(val);}
 }
 
+void EyeThread::forwardRNTIHistogramThresholdToEyeCore(int val){
+  if(eye){eye->setRNTIThreshold(val);}
+}
+
+
 EyeThread::~EyeThread() {
   stop();
 }

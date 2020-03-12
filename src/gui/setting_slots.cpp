@@ -137,6 +137,15 @@ void MainWindow::on_spinBox_nof_sf_workers_valueChanged(int val){
   }
 }
 
+void MainWindow::on_slider_hist_threshold_valueChanged(int val){
+  glob_settings.glob_args.eyeArgs.rnti_histogram_threshold = val;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+  eyeThread.forwardRNTIHistogramThresholdToEyeCore(glob_settings.glob_args.eyeArgs.rnti_histogram_threshold);
+}
+
+
 void MainWindow::on_slider_scrollback_buffer_valueChanged(int val){
   glob_settings.glob_args.spectrum_args.spectrum_line_count = val;
   if(glob_settings.glob_args.gui_args.save_settings) {

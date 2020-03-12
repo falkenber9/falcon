@@ -550,3 +550,7 @@ void EyeCore::handleSignal() {
 void EyeCore::refreshShortcutDiscovery(bool val){
   phy->getCommon().setShortcutDiscovery(val);
 }
+
+void EyeCore::setRNTIThreshold(int val){
+  if(phy){phy->getCommon().getRNTIManager().setHistogramThreshold(val);}
+}

@@ -174,6 +174,7 @@ void Settings::store_settings(){
   settings->setValue("RF_FREQ"            , glob_args.eyeArgs.rf_freq);
   settings->setValue("PATH_TO_FILE"       , glob_args.gui_args.path_to_file);
   settings->setValue("ENABLE_SHORTCUTDISCOVERY", glob_args.eyeArgs.enable_shortcut_discovery);
+  settings->setValue("NOF_SUBFRAME_WORKERS", glob_args.eyeArgs.nof_subframe_workers);
 
   settings->endGroup();
 

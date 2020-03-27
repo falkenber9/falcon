@@ -163,8 +163,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>276</width>
-            <height>860</height>
+            <width>284</width>
+            <height>793</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1004,7 +1004,7 @@
                  <item row="5" column="0" colspan="2">
                   <widget class="QSlider" name="slider_scrollback_buffer">
                    <property name="minimum">
-                    <number>1</number>
+                    <number>10</number>
                    </property>
                    <property name="maximum">
                     <number>1000</number>
@@ -1439,7 +1439,7 @@
      <x>0</x>
      <y>0</y>
      <width>981</width>
-     <height>30</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

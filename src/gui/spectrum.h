@@ -49,8 +49,7 @@ public:
   float min_intensity = 0.0;
   float max_intensity = 500000.0;
   static bool paused;
-  int pos_y_buff = 0;  // Position buffer for scrolling
-  int view_port = 0; // Position for scrolling
+  static int scroll_offset; // Position for scrolling
 
 protected:
   void initializeGL() override;

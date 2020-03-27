@@ -2,6 +2,7 @@
 
 // Initial state of spectra
 bool Spectrum::paused = false;
+int Spectrum::scroll_offset = 0;
 
 Waterfall::Waterfall(Settings* p_glob_settings, SpectrumAdapter* p_spectrumAdapter, QMdiArea* p_mdiArea) :
   glob_settings(p_glob_settings),
@@ -55,7 +56,7 @@ void Waterfall::wheelEvent(int delta){
 void Waterfall::SubWindow_mousePressEvent(){
   if(active){
     spectrum_view->paused = !spectrum_view->paused;
-    spectrum_view->view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1;
+    spectrum_view->scroll_offset = 0;
   }
 }
 

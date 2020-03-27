@@ -93,6 +93,9 @@ $ cmake ../
 $ make
 ```
 
+**Note:** FALCON requires a patched version of srsLTE 18.12 that is automatically downloaded and included as subproject during the build process. However if you need srsLTE to be installed on your system in a different version 
+, please run: ``cmake -DFORCE_SUBPROJECT_SRSLTE=ON ../``
+
 ## SDR Hardware
 FALCON has been tested with the following Software Defined Radios (SDRs):
 
@@ -148,6 +151,8 @@ Enter the center frequency of the target LTE cell or select a recording from a f
 
 Press 'Start' and the decoder immediately starts to synchronize to the cell and decodes the PDCCH.
 The GUI will display waterfall plots of the spectrum and resource allocations (uplink and downlink) in real-time. The color of the displayed resource allocations is derived from the individual RNTIs of the particular subscribers.
+
+**Note:** At any time, you can click on a waterfall plot to freeze current state. Scroll to go back and forth in time within the scrollback buffer.
 
 
 ![FALCON Screenshot](gfx/FalconGUI.png "Falcon GUI Screenshot")

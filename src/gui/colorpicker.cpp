@@ -67,6 +67,7 @@ void Colorpicker::restore_color(){
 void Colorpicker::on_pushButton_downlink_color_clicked()
 {
   dl_old = glob_settings->glob_args.gui_args.downlink_plot_color;
+  ul_old = glob_settings->glob_args.gui_args.uplink_plot_color;
   downlink_color_active = true;
   color_dialog->show();
 }
@@ -74,6 +75,7 @@ void Colorpicker::on_pushButton_downlink_color_clicked()
 void Colorpicker::on_pushButton_uplink_color_clicked()
 {
   downlink_color_active = false;
+  dl_old = glob_settings->glob_args.gui_args.downlink_plot_color;
   ul_old = glob_settings->glob_args.gui_args.uplink_plot_color;
   color_dialog->show();
 }

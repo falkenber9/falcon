@@ -12,7 +12,6 @@
 
 #include "srslte/common/common.h"
 
-#define DEFAULT_NOF_WORKERS 20
 #define FALCON_MAX_PRB 110
 
 //Phy main object
@@ -23,7 +22,8 @@ public:
       const std::string& dciFilenName,
       const std::string& statsFileName,
       bool skipSecondaryMetaFormats,
-      double metaFormatSplitRatio);
+      double metaFormatSplitRatio,
+      uint32_t histogramThreshold);
   ~Phy();
   std::shared_ptr<SubframeWorker> getAvail();
   std::shared_ptr<SubframeWorker> getAvailImmediate();

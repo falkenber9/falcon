@@ -85,7 +85,8 @@ typedef enum {
   SCAN_LINE_SPECTRUM_DIFF = 3,
   SCAN_LINE_RNTI_HIST     = 4,
   SCAN_LINE_PERF_PLOT_A   = 5,
-  SCAN_LINE_PERF_PLOT_B   = 6
+  SCAN_LINE_PERF_PLOT_B   = 6,
+  TABLE_LINE              = 7
 } ScanLineType_t;
 
 class ScanLineLegacy{
@@ -93,7 +94,7 @@ public:
   virtual ~ScanLineLegacy(){}
   ScanLineType_t type;
   uint16_t linebuf[SPECTROGRAM_LINE_WIDTH];
-  std::vector<uint32_t> rnti_hist;
+  uint16_t rnti;
   std::vector<rnti_manager_active_set_t> rnti_active_set;
 
   uint32_t sf_idx;
@@ -101,6 +102,7 @@ public:
   int      mcs_tbs;
   uint32_t l_prb;
   uint16_t sfn;
+  uint32_t total_prb;
 };
 
 class ScanLine {

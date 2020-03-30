@@ -32,7 +32,6 @@
 
 void MainWindow::on_doubleSpinBox_rf_freq_editingFinished() { //RF-Freq changed:
   glob_settings.glob_args.eyeArgs.rf_freq = ui->doubleSpinBox_rf_freq->value() * (1000 * 1000);   //Save Value to glob_args
-  ui->lcdNumber_rf_freq->display(glob_settings.glob_args.eyeArgs.rf_freq / (1000 * 1000));  //Display rf_freq
 
   if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();  //If save_settings = true, save to file.
 }
@@ -71,7 +70,7 @@ void MainWindow::on_actionSpectrum_changed() {
   if(glob_settings.glob_args.gui_args.save_settings) {
     glob_settings.store_settings();  //If save_settings = true, save to file.
   }
-  spectrum_start(glob_settings.glob_args.gui_args.show_spectrum);
+  handle_dl_spec(glob_settings.glob_args.gui_args.show_spectrum);
 }
 
 void MainWindow::on_actionDifference_changed() {
@@ -80,7 +79,7 @@ void MainWindow::on_actionDifference_changed() {
   if(glob_settings.glob_args.gui_args.save_settings) {
     glob_settings.store_settings();  //If save_settings = true, save to file.
   }
-  diff_start(glob_settings.glob_args.gui_args.show_diff);
+  handle_diff_alloc(glob_settings.glob_args.gui_args.show_diff);
 }
 
 void MainWindow::on_actionUplink_changed() {
@@ -89,7 +88,7 @@ void MainWindow::on_actionUplink_changed() {
   if(glob_settings.glob_args.gui_args.save_settings) {
     glob_settings.store_settings();  //If save_settings = true, save to file.
   }
-  uplink_start(glob_settings.glob_args.gui_args.show_uplink);
+  handle_ul_alloc(glob_settings.glob_args.gui_args.show_uplink);
 }
 
 void MainWindow::on_actionDownlink_changed() {
@@ -98,7 +97,7 @@ void MainWindow::on_actionDownlink_changed() {
   if(glob_settings.glob_args.gui_args.save_settings) {
     glob_settings.store_settings();  //If save_settings = true, save to file.
   }
-  downlink_start(glob_settings.glob_args.gui_args.show_downlink);
+  handle_dl_alloc(glob_settings.glob_args.gui_args.show_downlink);
 }
 
 void MainWindow::on_actionSave_Settings_changed() {
@@ -109,10 +108,66 @@ void MainWindow::on_actionSave_Settings_changed() {
 void MainWindow::on_actionplot1_changed() {
   glob_settings.glob_args.gui_args.show_performance_plot = ui->actionplot1->isChecked();
   if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();
-  performance_plots_start(glob_settings.glob_args.gui_args.show_performance_plot);
+  handle_perf_plot(glob_settings.glob_args.gui_args.show_performance_plot);
+}
+
+void MainWindow::on_actionRNTI_Table_changed() {
+  glob_settings.glob_args.gui_args.show_rnti = ui->actionRNTI_Table->isChecked();
+  if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();
+  handle_rnti_table(glob_settings.glob_args.gui_args.show_rnti);
 }
 
 void MainWindow::on_actionDownlink_Plots_changed(){
   /* glob_settings.glob_args.gui_args.show_plot_downlink = ui->actionDownlink_Plots->isChecked();
   if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();*/
+}
+
+void MainWindow::on_checkBox_enable_shortcut_clicked(){
+  glob_settings.glob_args.eyeArgs.enable_shortcut_discovery = ui->checkBox_enable_shortcut->isChecked(); //Store checkbox Flag
+  eyeThread.refreshShortcutDiscovery(glob_settings.glob_args.eyeArgs.enable_shortcut_discovery);
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+}
+
+void MainWindow::on_spinBox_nof_sf_workers_valueChanged(int val){
+  glob_settings.glob_args.eyeArgs.nof_subframe_workers = val;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+}
+
+void MainWindow::on_slider_hist_threshold_valueChanged(int val){
+  glob_settings.glob_args.eyeArgs.rnti_histogram_threshold = val;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+  eyeThread.forwardRNTIHistogramThresholdToEyeCore(glob_settings.glob_args.eyeArgs.rnti_histogram_threshold);
+}
+
+
+void MainWindow::on_slider_scrollback_buffer_valueChanged(int val){
+    if(val < glob_settings.glob_args.spectrum_args.spectrum_line_shown){
+        ui->slider_viewport->setValue(val);
+    }
+  glob_settings.glob_args.spectrum_args.spectrum_line_count = val;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+}
+void MainWindow::on_slider_viewport_valueChanged(int val){
+  glob_settings.glob_args.spectrum_args.spectrum_line_shown= val;
+  if(val > glob_settings.glob_args.spectrum_args.spectrum_line_count){
+      ui->slider_scrollback_buffer->setValue(val);
+  }
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
+}
+
+void MainWindow::on_slider_mouse_sensivity_valueChanged(int val){
+  glob_settings.glob_args.spectrum_args.mouse_wheel_sens= val;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();  //If save_settings = true, save to file.
+  }
 }

@@ -26,6 +26,7 @@
 #include <strings.h>
 #include <string>
 
+#include "falcon/common/Settings.h"
 #include "rnti_manager_c.h"
 
 #include "Histogram.h"
@@ -36,9 +37,6 @@
 
 // RRC Inactivity Timer
 #define RRC_INACTIVITY_TIMER_MS 10000   // Range 0..60000, default 10000
-
-// RNTI Threshold
-#define RNTI_HISTOGRAM_THRESHOLD 5
 
 // RNTI histogram and circular buffer
 #define RNTI_HISTOGRAM_ELEMENT_COUNT 65536
@@ -74,7 +72,7 @@ public:
 
 class RNTIManager {
 public:
-  RNTIManager(uint32_t nformats, uint32_t maxCandidatesPerStepPerFormat);
+  RNTIManager(uint32_t nformats, uint32_t maxCandidatesPerStepPerFormat, uint32_t histogramThreshold);
   virtual ~RNTIManager();
 
   virtual void addEvergreen(uint16_t rntiStart, uint16_t rntiEnd, uint32_t formatIdx);
@@ -87,6 +85,7 @@ public:
   virtual bool isForbidden(uint16_t rnti, uint32_t formatIdx) const;
   virtual void stepTime();
   virtual void stepTime(uint32_t nSteps);
+  virtual void setHistogramThreshold(uint32_t threshold);
   virtual uint32_t getFrequency(uint16_t rnti, uint32_t formatIdx);
   virtual uint32_t getAssociatedFormatIdx(uint16_t rnti);
   virtual ActivationReason getActivationReason(uint16_t rnti);

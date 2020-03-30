@@ -48,9 +48,8 @@ public:
   float intensity_factor = 1.0;
   float min_intensity = 0.0;
   float max_intensity = 500000.0;
-  bool paused = false;
-  int pos_y_buff = 0;  // Position buffer for scrolling
-  int view_port = SPECTROGRAM_LINE_COUNT - SPECTROGRAM_LINE_SHOWN - 1; // Position for scrolling    
+  static bool paused;
+  static int scroll_offset; // Position for scrolling
 
 protected:
   void initializeGL() override;
@@ -62,7 +61,7 @@ private:
   Settings *settings;
   GLuint textureHandles[SPECTROGRAM_NOF_TEXTURES];
   GLubyte *textureBuffer;  
-  int nextLine = SPECTROGRAM_LINE_COUNT - 1;
+  int nextLine = 0;
   volatile bool textureUpdateNeeded;
   QElapsedTimer lastUpdate;
 #if PRINT_FPS

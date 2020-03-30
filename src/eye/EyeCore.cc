@@ -72,11 +72,12 @@ EyeCore::EyeCore(const Args& args) :
   state(DECODE_MIB)
 {
   phy = new Phy(args.rf_nof_rx_ant,
-                DEFAULT_NOF_WORKERS,
+                args.nof_subframe_workers,
                 args.dci_file_name,
                 args.stats_file_name,
                 args.skip_secondary_meta_formats,
-                args.dci_format_split_ratio);
+                args.dci_format_split_ratio,
+                args.rnti_histogram_threshold);
   phy->getCommon().setShortcutDiscovery(args.enable_shortcut_discovery);
   std::shared_ptr<DCIConsumerList> cons(new DCIConsumerList());
   if(args.dci_file_name != "") {
@@ -544,4 +545,12 @@ void EyeCore::resetDCIConsumer() {
 
 void EyeCore::handleSignal() {
   stop();
+}
+
+void EyeCore::refreshShortcutDiscovery(bool val){
+  phy->getCommon().setShortcutDiscovery(val);
+}
+
+void EyeCore::setRNTIThreshold(int val){
+  if(phy){phy->getCommon().getRNTIManager().setHistogramThreshold(val);}
 }

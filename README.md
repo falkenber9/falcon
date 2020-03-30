@@ -21,23 +21,9 @@ Based on [srsLTE library][srslte] v18.12, the software can be run on a plain x86
 The research around this project has been supported by *Deutsche Forschungsgemeinschaft* (DFG) within the Collaborative Research Center SFB 876
 “Providing Information by Resource-Constrained Analysis”, project A4 at TU Dortmund University.
 
-A preprint of the **corresponding scientific publication** (IEEE GLOBECOM 2019) is available on ArXiV: 
-https://arxiv.org/abs/1907.10110. 
+A **corresponding scientific publication** (IEEE GLOBECOM 2019) is available on [IEEE Xplore](https://dx.doi.org/10.1109/GLOBECOM38437.2019.9014096) and on [ArXiV](https://arxiv.org/abs/1907.10110).
 
-To acknowledge us in your publication(s) please cite the following publication:
-
-```tex
-@InProceedings{Falkenberg2019a,
-	Author = {Robert Falkenberg and Christian Wietfeld},
-	Title = {{FALCON}: {An} accurate real-time monitor for client-based mobile network data analytics},
-	Booktitle = {GLOBECOM 2019 - 2019 IEEE Global Communications Conference},
-	Year = {2019},
-	Address = {Waikoloa, Hawaii, USA},
-	Month = {Dec},
-	Publisher = {IEEE},
-	Url = {https://arxiv.org/abs/1907.10110}
-}
-```
+Please see section [Acknowledgements](#acknowledgements) of how to reference this project.
 
 ## Related Software
 This software is an alternative to [IMDEA OWL][imdea-owl] which provides comparable functionalities for long-term monitoring of LTE cells. Other than OWL, FALCON additionally targets use cases that require short-term monitoring, mobility or non-ideal radio conditions. For convenience purposes, the interface is mostly kept compatible with OWL and an [updated port of OWL](#comparison-with-imdea-owl) is also included in this framework.
@@ -113,6 +99,9 @@ $ cmake ../
 $ make
 ```
 
+**Note:** FALCON requires a patched version of srsLTE 18.12 that is automatically downloaded and included as subproject during the build process. However if you need srsLTE to be installed on your system in a different version 
+, please run: ``cmake -DFORCE_SUBPROJECT_SRSLTE=ON ../``
+
 ## SDR Hardware
 FALCON has been tested with the following Software Defined Radios (SDRs):
 
@@ -168,6 +157,8 @@ Enter the center frequency of the target LTE cell or select a recording from a f
 
 Press 'Start' and the decoder immediately starts to synchronize to the cell and decodes the PDCCH.
 The GUI will display waterfall plots of the spectrum and resource allocations (uplink and downlink) in real-time. The color of the displayed resource allocations is derived from the individual RNTIs of the particular subscribers.
+
+**Note:** At any time, you can click on a waterfall plot to freeze current state. Scroll to go back and forth in time within the scrollback buffer.
 
 
 ![FALCON Screenshot](gfx/FalconGUI.png "Falcon GUI Screenshot")
@@ -251,7 +242,8 @@ In most cases, the base station only transmits a signal on actually occupied CCE
 FALCON uses this circumstance for performance and skips empty CCEs.
 
 Some open-source eNodeBs (e.g. Open Air Interface) still send a significant signal on empty CCEs. In typical applications, this does not lead to any disadvantages, only to increased interference on the control channel when several cells are used.
-However such CCEs (depending on the actual content) can lead to false detections by FALCON's *short-cut* detector. To counteract this, the *short-cut* detector can be deactivated (option ``-H`` in FALCON Eye). The detection of the participants then takes place exclusively via random access or with the help of histograms based on the frequency of occurrence of individual RNTIs. In the latter case, however, RNTIs are only accepted and activated with a time delay after a threshold value has been reached.
+However such CCEs (depending on the actual content) can lead to false detections by FALCON's *short-cut* detector. To counteract this, the *short-cut* detector can be deactivated (option ``-L`` in FALCON Eye). The detection of the participants then takes place exclusively via random access or with the help of histograms based on the frequency of occurrence of individual RNTIs. In the latter case, however, RNTIs are only accepted and activated with a time delay after a threshold value has been reached.
+The threshold value can be configured by the option ``-H <threshold>`` in FALCON Eye.
 
 
 ## Comparison with IMDEA OWL
@@ -288,10 +280,33 @@ However, we noticed the following (minor) differences:
 
 
 ## Related Publications
-- B. Sliwa, R. Falkenberg, C. Wietfeld, [**Towards cooperative data rate prediction for future mobile and vehicular 6G networks**](https://arxiv.org/abs/2001.09452), In *2nd 6G Wireless Summit (6G SUMMIT)*, 2020.
-- R. Falkenberg, C. Wietfeld, [**FALCON: An accurate real-time monitor for client-based mobile network data analytics**](https://arxiv.org/abs/1907.10110), In *GLOBECOM 2019 - 2019 IEEE Global Communications Conference*, 2019.
-- R. Falkenberg, K. Heimann, C. Wietfeld, [**Discover your competition in LTE: client-based passive data rate prediction by machine learning**](https://arxiv.org/abs/1711.06820), In *GLOBECOM 2017 - 2017 IEEE Global Communications Conference*, 2017.
-- R. Falkenberg, C. Ide, C. Wietfeld, [**Client-based control channel analysis for connectivity estimation in LTE networks**](https://arxiv.org/abs/1701.03304), In *IEEE Vehicular Technology Conference (VTC-Fall)*, 2016.
+- B. Sliwa, R. Falkenberg, C. Wietfeld, [**Towards Cooperative Data Rate Prediction for Future Mobile and Vehicular 6G Networks**](https://arxiv.org/abs/2001.09452), In *2nd 6G Wireless Summit (6G SUMMIT)*, 2020.
+- R. Falkenberg, C. Wietfeld, [**FALCON: An Accurate Real-time Monitor for Client-based Mobile Network Data Analytics**](https://arxiv.org/abs/1907.10110), In *GLOBECOM 2019 - 2019 IEEE Global Communications Conference*, 2019.
+- R. Falkenberg, K. Heimann, C. Wietfeld, [**Discover Your Competition in LTE: Client-Based Passive Data Rate Prediction by Machine Learning**](https://arxiv.org/abs/1711.06820), In *GLOBECOM 2017 - 2017 IEEE Global Communications Conference*, 2017.
+- R. Falkenberg, C. Ide, C. Wietfeld, [**Client-Based Control Channel Analysis for Connectivity Estimation in LTE Networks**](https://arxiv.org/abs/1701.03304), In *IEEE Vehicular Technology Conference (VTC-Fall)*, 2016.
+
+
+
+## Acknowledgements
+
+To acknowledge us in your publication(s) please refer to the following publication:
+
+```tex
+@InProceedings{Falkenberg2019a,
+	Author = {Robert Falkenberg and Christian Wietfeld},
+	Title = {{FALCON}: An Accurate Real-time Monitor for Client-based Mobile Network Data Analytics},
+	Booktitle = {2019 IEEE Global Communications Conference (GLOBECOM)},
+	Year = {2019},
+	Address = {Waikoloa, Hawaii, USA},
+	Month = dec,
+	Publisher = {IEEE},
+	Doi = {10.1109/GLOBECOM38437.2019.9014096},
+	Eprint = {1907.10110},
+	Eprinttype = {arxiv},
+	Url = {https://arxiv.org/abs/1907.10110}
+}
+```
+
 
 <!-- Identifiers, in alphabetical order -->
 

@@ -79,7 +79,7 @@ void sscan_hex(const char *str, uint8_t *x, const uint32_t len) {
 
 }
 
-SRSLTE_API void rnti_histogram_init(rnti_histogram_t *h) {
+SRSLTE_API void rnti_histogram_init(rnti_histogram_t *h, uint32_t threshold) {
 
   // init histogram
   h->rnti_histogram = calloc(RNTI_HISTOGRAM_ELEMENT_COUNT, sizeof(uint16_t));
@@ -93,6 +93,7 @@ SRSLTE_API void rnti_histogram_init(rnti_histogram_t *h) {
 
   h->rnti_history_active_users = 0;
   h->rnti_histogram_ready = 0;
+  h->threshold = threshold;
 }
 
 SRSLTE_API void rnti_histogram_free(rnti_histogram_t *h) {
@@ -108,7 +109,7 @@ SRSLTE_API void rnti_histogram_free(rnti_histogram_t *h) {
 
 SRSLTE_API void rnti_histogram_add_rnti(rnti_histogram_t *h, const uint16_t new_rnti) {
   if(h->rnti_histogram_ready) {
-    if(h->rnti_histogram[*h->rnti_history_current] == RNTI_HISTOGRAM_THRESHOLD) {  // this rnti is no longer in use, decrement active user counter
+    if(h->rnti_histogram[*h->rnti_history_current] == h->threshold) {  // this rnti is no longer in use, decrement active user counter
       h->rnti_history_active_users--;
     }
     h->rnti_histogram[*h->rnti_history_current]--;    // decrement occurence counter for old rnti
@@ -116,7 +117,7 @@ SRSLTE_API void rnti_histogram_add_rnti(rnti_histogram_t *h, const uint16_t new_
   }
   *h->rnti_history_current = new_rnti;               // add new rnti to history
   h->rnti_histogram[new_rnti]++;                     // increment occurence counter for new rnti
-  if(h->rnti_histogram[new_rnti] == RNTI_HISTOGRAM_THRESHOLD) {  // this rnti reaches threshold -> increment active user counter
+  if(h->rnti_histogram[new_rnti] == h->threshold) {  // this rnti reaches threshold -> increment active user counter
     h->rnti_history_active_users++;
   }
 

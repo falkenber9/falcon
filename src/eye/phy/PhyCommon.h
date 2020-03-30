@@ -38,8 +38,9 @@ class PhyCommon {
 public:
   PhyCommon(uint32_t max_prb,
             uint32_t nof_rx_antennas,
-            const std::string& dciFilenName,
-            const std::string& statsFileName);
+            const std::string& dciFileName,
+            const std::string& statsFileName,
+            uint32_t histogramThreshold);
   ~PhyCommon();
   RNTIManager& getRNTIManager();
   FILE* getDCIFile();

@@ -111,7 +111,8 @@ int falcon_ue_dl_init(falcon_ue_dl_t *q,
                       uint32_t nof_rx_antennas,
                       const char* dci_file_name,
                       const char* stats_file_name,
-                      bool skip_secondary_meta_formats)
+                      bool skip_secondary_meta_formats,
+                      uint32_t histogramThreshold)
 {
 /// Discard
   srslte_ue_dl_reset_rnti_list(q);
@@ -136,7 +137,7 @@ int falcon_ue_dl_init(falcon_ue_dl_t *q,
   // CNI contribution - init histogram
   q->rnti_histogram = calloc(nof_falcon_ue_all_formats, sizeof(rnti_histogram_t));
   for(int hst=0; hst<nof_falcon_ue_all_formats; hst++) {
-    rnti_histogram_init(&q->rnti_histogram[hst]);
+    rnti_histogram_init(&q->rnti_histogram[hst], histogramThreshold);
   }
 
   q->decoderthread = 0;
@@ -598,7 +599,7 @@ int srslte_ue_dl_inspect_dci_location_recursively(falcon_ue_dl_t *q,
 #ifndef __NEW_HISTOGRAM__
       unsigned int occurence = rnti_histogram_get_occurence(&q->rnti_histogram[format_idx], cand[format_idx].rnti);
       // Online max-search
-      if(occurence > RNTI_HISTOGRAM_THRESHOLD) {
+      if(occurence > q->rnti_histogram[format_idx].threshold) {
 
 #ifdef __DISABLED_FOR_TESTING__
         // Filter 2a (part2): Matches DCI-Format to recent DCI-Format for this RNTI
@@ -1008,7 +1009,7 @@ int srslte_ue_dl_find_dci_histogram(falcon_ue_dl_t *q, srslte_dci_msg_t *dci_msg
               // Histogram consideration
               rnti_histogram_add_rnti(&q->rnti_histogram[f], crc_rem);
               // Filter 2: Occurence Count
-              if (rnti_histogram_get_occurence(&q->rnti_histogram[f], crc_rem) > RNTI_HISTOGRAM_THRESHOLD) {
+              if (rnti_histogram_get_occurence(&q->rnti_histogram[f], crc_rem) > q->rnti_histogram[f].threshold) {
                   locations[i].used = true;
                   //disable all remaining locations which contain CCEs covered by this accepted DCI
                   for(unsigned int covered_cce = locations[i].ncce; covered_cce < locations[i].ncce + (1 << locations[i].L); covered_cce++) {

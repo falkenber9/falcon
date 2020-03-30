@@ -47,12 +47,14 @@ struct Args {
   double rf_freq;
   double rf_gain;
   int decimate;
+  int nof_subframe_workers;
 
   // other config args
   uint32_t dci_format_split_update_interval_ms;
   double dci_format_split_ratio;
   bool skip_secondary_meta_formats;
   bool enable_shortcut_discovery;
+  uint32_t rnti_histogram_threshold;
 };
 
 class ArgManager {

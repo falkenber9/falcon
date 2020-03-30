@@ -45,7 +45,7 @@ typedef struct {
   uint32_t last_seen;
 } rnti_manager_active_set_t;
 
-void* rnti_manager_create(uint32_t n_formats, uint32_t maxCandidatesPerStepPerFormat);
+void* rnti_manager_create(uint32_t n_formats, uint32_t maxCandidatesPerStepPerFormat, uint32_t histogramThreshold);
 void rnti_manager_free(void* h);
 void rnti_manager_add_evergreen(void* h, uint16_t rnti_start, uint16_t rnti_end, uint32_t format_idx);
 void rnti_manager_add_forbidden(void* h, uint16_t rnti_start, uint16_t rnti_end, uint32_t format_idx);

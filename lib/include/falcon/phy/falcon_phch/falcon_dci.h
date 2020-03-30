@@ -40,9 +40,6 @@ extern "C" {
 #define DCI_MINIMUM_AVG_LLR_BOUND PWR_THR
 //#define DCI_MINIMUM_AVG_LLR_BOUND 0.5f     // (for testing FALCON may go downto 0.5)
 
-// RNTI Threshold
-#define RNTI_HISTOGRAM_THRESHOLD 5
-
 // RNTI histogram and circular buffer
 #define RNTI_HISTOGRAM_ELEMENT_COUNT 65536
 #define RNTI_HISTORY_DEPTH_MSEC 200
@@ -56,6 +53,7 @@ typedef struct {
     uint16_t* rnti_history_end;         // pointer to highest index in history array
     int rnti_history_active_users;      // number of currently active RNTIs
     int rnti_histogram_ready;           // ready-indicator, if history is filled
+    uint32_t threshold;                 // threshold value for acceptance
 } rnti_histogram_t;
 
 typedef struct {
@@ -68,7 +66,7 @@ typedef struct {
   rnti_active_set_entry_t entry[65536];
 } rnti_active_set_t;
 
-SRSLTE_API void rnti_histogram_init(rnti_histogram_t *h);
+SRSLTE_API void rnti_histogram_init(rnti_histogram_t *h, uint32_t threshold);
 SRSLTE_API void rnti_histogram_free(rnti_histogram_t *h);
 SRSLTE_API void rnti_histogram_add_rnti(rnti_histogram_t *h, const uint16_t rnti);
 SRSLTE_API unsigned int rnti_histogram_get_occurence(rnti_histogram_t *h, const uint16_t rnti);

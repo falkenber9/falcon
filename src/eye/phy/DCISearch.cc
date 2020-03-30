@@ -195,7 +195,7 @@ int DCISearch::inspect_dci_location_recursively(srslte_dci_msg_t *dci_msg,
 #ifndef __NEW_HISTOGRAM__
       unsigned int occurence = rnti_histogram_get_occurence(&q->rnti_histogram[format_idx], cand[format_idx].rnti);
       // Online max-search
-      if(occurence > RNTI_HISTOGRAM_THRESHOLD) {
+      if(occurence > q->rnti_histogram[format_idx].threshold) {
 
 #ifdef __DISABLED_FOR_TESTING__
         // Filter 2a (part2): Matches DCI-Format to recent DCI-Format for this RNTI

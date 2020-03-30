@@ -1,6 +1,30 @@
 FALCON Changelog
 ================
 
+# v1.1.0
+
+## General
+- Major refactoring of GUI
+- Helper scripts for setting CPU governor and real-time permissions
+
+## FalconEye
+- Options for histogram (-H) and Short-cut decoding (-L)
+- Option for subframe buffering (-W)
+- Options for DCI format selection (-s, -S, -T)
+
+## GUI
+- Improve usability
+- Improve performance
+- Personalization options for:
+    - Histogram and Short-cut decoding
+    - Subframe buffering
+    - GUI repaint intervals (FPS)
+    - Scrollback history and viewport
+- Add RNTI table showing per-user statistics
+
+## Miscellaneous
+- Code cleaning
+
 # v1.0.0
 
 ## General

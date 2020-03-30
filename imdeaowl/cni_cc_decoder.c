@@ -41,6 +41,7 @@
 
 #include "srslte/common/crash_handler.h"
 #include "srslte/srslte.h"
+#include "falcon/common/Settings.h"
 #include "falcon/phy/falcon_ue/falcon_ue_dl.h"
 
 #define PLOT_REFRESH_SFN 1 //0 //1, 10
@@ -111,6 +112,7 @@ typedef struct {
   int net_port_signal;
   char *net_address_signal;
   int decimate;
+  uint32_t rnti_histogram_threshold;
 } prog_args_t;
 
 void args_default(prog_args_t *args) {
@@ -143,6 +145,7 @@ void args_default(prog_args_t *args) {
   args->net_address_signal = "127.0.0.1";
   args->decimate = 0;
   args->cpu_affinity = -1;
+  args->rnti_histogram_threshold = DEFAULT_RNTI_HISTOGRAM_THRESHOLD;
 }
 
 void usage(prog_args_t *args, char *prog) {
@@ -539,7 +542,8 @@ int main(int argc, char **argv) {
                         prog_args.rf_nof_rx_ant,
                         prog_args.dci_file_name,
                         prog_args.stats_file_name,
-                        false))
+                        false,
+                        prog_args.rnti_histogram_threshold))
   {
   //if (srslte_ue_dl_init(&ue_dl, sf_buffer, cell.nof_prb, prog_args.rf_nof_rx_ant)) {
     fprintf(stderr, "Error initiating UE downlink processing module\n");
@@ -664,7 +668,7 @@ int main(int argc, char **argv) {
                 rnti_manager_free(falcon_ue_dl.rnti_manager);
                 falcon_ue_dl.rnti_manager = 0;
               }
-              falcon_ue_dl.rnti_manager = rnti_manager_create(nof_falcon_ue_all_formats, RNTI_PER_SUBFRAME);
+              falcon_ue_dl.rnti_manager = rnti_manager_create(nof_falcon_ue_all_formats, RNTI_PER_SUBFRAME, prog_args.rnti_histogram_threshold);
               // setup rnti manager
               int idx;
               // add format1A evergreens

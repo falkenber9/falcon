@@ -164,7 +164,7 @@
             <x>0</x>
             <y>0</y>
             <width>284</width>
-            <height>793</height>
+            <height>787</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -181,7 +181,7 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
               <property name="leftMargin">
-               <number>1</number>
+               <number>9</number>
               </property>
               <item row="1" column="0">
                <widget class="QLabel" name="label_cap_radio">
@@ -218,7 +218,7 @@
                  </sizepolicy>
                 </property>
                 <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
+                 <enum>QFrame::NoFrame</enum>
                 </property>
                 <property name="frameShadow">
                  <enum>QFrame::Plain</enum>
@@ -346,7 +346,7 @@
               <item row="7" column="0" colspan="4">
                <widget class="QFrame" name="frame_3">
                 <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
+                 <enum>QFrame::NoFrame</enum>
                 </property>
                 <property name="frameShadow">
                  <enum>QFrame::Plain</enum>
@@ -527,7 +527,7 @@
               <item row="6" column="0" colspan="4">
                <widget class="QFrame" name="frame_2">
                 <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
+                 <enum>QFrame::NoFrame</enum>
                 </property>
                 <property name="frameShadow">
                  <enum>QFrame::Plain</enum>

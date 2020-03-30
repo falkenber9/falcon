@@ -46,9 +46,9 @@ void Waterfall::draw(const ScanLineLegacy *data){
   delete data;
 }
 
-void Waterfall::wheelEvent(int delta){
+void Waterfall::wheelEvent(QWheelEvent *event){
     if(spectrum_view->paused || !active){   // Waterfall needs to be paused if EyeThread is still running or if it stopped scrolling can still be allowed
-      if(delta > 0) spectrum_view->scroll_up();
+      if(event->delta() <= 0) spectrum_view->scroll_up();
       else spectrum_view->scroll_down();
     }
 }

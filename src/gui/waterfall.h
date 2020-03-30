@@ -23,7 +23,7 @@ public:
     virtual void deactivate() = 0;
     virtual void decorate() = 0;
 
-    void wheelEvent(int delta);
+    void wheelEvent(QWheelEvent *event);
 
 protected:
     bool active = false;

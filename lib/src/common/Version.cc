@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2019 Robert Falkenberg.
+ * Copyright (c) 2020 Robert Falkenberg.
  *
- * This file is part of FALCON 
+ * This file is part of FALCON
  * (see https://github.com/falkenber9/falcon).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,35 +18,39 @@
  * the LICENSE file in the top-level directory of this distribution
  * and at http://www.gnu.org/licenses/.
  */
-#include "eye/ArgManager.h"
-#include "eye/EyeCore.h"
-
 #include "falcon/common/Version.h"
-#include "falcon/common/SignalManager.h"
 
-#include <iostream>
-#include <memory>
-#include <cstdlib>
-#include <unistd.h>
 
-using namespace std;
+std::string Version::gitTag() {
+  return GIT_TAG;
+}
 
-int main(int argc, char** argv) {
-  cout << "FalconEye, version " << Version::gitVersion() << endl;
-  cout << "Copyright (C) 2020 Robert Falkenberg" << endl;
-  cout << endl;
+std::string Version::gitDirty() {
+  return GIT_DIRTY;
+}
 
-  Args args;
-  ArgManager::parseArgs(args, argc, argv);
+std::string Version::gitRevision() {
+  return GIT_REV;
+}
 
-  //attach signal handlers (for CTRL+C)
-  SignalGate& signalGate(SignalGate::getInstance());
-  signalGate.init();
+std::string Version::gitBranch() {
+  return GIT_BRANCH;
+}
 
-  EyeCore eye(args);
-  signalGate.attach(eye);
-
-  bool success = eye.run();
-
-  return success ? EXIT_SUCCESS : EXIT_FAILURE;
+std::string Version::gitVersion() {
+  std::string result;
+  if(GIT_REV != "N/A") {
+    if(GIT_TAG != "") {
+      result += GIT_TAG;
+    }
+    else {
+      result += GIT_REV;
+    }
+    result += GIT_DIRTY;
+    result += " on branch " + GIT_BRANCH;
+  }
+  else {
+    result += "N/A";
+  }
+  return result;
 }

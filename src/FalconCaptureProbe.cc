@@ -21,8 +21,6 @@
 #include "capture_probe/ArgManager.h"
 #include "capture_probe/CaptureProbeCore.h"
 
-#include "falcon/version.h"
-
 #include "falcon/meas/AuxModem.h"
 #include "falcon/meas/AuxModemGPS.h"
 #include "falcon/meas/TrafficGenerator.h"
@@ -32,6 +30,7 @@
 #include "falcon/common/SignalManager.h"
 
 #include "falcon/common/SystemInfo.h"
+#include "falcon/common/Version.h"
 
 #include <iostream>
 #include <memory>
@@ -41,8 +40,8 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-  cout << "FalconCaptureProbe, version: " << falcon_get_version_git() << endl;
-  cout << "Copyright (C) 2019 Robert Falkenberg" << endl;
+  cout << "FalconCaptureProbe, version " << Version::gitVersion() << endl;
+  cout << "Copyright (C) 2020 Robert Falkenberg" << endl;
   cout << endl;
 
   Args args;

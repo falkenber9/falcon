@@ -24,7 +24,7 @@
 #include <unistd.h>
 
 #include "falcon/common/Settings.h"
-#include "falcon/version.h"
+#include "falcon/common/Version.h"
 
 #include "falcon/meas/NetsyncController.h"
 #include "falcon/meas/NetsyncMaster.h"
@@ -133,8 +133,8 @@ void parseArgs(int argc, char** argv, Args& args) {
 }
 
 int main(int argc, char** argv) {
-  cout << "FalconCaptureWarden, version: " << falcon_get_version_git() << endl;
-  cout << "Copyright (C) 2019 Robert Falkenberg" << endl;
+  cout << "FalconCaptureWarden, version " << Version::gitVersion() << endl;
+  cout << "Copyright (C) 2020 Robert Falkenberg" << endl;
   cout << endl;
 
   Args args;

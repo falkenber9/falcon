@@ -103,51 +103,7 @@ pkg_check_modules(GLIB2		REQUIRED	glib-2.0)
 include_directories(${GLIB2_INCLUDE_DIRS})
 #link_directories(${GLIB2_LIBRARY_DIRS})
 
-#############################################
-
-find_package(SRSLTE)
-if(SRSLTE_FOUND AND NOT FORCE_SUBPROJECT_SRSLTE)
-  include_directories(${SRSLTE_INCLUDE_DIRS})
-  link_directories(${SRSLTE_LIBRARY_DIRS})
-else(SRSLTE_FOUND AND NOT FORCE_SUBPROJECT_SRSLTE)
-  message("Download SRSLTE as a subproject and build it.")
-
-  # Download and unpack srsLTE at configure time
-  configure_file(external/cmake/srsLTE.CMakeLists.txt.in srsLTE-download/CMakeLists.txt)
-  execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/srsLTE-download" )
-  execute_process(COMMAND "${CMAKE_COMMAND}" --build .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/srsLTE-download" )
-
-  include_directories("${CMAKE_BINARY_DIR}/srsLTE-build/lib/include")
-  include_directories("${CMAKE_BINARY_DIR}/srsLTE-src/lib/include")
-  include_directories("${CMAKE_BINARY_DIR}/srsLTE-src/")
-  # let the compiler find included files from subdirectories
-  include_directories(".")
-
-  # Add srsLTE directly to our build.
-  add_subdirectory("${CMAKE_BINARY_DIR}/srsLTE-src"
-    "${CMAKE_BINARY_DIR}/srsLTE-build")
-
-  set(SRSLTE_LIBRARY_RF srslte_rf)
-  #set(SRSLTE_LIBRARY_RF_UTILS srslte_rf_utils)
-  set(SRSLTE_LIBRARY srslte_common)
-  set(SRSLTE_LIBRARY_PHY srslte_rf)
-  set(SRSLTE_LIBRARY_UPPER srslte_upper)
-  set(SRSLTE_LIBRARY_RADIO srslte_radio)
-  set(SRSLTE_LIBRARY_ASN1 srslte_asn1)
-  set(SRSLTE_LIBRARIES
-    ${SRSLTE_LIBRARY_RF}
-    ${SRSLTE_LIBRARY_RF_UTILS}
-    ${SRSLTE_LIBRARY}
-    ${SRSLTE_LIBRARY_PHY}
-    ${SRSLTE_LIBRARY_UPPER}
-    ${SRSLTE_LIBRARY_RADIO}
-    ${SRSLTE_LIBRARY_ASN1}
-  )
-endif(SRSLTE_FOUND AND NOT FORCE_SUBPROJECT_SRSLTE)
-
-message("SRSLTE_LIBRARIES: " ${SRSLTE_LIBRARIES})
+############################################
 
 ############################################
 
@@ -209,6 +165,57 @@ else(BLADERF_FOUND OR UHD_FOUND OR SOAPYSDR_FOUND)
   set(RF_FOUND FALSE CACHE INTERNAL "RF frontend found")
   add_definitions(-DDISABLE_RF)
 endif(BLADERF_FOUND OR UHD_FOUND OR SOAPYSDR_FOUND)
+
+#####################################################
+find_package(SRSLTE)
+if(SRSLTE_FOUND AND NOT FORCE_SUBPROJECT_SRSLTE)
+  include_directories(${SRSLTE_INCLUDE_DIRS})
+  link_directories(${SRSLTE_LIBRARY_DIRS})
+else(SRSLTE_FOUND AND NOT FORCE_SUBPROJECT_SRSLTE)
+  message("Download SRSLTE as a subproject and build it.")
+
+  # Download and unpack srsLTE at configure time
+  configure_file(external/cmake/srsLTE.CMakeLists.txt.in srsLTE-download/CMakeLists.txt)
+  execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/srsLTE-download" )
+  execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/srsLTE-download" )
+
+  include_directories("${CMAKE_BINARY_DIR}/srsLTE-build/lib/include")
+  include_directories("${CMAKE_BINARY_DIR}/srsLTE-src/lib/include")
+  include_directories("${CMAKE_BINARY_DIR}/srsLTE-src/")
+  # let the compiler find included files from subdirectories
+  include_directories(".")
+
+  # Add srsLTE directly to our build.
+  add_subdirectory("${CMAKE_BINARY_DIR}/srsLTE-src"
+    "${CMAKE_BINARY_DIR}/srsLTE-build")
+
+  set(SRSLTE_LIBRARY_RF srslte_rf)
+  #set(SRSLTE_LIBRARY_RF_UTILS srslte_rf_utils)
+  set(SRSLTE_LIBRARY srslte_common)
+  set(SRSLTE_LIBRARY_PHY srslte_phy)
+  set(SRSLTE_LIBRARY_UPPER srslte_upper)
+  set(SRSLTE_LIBRARY_RADIO srslte_radio)
+  set(SRSLTE_LIBRARY_ASN1 srslte_asn1)
+
+  #    ${SRSLTE_LIBRARY_RF}
+  #    ${SRSLTE_LIBRARY_RF_UTILS}
+  #    ${SRSLTE_LIBRARY_RADIO}
+  set(SRSLTE_LIBRARIES
+    ${SRSLTE_LIBRARY}
+    ${SRSLTE_LIBRARY_PHY}
+    ${SRSLTE_LIBRARY_UPPER}
+    ${SRSLTE_LIBRARY_ASN1}
+  )
+  if(RF_FOUND)
+    list(APPEND SRSLTE_LIBRARIES ${SRSLTE_LIBRARY_RF} ${SRSLTE_LIBRARY_RADIO})
+  endif(RF_FOUND)
+
+endif(SRSLTE_FOUND AND NOT FORCE_SUBPROJECT_SRSLTE)
+
+message("SRSLTE_LIBRARIES: " ${SRSLTE_LIBRARIES})
+#####################################################
 
 # Boost
 #if(ENABLE_SRSUE OR ENABLE_SRSENB OR ENABLE_SRSEPC)

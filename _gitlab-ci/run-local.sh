@@ -8,10 +8,17 @@ cd ../../
 
 
 cd docker/variants
-docker build -t variant_cmnalib_uhd --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true .
+#docker build -t variant_cmnalib_uhd --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true .
+#docker build -t variant_cmnalib --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=false .
+docker build -t variant_minimal --build-arg INCLUDE_SRSLTE=true .
+#docker build -t variant_minimal_srslte_subproj --build-arg INCLUDE_SRSLTE=false .
+
 cd ../../
-#docker run -v `pwd`/../.:/falcon -v /tmp:/tmp/tmp-host -i variant_cmnalib_uhd /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
-docker run -v `pwd`/../.:/falcon -v /tmp:/tmp/tmp-host -i -t variant_cmnalib_uhd /bin/bash -c "/falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp; bash "
+		#legacy  #docker run -v `pwd`/../.:/falcon -v /tmp:/tmp/tmp-host -i variant_cmnalib_uhd /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+#docker run -v `pwd`/../.:/falcon -v /tmp:/tmp/tmp-host -i -t variant_cmnalib_uhd /bin/bash -c "/falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp; bash "
+#docker run -v `pwd`/../.:/falcon -v /tmp:/tmp/tmp-host -i -t variant_cmnalib /bin/bash -c "/falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp; bash "
+docker run -v `pwd`/../.:/falcon -v /tmp:/tmp/tmp-host -i -t variant_minimal /bin/bash -c "/falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp; bash "
+#docker run -v `pwd`/../.:/falcon -v /tmp:/tmp/tmp-host -i -t variant_minimal_srslte_subproj /bin/bash -c "/falcon/_gitlab-ci/testscripts/./test_build.sh ~/falcon-build /tmp; bash "
 
 #docker build \
 #  --build-arg include_srsGUI=false \

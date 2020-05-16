@@ -30,6 +30,12 @@ variant_minimal:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
     - docker build -t variant_minimal:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} .
     
+variant_minimal_srslte_subproj:
+  stage: environment_variants
+  script:
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
+    - docker build -t variant_minimal_srslte_subproj:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} --build-arg INCLUDE_SRSLTE=false .
+
 variant_cmnalib:
   stage: environment_variants
   script:
@@ -88,6 +94,13 @@ sys_minimal:
   script:
     - docker run -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i variant_minimal:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
     
+sys_minimal_srslte_subproj:
+  stage: system_test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    - docker run -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i variant_minimal_srslte_subproj:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_build.sh ~/falcon-build /tmp
+
 sys_cmnalib:
   stage: system_test
   variables:

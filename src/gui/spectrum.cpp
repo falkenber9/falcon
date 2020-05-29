@@ -183,7 +183,6 @@ void Spectrum::drawSpectrogram() {
     float startY = 0.0;
     float endX = 1.0;
     float endY = static_cast<float>(settings->glob_args.spectrum_args.spectrum_line_shown - (settings->glob_args.spectrum_args.spectrum_line_count - (nextLine + scroll_offset) - 1)) / settings->glob_args.spectrum_args.spectrum_line_shown;  // What is the (percentage) of waterfall that can be filled with the available lines?
-    std::cout << "endY: " << endY << "\n";
     glBindTexture(GL_TEXTURE_2D, textureHandles[0]);
     glBegin(GL_QUADS);
     glTexCoord2d(0.0, 1.0); glVertex3f(startX, startY, 0.0);

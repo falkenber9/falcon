@@ -24,8 +24,7 @@ Waterfall::~Waterfall(){
   if(mdiArea != nullptr){ // mdiArea != nullptr --> was activated at least once
     //Close Subwindow:
     mdiArea->setActiveSubWindow(m_subwindow);
-    mdiArea->closeActiveSubWindow();
-    mdiArea->removeSubWindow(m_window);
+    mdiArea->removeSubWindow(m_subwindow);
   }
 }
 

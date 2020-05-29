@@ -506,7 +506,6 @@ PerformancePlot::~PerformancePlot(){
   if(mdiArea != nullptr){ // mdiArea != nullptr --> was activated at least once
     //Close Subwindow:
     mdiArea->setActiveSubWindow(plot_a_subwindow);
-    mdiArea->closeActiveSubWindow();
-    mdiArea->removeSubWindow(plot_a_window);
+    mdiArea->removeSubWindow(plot_a_subwindow);
   }
 }

@@ -18,7 +18,7 @@ FROM base_ubuntu as base_ubuntu_srsgui
 
 WORKDIR / 
 RUN apt-get update \
-  && apt-get install -y libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-dev libqt4-dev \
+  && apt-get install -y libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-qt5-dev qtbase5-dev \
   && git clone https://github.com/srsLTE/srsGUI.git \
   && mkdir /srsGUI/build \
   && cd /srsGUI/build \

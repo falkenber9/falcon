@@ -11,54 +11,78 @@ before_script:
 
 base_ubuntu:
   stage: environment_base
+  only:
+    - schedules
   script:
     #- pwd
     #- export
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/base-ubuntu
-    - docker build -t base_ubuntu --target base_ubuntu .
+    - docker rmi base_ubuntu:latest
+    - docker build --no-cache -t base_ubuntu:latest --target base_ubuntu .
     
 base_ubuntu_srsgui:
   stage: environment_base
+  only:
+    - schedules
   script:
     #- docker build -t $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA}_base_ubuntu .
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/base-ubuntu
-    - docker build -t base_ubuntu_srsgui --target base_ubuntu_srsgui .
+    - docker rmi base_ubuntu_srsgui:latest
+    - docker build --no-cache -t base_ubuntu_srsgui:latest --target base_ubuntu_srsgui .
 
 variant_minimal:
   stage: environment_variants
+  only:
+    - schedules
   script:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker build -t variant_minimal:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} .
+    - docker rmi variant_minimal:latest
+    - docker build --no-cache -t variant_minimal:latest .
     
 variant_minimal_srslte_subproj:
   stage: environment_variants
+  only:
+    - schedules
   script:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker build -t variant_minimal_srslte_subproj:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} --build-arg INCLUDE_SRSLTE=false .
+    - docker rmi variant_minimal_srslte_subproj:latest
+    - docker build --no-cache -t variant_minimal_srslte_subproj:latest --build-arg INCLUDE_SRSLTE=false .
 
 variant_cmnalib:
   stage: environment_variants
+  only:
+    - schedules
   script:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker build -t variant_cmnalib:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} --build-arg INCLUDE_CMNALIB=true .
+    - docker rmi variant_cmnalib:latest
+    - docker build --no-cache -t variant_cmnalib:latest --build-arg INCLUDE_CMNALIB=true .
     
 variant_cmnalib_uhd:
   stage: environment_variants
+  only:
+    - schedules
   script:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker build -t variant_cmnalib_uhd:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true .
+    - docker rmi variant_cmnalib_uhd:latest
+    - docker build --no-cache -t variant_cmnalib_uhd:latest --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true .
     
 variant_uhd:
   stage: environment_variants
+  only:
+    - schedules
   script:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker build -t variant_uhd:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} --build-arg INCLUDE_UHD=true .
+    - docker rmi variant_uhd:latest
+    - docker build --no-cache -t variant_uhd:latest --build-arg INCLUDE_UHD=true .
     
 variant_full:
   stage: environment_variants
+  only:
+    - schedules
   script:
     - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker build -t variant_full:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true --build-arg INCLUDE_LIMESDR=true .
+    - docker rmi variant_full:latest
+    - docker build --no-cache -t variant_full:latest --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true --build-arg INCLUDE_LIMESDR=true .
     
 #variant_noradio:
   #stage: environment_variants
@@ -92,39 +116,39 @@ sys_minimal:
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker run -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i variant_minimal:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - docker run --rm -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i variant_minimal:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
     
 sys_minimal_srslte_subproj:
   stage: system_test
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker run -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i variant_minimal_srslte_subproj:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_build.sh ~/falcon-build /tmp
+    - docker run --rm -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i variant_minimal_srslte_subproj:latest /falcon/_gitlab-ci/testscripts/./test_build.sh ~/falcon-build /tmp
 
 sys_cmnalib:
   stage: system_test
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker run -v `pwd`/.:/falcon -i variant_cmnalib:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - docker run --rm -v `pwd`/.:/falcon -i variant_cmnalib:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
     
 sys_cmnalib_uhd:
   stage: system_test
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker run -v `pwd`/.:/falcon -i variant_cmnalib_uhd:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - docker run --rm -v `pwd`/.:/falcon -i variant_cmnalib_uhd:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
 
 sys_uhd:
   stage: system_test
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker run -v `pwd`/.:/falcon -i variant_uhd:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - docker run --rm -v `pwd`/.:/falcon -i variant_uhd:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
     
 sys_full:
   stage: system_test
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - docker run -v `pwd`/.:/falcon -i variant_full:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA} /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - docker run --rm -v `pwd`/.:/falcon -i variant_full:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp

@@ -60,7 +60,7 @@ $ sudo apt-get install build-essential git subversion cmake libboost-system-dev 
 ```
 For srsGUI (required only for building port of IMDEA OWL):
 ```sh
-$ sudo apt-get install libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-dev libqt4-dev
+$ sudo apt-get install libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-qt5-dev qtbase5-dev
 $ git clone https://github.com/srsLTE/srsGUI.git
 $ cd srsgui
 $ mkdir build

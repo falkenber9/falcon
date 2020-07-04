@@ -1,7 +1,7 @@
+![Header image](gfx/FALCON_header.jpg "FALCON")
+
 FALCON - Fast Analysis of LTE Control channels
 ==============================================
-
-![Logo](gfx/FALCON_banner_small.png "FALCON")
 
 **FALCON** is an open-source software collection for real-time analysis of radio resources in private or commercial LTE/LTE-A networks.
 
@@ -25,8 +25,8 @@ A **corresponding scientific publication** (IEEE GLOBECOM 2019) is available on 
 
 Please see section [Acknowledgements](#acknowledgements) of how to reference this project.
 
-## Related Software
-This software is an alternative to [IMDEA OWL][imdea-owl] which provides comparable functionalities for long-term monitoring of LTE cells. Other than OWL, FALCON additionally targets use cases that require short-term monitoring, mobility or non-ideal radio conditions. For convenience purposes, the interface is mostly kept compatible with OWL and an [updated port of OWL](#comparison-with-imdea-owl) is also included in this framework.
+## Video
+[![FALCON Video Presentation](http://img.youtube.com/vi/Va_aZYxRu3U/0.jpg)](http://www.youtube.com/watch?v=Va_aZYxRu3U)
 
 ## License
 FALCON is released under the [AGPLv3 license](LICENSE).
@@ -246,7 +246,8 @@ However such CCEs (depending on the actual content) can lead to false detections
 The threshold value can be configured by the option ``-H <threshold>`` in FALCON Eye.
 
 
-## Comparison with IMDEA OWL
+## Alternative to IMDEA OWL
+FALCON is an alternative to [IMDEA OWL][imdea-owl] which provides comparable functionalities for long-term monitoring of LTE cells. Other than OWL, FALCON additionally targets use cases that require short-term monitoring, mobility or non-ideal radio conditions.
 
 The interface of FALCON's recorder and decoder is mostly compatible with [IMDEA OWL][imdea-owl].
 FALCON inherits OWL's approach of tracking C-RNTI assignments from PRACH for any UE that joins the cell during the observation time.
@@ -254,7 +255,9 @@ However, the method to discover already active C-RNTIs from earlier assignments 
 FALCON uses RNTI histograms and shortcut decoding to validate unseen RNTIs during the blind decoding procedure.
 In contrast to OWL's re-encoding approach, this method is significantly less sensitive to non-ideal radio conditions. This makes FALCON suitable for robust and reliable short-term monitoring, e.g. for mobile applications.
 
-### Port of IMDEA OWL
+A direct comparison of FALCON and OWL in a controlled environment is discussed in this [video presentation][video-presentation].
+
+### Included port of IMDEA OWL
 The original version of IMDEA OWL is hardcoded into a fork of SRSLTE v1.3.
 In order to provide a fair comparison of FALCON and OWL and their underlying methods, we extracted and ported OWL with its extensions of the SRSLTE library into the FALCON project as separated modules and applications.
 By this, both applications benefit from future advancements of SRSLTE library.
@@ -313,3 +316,5 @@ To acknowledge us in your publication(s) please refer to the following publicati
 [imdea-owl]: https://git.networks.imdea.org/nicola_bui/imdeaowl
 [examples]: https://github.com/falkenber9/falcon-examples
 [srslte]: https://github.com/srsLTE/srsLTE
+[video-presentation]: https://www.youtube.com/watch?v=Va_aZYxRu3U
+

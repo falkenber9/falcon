@@ -11,7 +11,7 @@ RNTITable::RNTITable(Settings* p_glob_settings, SpectrumAdapter *p_spectrumAdapt
   db = new RNTITableDataStorage();
   m_window = new QWidget();
   m_window->setObjectName("RNTI Table");
-  m_window->setWindowTitle("RNTI Table");
+  m_window->setWindowTitle("UE Activity");
 
   table = new QTableWidget(0, 5, m_window);
 
@@ -19,7 +19,7 @@ RNTITable::RNTITable(Settings* p_glob_settings, SpectrumAdapter *p_spectrumAdapt
   m_window->setLayout(m_layout);
   m_window->setSizePolicy(QSizePolicy ::Ignored , QSizePolicy ::Ignored );
 
-  m_subwindow = mdiArea->addSubWindow(m_window, Qt::CustomizeWindowHint);
+  m_subwindow = mdiArea->addSubWindow(m_window, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
   m_subwindow->showMaximized();
   
   QStringList labels = { "RNTI", "Activity", "TBS (avg)", "MCS (avg)", "PRB (avg)"};

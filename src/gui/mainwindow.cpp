@@ -43,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
   ui(new Ui::MainWindow)
 {
   ui->setupUi(this);
+  ui->statusBar->hide();
   cp = new Colorpicker(&glob_settings, ui);    //For Color Menu
 
   setAccessibleName(QString("FALCON GUI"));
@@ -70,14 +71,18 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->actionDownlink->            setChecked(glob_settings.glob_args.gui_args.show_downlink);
   ui->actionSpectrum->            setChecked(glob_settings.glob_args.gui_args.show_spectrum);
   ui->actionUplink->              setChecked(glob_settings.glob_args.gui_args.show_uplink);
-  ui->actionplot1->               setChecked(glob_settings.glob_args.gui_args.show_performance_plot);
-  ui->actionRNTI_Table->          setChecked(glob_settings.glob_args.gui_args.show_rnti);
+  ui->actionCellActivity->        setChecked(glob_settings.glob_args.gui_args.show_cell_activity);
+  ui->actionUEActivity->          setChecked(glob_settings.glob_args.gui_args.show_ue_activity);
+  ui->actionAffiliation->         setChecked(glob_settings.glob_args.gui_args.show_affiliation);
+  ui->actionInstitute->           setChecked(glob_settings.glob_args.gui_args.show_institute);
+  ui->actionFunding->             setChecked(glob_settings.glob_args.gui_args.show_funding);
+  ui->actionBanner->              setChecked(glob_settings.glob_args.gui_args.show_banner);
+  ui->actionAdvanced->            setChecked(glob_settings.glob_args.gui_args.show_advanced);
 
   //ui->actionDownlink_Plots->      setChecked(glob_settings.glob_args.gui_args.show_plot_downlink);
 
   ui->lineEdit_FileName->         setText(glob_settings.glob_args.gui_args.path_to_file);
   ui->actionSave_Settings->       setChecked(glob_settings.glob_args.gui_args.save_settings);
-  ui->actionUse_File_as_Source->  setChecked(glob_settings.glob_args.gui_args.use_file_as_source);
   ui->checkBox_FileAsSource ->    setChecked(glob_settings.glob_args.gui_args.use_file_as_source);
   if(ui->checkBox_FileAsSource->isChecked()) {
     QString filename = ui->lineEdit_FileName->text();
@@ -101,8 +106,9 @@ MainWindow::MainWindow(QWidget *parent) :
   on_actionUplink_changed();
   on_actionSpectrum_changed();
   on_actionDifference_changed();
-  on_actionRNTI_Table_changed();
-  on_actionplot1_changed();
+  on_actionUEActivity_changed();
+  on_actionCellActivity_changed();
+  on_actionAdvanced_toggled(glob_settings.glob_args.gui_args.show_advanced);
 
   //Init Path to File:
   setAcceptDrops(true);  //For Drag and Drop
@@ -174,12 +180,12 @@ void MainWindow::on_actionStart_triggered() {
     }
 
     // Performance Plot extern:
-    if(glob_settings.glob_args.gui_args.show_performance_plot){
+    if(glob_settings.glob_args.gui_args.show_cell_activity){
       perf_plot->activate();
     }
 
     // RNTI Table:
-    if(glob_settings.glob_args.gui_args.show_rnti){
+    if(glob_settings.glob_args.gui_args.show_ue_activity){
       rnti_table->activate();
     }
 
@@ -225,6 +231,7 @@ void MainWindow::on_Select_file_button_clicked()
 
 void MainWindow::on_lineEdit_FileName_textChanged(const QString &arg1)
 {
+  (void)arg1;
 
   QString buffer_string;
 
@@ -324,6 +331,14 @@ bool MainWindow::get_args_from_file(const QString filename) {
   return true;
 }
 
+void MainWindow::enable_advanced_options(bool enabled) {
+
+  // some options shall only be visible in advanced mode
+
+  ui->menuAcknowledgement->menuAction()->setVisible(enabled);
+  ui->actionDifference->setVisible(enabled);
+}
+
 void MainWindow::wheelEvent(QWheelEvent *event){
   // As the wheel event can only be captured in main window, forward the delta to waterfall's wheelEvent method
   if (ui->mdiArea->underMouse()){
@@ -358,3 +373,64 @@ void MainWindow::on_spinBox_Prb_valueChanged(int value) {
 }
 void MainWindow::on_pushButton_uplink_color_clicked(){cp->on_pushButton_uplink_color_clicked();}
 void MainWindow::on_pushButton_downlink_color_clicked(){cp->on_pushButton_downlink_color_clicked();}
+
+void MainWindow::on_actionAffiliation_toggled(bool checked) {
+  if (checked) {
+    ui->affiliation->show();
+  }
+  else {
+    ui->affiliation->hide();
+  }
+  glob_settings.glob_args.gui_args.show_affiliation = checked;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();
+  }
+}
+
+void MainWindow::on_actionInstitute_toggled(bool checked) {
+  if (checked) {
+    ui->institute->show();
+  }
+  else {
+    ui->institute->hide();
+  }
+  glob_settings.glob_args.gui_args.show_institute = checked;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();
+  }
+}
+
+void MainWindow::on_actionFunding_toggled(bool checked) {
+  if (checked) {
+    ui->funding->show();
+  }
+  else {
+    ui->funding->hide();
+  }
+  glob_settings.glob_args.gui_args.show_funding = checked;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();
+  }
+}
+
+void MainWindow::on_actionBanner_toggled(bool checked) {
+  if (checked) {
+    ui->banner->show();
+  }
+  else {
+    ui->banner->hide();
+  }
+  glob_settings.glob_args.gui_args.show_banner = checked;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();
+  }
+}
+
+void MainWindow::on_actionAdvanced_toggled(bool checked) {
+  enable_advanced_options(checked);
+
+  glob_settings.glob_args.gui_args.show_advanced = checked;
+  if(glob_settings.glob_args.gui_args.save_settings) {
+    glob_settings.store_settings();
+  }
+}

@@ -105,7 +105,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="logo">
+        <widget class="QLabel" name="affiliation">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
            <horstretch>0</horstretch>
@@ -114,14 +114,95 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>150</width>
-           <height>0</height>
+           <width>300</width>
+           <height>66</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>500</width>
-           <height>100</height>
+           <width>300</width>
+           <height>66</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="../../gfx/images.qrc">:/logo/tu-dortmund_full+margin.png</pixmap>
+         </property>
+         <property name="scaledContents">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="institute">
+         <property name="minimumSize">
+          <size>
+           <width>300</width>
+           <height>66</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>300</width>
+           <height>66</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="../../gfx/images.qrc">:/logo/CNI_full+margin.png</pixmap>
+         </property>
+         <property name="scaledContents">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="funding">
+         <property name="minimumSize">
+          <size>
+           <width>300</width>
+           <height>76</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>300</width>
+           <height>76</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="../../gfx/images.qrc">:/logo/SFB876_full.png</pixmap>
+         </property>
+         <property name="scaledContents">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="banner">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>300</width>
+           <height>107</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>300</width>
+           <height>107</height>
           </size>
          </property>
          <property name="text">
@@ -163,8 +244,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>284</width>
-            <height>787</height>
+            <width>280</width>
+            <height>856</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1439,7 +1520,7 @@
      <x>0</x>
      <y>0</y>
      <width>981</width>
-     <height>22</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1458,34 +1539,37 @@
     <property name="title">
      <string>Optio&amp;ns</string>
     </property>
+    <widget class="QMenu" name="menuAcknowledgement">
+     <property name="title">
+      <string>&amp;Acknowledgement</string>
+     </property>
+     <addaction name="actionAffiliation"/>
+     <addaction name="actionInstitute"/>
+     <addaction name="actionFunding"/>
+     <addaction name="actionBanner"/>
+    </widget>
     <widget class="QMenu" name="menuWindow_2">
      <property name="title">
       <string>&amp;Window</string>
      </property>
      <addaction name="actionSpectrum"/>
      <addaction name="actionDifference"/>
-     <addaction name="actionUplink"/>
-     <addaction name="actionplot1"/>
      <addaction name="actionDownlink"/>
-     <addaction name="actionRNTI_Table"/>
+     <addaction name="actionUplink"/>
+     <addaction name="actionCellActivity"/>
+     <addaction name="actionUEActivity"/>
     </widget>
     <widget class="QMenu" name="menuUtilities">
      <property name="title">
       <string>&amp;Utilities</string>
      </property>
-     <addaction name="actionScrolling"/>
      <addaction name="actionSave_Settings"/>
     </widget>
-    <widget class="QMenu" name="menuRadio">
-     <property name="title">
-      <string>&amp;Radio</string>
-     </property>
-     <addaction name="actionUse_File_as_Source"/>
-     <addaction name="actionRadio_Settings"/>
-    </widget>
     <addaction name="menuUtilities"/>
-    <addaction name="menuRadio"/>
     <addaction name="menuWindow_2"/>
+    <addaction name="separator"/>
+    <addaction name="actionAdvanced"/>
+    <addaction name="menuAcknowledgement"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuOptions"/>
@@ -1503,11 +1587,11 @@
    <addaction name="actionTile_Windows"/>
    <addaction name="separator"/>
    <addaction name="actionSpectrum"/>
+   <addaction name="actionDifference"/>
    <addaction name="actionDownlink"/>
    <addaction name="actionUplink"/>
-   <addaction name="actionDifference"/>
-   <addaction name="actionplot1"/>
-   <addaction name="actionRNTI_Table"/>
+   <addaction name="actionCellActivity"/>
+   <addaction name="actionUEActivity"/>
    <addaction name="separator"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -1518,7 +1602,7 @@
   </action>
   <action name="actionStop">
    <property name="text">
-    <string>&amp;Stop</string>
+    <string>Sto&amp;p</string>
    </property>
    <property name="toolTip">
     <string>Stop</string>
@@ -1537,7 +1621,10 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Difference</string>
+    <string>&amp;Diff</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionUplink">
@@ -1556,33 +1643,12 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>D&amp;ownlink</string>
+    <string>&amp;Downlink</string>
    </property>
   </action>
   <action name="actionTile_Windows">
    <property name="text">
     <string>&amp;Tile Windows</string>
-   </property>
-  </action>
-  <action name="actionScrolling">
-   <property name="text">
-    <string>&amp;Scrolling</string>
-   </property>
-  </action>
-  <action name="actionUse_File_as_Source">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Use File as Source</string>
-   </property>
-  </action>
-  <action name="actionRadio_Settings">
-   <property name="text">
-    <string>&amp;Radio Settings</string>
    </property>
   </action>
   <action name="actionSave_Settings">
@@ -1596,33 +1662,78 @@
     <string>Sa&amp;ve Settings</string>
    </property>
   </action>
-  <action name="actionPerformance_Plots">
-   <property name="text">
-    <string>Performance Plots</string>
-   </property>
-  </action>
-  <action name="actionplot1">
+  <action name="actionCellActivity">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Performance Plots</string>
+    <string>&amp;Cell Activity</string>
+   </property>
+   <property name="iconText">
+    <string>Cell Activity</string>
+   </property>
+   <property name="toolTip">
+    <string>Cell Activity</string>
    </property>
   </action>
-  <action name="actionDownlink_Plots">
+  <action name="actionUEActivity">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Do&amp;wnlink Plots</string>
+    <string>U&amp;E Activity</string>
    </property>
   </action>
-  <action name="actionRNTI_Table">
+  <action name="actionAffiliation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Affiliation</string>
+   </property>
+  </action>
+  <action name="actionFunding">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Funding</string>
+   </property>
+  </action>
+  <action name="actionBanner">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Banner</string>
+   </property>
+  </action>
+  <action name="actionInstitute">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Institute</string>
+   </property>
+  </action>
+  <action name="actionAdvanced">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;RNTI Table</string>
+    <string>Advanced</string>
    </property>
   </action>
  </widget>

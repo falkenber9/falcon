@@ -85,9 +85,9 @@ PerformancePlot::PerformancePlot(Settings* p_glob_settings, SpectrumAdapter* p_s
   setupPlot(RNTI_HIST   , plot_rnti_hist);
 
   //Add Subwindow to MDI Area
-
   plot_a_subwindow = mdiArea->addSubWindow(plot_a_window,Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-  plot_a_window->show();
+  //plot_a_subwindow->setWindowTitle("Performance");
+  plot_a_window->showMaximized();
 }
 
 void PerformancePlot::activate(){

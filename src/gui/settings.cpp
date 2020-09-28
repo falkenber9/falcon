@@ -27,6 +27,9 @@
 
 Settings::Settings() : glob_args() {
 
+  //Init GUI args with default settings
+  default_settings();
+
   //Init decoder args:
   ArgManager::defaultArgs(glob_args.eyeArgs);
 
@@ -35,43 +38,17 @@ Settings::Settings() : glob_args() {
 
   //Load settings or fill+store defaults
   settings = new QSettings(QSettings::IniFormat,QSettings::UserScope,"CNI","FalconGui");
+  load_settings();
 
-  settings->beginGroup("GUI");
-  if(settings->contains("SAVE_TO_FILE")){//File Exists, load settings:
-
-    settings->endGroup();
-    load_settings();
-  }
-  else { //File doesn't exist, create one with default settings:
-    settings->endGroup();
-
-    //Default Settings:
-    //GUI args:
-    glob_args.gui_args.path_to_file         = nullptr;
-    glob_args.gui_args.save_settings        = true;
-    glob_args.gui_args.show_diff            = false;
-    glob_args.gui_args.show_downlink        = true;
-    glob_args.gui_args.show_spectrum        = false;
-    glob_args.gui_args.show_uplink          = true;
-    glob_args.gui_args.use_file_as_source   = true;
-    glob_args.gui_args.show_performance_plot= false;
-    glob_args.gui_args.show_rnti = false;
-    glob_args.gui_args.sort_by_column = 0;
-    glob_args.gui_args.sort_order = 0;
-    glob_args.gui_args.perf_fps = 4;
-    glob_args.gui_args.wf_fps = 60;
-    glob_args.eyeArgs.nof_subframe_workers = 20;
-
-    // glob_args.gui_args.show_plot_downlink   = false;
-
-    //Spectrum args:
-    glob_args.spectrum_args.mouse_wheel_sens    = 100;
-    glob_args.spectrum_args.spectrum_line_count = 300;
-    glob_args.spectrum_args.spectrum_line_shown = 100;
-    glob_args.spectrum_args.spectrum_line_width = 50;
-
-    store_settings(); //Default settings on startup are saved to file.
-  }
+//  settings->beginGroup("GUI");
+//  if(settings->contains("SAVE_TO_FILE")){//File exists, load remaining settings
+//    settings->endGroup();
+//    load_settings();
+//  }
+//  else { //File doesn't exist, create one with default settings:
+//    settings->endGroup();
+//    store_settings(); //Default settings on startup are saved to file.
+//  }
 
 }
 
@@ -79,109 +56,133 @@ Settings::~Settings() {
   delete settings;
 }
 
+void Settings::default_settings() {
+  //Default Settings:
+  //GUI args:
+  glob_args.gui_args.path_to_file         = nullptr;
+  glob_args.gui_args.save_settings        = true;
+  glob_args.gui_args.show_diff            = false;
+  glob_args.gui_args.show_downlink        = true;
+  glob_args.gui_args.show_spectrum        = false;
+  glob_args.gui_args.show_uplink          = true;
+  glob_args.gui_args.use_file_as_source   = true;
+  glob_args.gui_args.show_cell_activity   = false;
+  glob_args.gui_args.show_ue_activity     = false;
+  glob_args.gui_args.show_affiliation     = true;
+  glob_args.gui_args.show_institute       = true;
+  glob_args.gui_args.show_funding         = false;
+  glob_args.gui_args.show_banner          = true;
+  glob_args.gui_args.show_advanced        = false;
+  glob_args.gui_args.sort_by_column       = 0;
+  glob_args.gui_args.sort_order           = 0;
+  glob_args.gui_args.perf_fps             = 4;
+  glob_args.gui_args.wf_fps               = 60;
+
+  // glob_args.gui_args.show_plot_downlink   = false;
+
+  //Spectrum args:
+  glob_args.spectrum_args.mouse_wheel_sens    = 100;
+  glob_args.spectrum_args.spectrum_line_count = 300;
+  glob_args.spectrum_args.spectrum_line_shown = 100;
+  glob_args.spectrum_args.spectrum_line_width = 50;
+
+  glob_args.eyeArgs.nof_subframe_workers = 20;
+}
+
 void Settings::load_settings() {
 
   //Load GUI Settings:
-
   settings->beginGroup("GUI");
+  glob_args.gui_args.save_settings        = settings->value("SAVE_TO_FILE", glob_args.gui_args.save_settings).toBool();
+  glob_args.gui_args.show_diff            = settings->value("SHOW_DIFF", glob_args.gui_args.show_diff).toBool();
+  glob_args.gui_args.show_downlink        = settings->value("SHOW_DOWNLINK", glob_args.gui_args.show_downlink).toBool();
+  glob_args.gui_args.show_spectrum        = settings->value("SHOW_SPECTRUM", glob_args.gui_args.show_spectrum).toBool();
+  glob_args.gui_args.show_uplink          = settings->value("SHOW_UPLINK", glob_args.gui_args.show_uplink).toBool();
+  glob_args.gui_args.use_file_as_source   = settings->value("USE_FILE_AS_SOURCE", glob_args.gui_args.use_file_as_source).toBool();
+  glob_args.gui_args.show_cell_activity   = settings->value("SHOW_CELL_ACTIVITY", glob_args.gui_args.show_cell_activity).toBool();
+  glob_args.gui_args.show_ue_activity     = settings->value("SHOW_UE_ACTIVITY", glob_args.gui_args.show_ue_activity).toBool();
+  glob_args.gui_args.show_affiliation     = settings->value("SHOW_AFFILIATION", glob_args.gui_args.show_affiliation).toBool();
+  glob_args.gui_args.show_institute       = settings->value("SHOW_INSTITUTE", glob_args.gui_args.show_institute).toBool();
+  glob_args.gui_args.show_funding         = settings->value("SHOW_FUNDING", glob_args.gui_args.show_funding).toBool();
+  glob_args.gui_args.show_banner          = settings->value("SHOW_BANNER", glob_args.gui_args.show_banner).toBool();
+  glob_args.gui_args.show_advanced        = settings->value("SHOW_ADVANCED", glob_args.gui_args.show_advanced).toBool();
+  //glob_args.gui_args.show_plot_downlink   = settings->value("SHOW_DOWNLINK_PLOT", glob_args.gui_args.show_plot_downlink).toBool();
+  settings->endGroup();
 
-  glob_args.gui_args.save_settings        = settings->value("SAVE_TO_FILE").toBool();
-  glob_args.gui_args.show_diff            = settings->value("SHOW_DIFF").toBool();
-  glob_args.gui_args.show_downlink        = settings->value("SHOW_DOWNLINK").toBool();
-  glob_args.gui_args.show_spectrum        = settings->value("SHOW_SPECTRUM").toBool();
-  glob_args.gui_args.show_uplink          = settings->value("SHOW_UPLINK").toBool();
-  glob_args.gui_args.use_file_as_source   = settings->value("USE_FILE_AS_SOURCE").toBool();
-  glob_args.gui_args.show_performance_plot= settings->value("SHOW_PERFORMANCE_PLOT").toBool();
-  glob_args.gui_args.show_rnti            = settings->value("SHOW_RNTI").toBool();
-  //glob_args.gui_args.show_plot_downlink   = settings->value("SHOW_DOWNLINK_PLOT").toBool();
+  // Load UE Activity Settings:
+  settings->beginGroup("UE_ACTIVITY");
+  glob_args.gui_args.sort_by_column = settings->value("SORT_BY_COLUMN", glob_args.gui_args.sort_by_column).toInt();
+  glob_args.gui_args.sort_order     = settings->value("SORT_ORDER", glob_args.gui_args.sort_order).toInt();
+  settings->endGroup();
+
+  // Load Cell Activity Settings:
+  settings->beginGroup("CELL_ACTIVITY");
+  glob_args.gui_args.perf_fps   = settings->value("PERF_FPS", glob_args.gui_args.perf_fps).toInt();
   settings->endGroup();
 
   //Load Spectrum Settings:
-
-  settings->beginGroup("Spectrum");
-
-  glob_args.spectrum_args.mouse_wheel_sens     = settings->value("MOUSE_WHEEL_SENS").toInt();
-  glob_args.spectrum_args.spectrum_line_count  = settings->value("SPECTRUM_LINE_COUNT").toInt();
-  glob_args.spectrum_args.spectrum_line_shown  = settings->value("SPECTRUM_LINE_SHOWN").toInt();
-  glob_args.spectrum_args.spectrum_line_width  = settings->value("SPECTRUM_LINE_WIDTH").toInt();
-  glob_args.gui_args.wf_fps   = settings->value("WF_FPS").toInt();
-
-
-  settings->endGroup();
-
-  settings->beginGroup("PERFORMANCE_PLOTS");
-  glob_args.gui_args.perf_fps   = settings->value("PERF_FPS").toInt();
+  settings->beginGroup("SPECTRUM");
+  glob_args.gui_args.wf_fps                    = settings->value("WF_FPS", glob_args.gui_args.wf_fps).toInt();
+  glob_args.spectrum_args.mouse_wheel_sens     = settings->value("MOUSE_WHEEL_SENS", glob_args.spectrum_args.mouse_wheel_sens).toInt();
+  glob_args.spectrum_args.spectrum_line_count  = settings->value("SPECTRUM_LINE_COUNT", glob_args.spectrum_args.spectrum_line_count).toInt();
+  glob_args.spectrum_args.spectrum_line_shown  = settings->value("SPECTRUM_LINE_SHOWN", glob_args.spectrum_args.spectrum_line_shown).toInt();
+  glob_args.spectrum_args.spectrum_line_width  = settings->value("SPECTRUM_LINE_WIDTH", glob_args.spectrum_args.spectrum_line_width).toInt();
   settings->endGroup();
 
   //Load EYE Settings:
-
   settings->beginGroup("EYE");
-
-  glob_args.eyeArgs.rf_freq          = settings->value("RF_FREQ").toDouble();
-  glob_args.gui_args.path_to_file    = settings->value("PATH_TO_FILE").toString().toLocal8Bit();
-  glob_args.eyeArgs.enable_shortcut_discovery = settings->value("ENABLE_SHORTCUTDISCOVERY").toBool();
-  glob_args.eyeArgs.nof_subframe_workers = settings->value("NOF_SUBFRAME_WORKERS").toInt();
-
+  glob_args.eyeArgs.rf_freq                     = settings->value("RF_FREQ", glob_args.eyeArgs.rf_freq).toDouble();
+  glob_args.gui_args.path_to_file               = settings->value("PATH_TO_FILE", glob_args.gui_args.path_to_file).toString().toLocal8Bit();
+  glob_args.eyeArgs.enable_shortcut_discovery   = settings->value("ENABLE_SHORTCUTDISCOVERY", glob_args.eyeArgs.enable_shortcut_discovery).toBool();
+  glob_args.eyeArgs.nof_subframe_workers        = settings->value("NOF_SUBFRAME_WORKERS", glob_args.eyeArgs.nof_subframe_workers).toInt();
   settings->endGroup();
-
-  // Load RNTI table settings:
-
-  settings->beginGroup("RNTI_TABLE");
-  glob_args.gui_args.sort_by_column = settings->value("SORT_BY_COLUMN").toInt();
-  glob_args.gui_args.sort_order = settings->value("SORT_ORDER").toInt();
-  settings->endGroup();
-
 }
 
 void Settings::store_settings(){
 
   //Save GUI Settings:
-
   settings->beginGroup("GUI");
-
   settings->setValue("SAVE_TO_FILE"         , glob_args.gui_args.save_settings);
   settings->setValue("SHOW_DIFF"            , glob_args.gui_args.show_diff);
   settings->setValue("SHOW_DOWNLINK"        , glob_args.gui_args.show_downlink);
   settings->setValue("SHOW_SPECTRUM"        , glob_args.gui_args.show_spectrum);
   settings->setValue("SHOW_UPLINK"          , glob_args.gui_args.show_uplink);
   settings->setValue("USE_FILE_AS_SOURCE"   , glob_args.gui_args.use_file_as_source);
-  settings->setValue("SHOW_PERFORMANCE_PLOT", glob_args.gui_args.show_performance_plot);
-  settings->setValue("SHOW_RNTI"            , glob_args.gui_args.show_rnti );
+  settings->setValue("SHOW_CELL_ACTIVITY"   , glob_args.gui_args.show_cell_activity);
+  settings->setValue("SHOW_UE_ACTIVITY"     , glob_args.gui_args.show_ue_activity);
+  settings->setValue("SHOW_AFFILIATION"     , glob_args.gui_args.show_affiliation);
+  settings->setValue("SHOW_INSTITUTE"       , glob_args.gui_args.show_institute);
+  settings->setValue("SHOW_FUNDING"         , glob_args.gui_args.show_funding);
+  settings->setValue("SHOW_BANNER"          , glob_args.gui_args.show_banner);
+  settings->setValue("SHOW_ADVANCED"        , glob_args.gui_args.show_advanced);
   //settings->setValue("SHOW_DOWNLINK_PLOT" , glob_args.gui_args.show_plot_downlink);
+  settings->endGroup();
 
+  // Save UE Activity Settings:
+  settings->beginGroup("UE_ACTIVITY");
+  settings->setValue("SORT_BY_COLUMN" , glob_args.gui_args.sort_by_column);
+  settings->setValue("SORT_ORDER"     , glob_args.gui_args.sort_order);
+  settings->endGroup();
+
+  // Save Cell Activity Settings:
+  settings->beginGroup("CELL_ACTIVITY");
+  settings->setValue("PERF_FPS", glob_args.gui_args.perf_fps);
   settings->endGroup();
 
   //Save Spectrum Settings:
-
-  settings->beginGroup("Spectrum");
-
+  settings->beginGroup("SPECTRUM");
+  settings->setValue("WF_FPS"                 , glob_args.gui_args.wf_fps);
   settings->setValue("MOUSE_WHEEL_SENS"       , glob_args.spectrum_args.mouse_wheel_sens);
   settings->setValue("SPECTRUM_LINE_COUNT"    , glob_args.spectrum_args.spectrum_line_count);
   settings->setValue("SPECTRUM_LINE_SHOWN"    , glob_args.spectrum_args.spectrum_line_shown);
   settings->setValue("SPECTRUM_LINE_WIDTH"    , glob_args.spectrum_args.spectrum_line_width);
-  settings->setValue("WF_FPS"     ,glob_args.gui_args.wf_fps);
-
-  settings->endGroup();
-
-  settings->beginGroup("PERFORMANCE_PLOTS");
-  settings->setValue("PERF_FPS", glob_args.gui_args.perf_fps);
   settings->endGroup();
 
   //Save EYE Settings:
-
   settings->beginGroup("EYE");
-
-  settings->setValue("RF_FREQ"            , glob_args.eyeArgs.rf_freq);
-  settings->setValue("PATH_TO_FILE"       , glob_args.gui_args.path_to_file);
-  settings->setValue("ENABLE_SHORTCUTDISCOVERY", glob_args.eyeArgs.enable_shortcut_discovery);
-  settings->setValue("NOF_SUBFRAME_WORKERS", glob_args.eyeArgs.nof_subframe_workers);
-
+  settings->setValue("RF_FREQ"                  , glob_args.eyeArgs.rf_freq);
+  settings->setValue("PATH_TO_FILE"             , glob_args.gui_args.path_to_file);
+  settings->setValue("ENABLE_SHORTCUTDISCOVERY" , glob_args.eyeArgs.enable_shortcut_discovery);
+  settings->setValue("NOF_SUBFRAME_WORKERS"     , glob_args.eyeArgs.nof_subframe_workers);
   settings->endGroup();
-
-  // Load RNTI table settings:
-  settings->beginGroup("RNTI_TABLE");
-  settings->setValue("SORT_BY_COLUMN" , glob_args.gui_args.sort_by_column);
-  settings->setValue("SORT_ORDER", glob_args.gui_args.sort_order);
-  settings->endGroup();
-
 }

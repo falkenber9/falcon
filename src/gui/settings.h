@@ -36,8 +36,15 @@ typedef struct {
     bool show_diff;
     bool show_uplink;
     bool show_downlink;
-    bool show_performance_plot;
-    bool show_rnti;
+    bool show_cell_activity;
+    bool show_ue_activity;
+
+    bool show_affiliation;
+    bool show_institute;
+    bool show_funding;
+    bool show_banner;
+
+    bool show_advanced;
     //bool show_plot_downlink;
 
     //String settings:
@@ -84,6 +91,7 @@ public:
     explicit Settings();
     virtual ~Settings();
 
+    void default_settings();
     void load_settings();
     void store_settings();
 };

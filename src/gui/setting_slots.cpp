@@ -56,14 +56,6 @@ void MainWindow::on_lineEdit_FileName_editingFinished() {
   }
 }
 
-void MainWindow::on_actionUse_File_as_Source_changed() {
-  glob_settings.glob_args.gui_args.use_file_as_source = ui->actionUse_File_as_Source->isChecked(); //Store checkbox Flag
-
-  if(glob_settings.glob_args.gui_args.save_settings) {
-    glob_settings.store_settings();  //If save_settings = true, save to file.
-  }
-}
-
 void MainWindow::on_actionSpectrum_changed() {
   glob_settings.glob_args.gui_args.show_spectrum = ui->actionSpectrum->isChecked();
 
@@ -105,16 +97,16 @@ void MainWindow::on_actionSave_Settings_changed() {
   glob_settings.store_settings();  //save to file once.
 }
 
-void MainWindow::on_actionplot1_changed() {
-  glob_settings.glob_args.gui_args.show_performance_plot = ui->actionplot1->isChecked();
+void MainWindow::on_actionCellActivity_changed() {
+  glob_settings.glob_args.gui_args.show_cell_activity = ui->actionCellActivity->isChecked();
   if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();
-  handle_perf_plot(glob_settings.glob_args.gui_args.show_performance_plot);
+  handle_perf_plot(glob_settings.glob_args.gui_args.show_cell_activity);
 }
 
-void MainWindow::on_actionRNTI_Table_changed() {
-  glob_settings.glob_args.gui_args.show_rnti = ui->actionRNTI_Table->isChecked();
+void MainWindow::on_actionUEActivity_changed() {
+  glob_settings.glob_args.gui_args.show_ue_activity = ui->actionUEActivity->isChecked();
   if(glob_settings.glob_args.gui_args.save_settings)glob_settings.store_settings();
-  handle_rnti_table(glob_settings.glob_args.gui_args.show_rnti);
+  handle_rnti_table(glob_settings.glob_args.gui_args.show_ue_activity);
 }
 
 void MainWindow::on_actionDownlink_Plots_changed(){

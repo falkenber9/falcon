@@ -73,13 +73,12 @@ private slots:
   void on_actionUplink_changed();
   void on_actionDownlink_changed();
   void on_actionSave_Settings_changed();
-  void on_actionplot1_changed();
+  void on_actionCellActivity_changed();
   void on_Select_file_button_clicked();
   void on_lineEdit_FileName_textChanged(const QString &arg1);
-  void on_actionUse_File_as_Source_changed();
   void on_actionTile_Windows_triggered();
   void on_actionDownlink_Plots_changed();
-  void on_actionRNTI_Table_changed();
+  void on_actionUEActivity_changed();
   void on_spinBox_Prb_valueChanged(int arg1);
   void on_spinBox_nof_sf_workers_valueChanged(int val);
   void on_slider_hist_threshold_valueChanged(int val);
@@ -88,8 +87,7 @@ private slots:
   void on_slider_mouse_sensivity_valueChanged(int val);
 
 
-  // Color
-  //Color:
+  // Color:
   void on_pushButton_uplink_color_clicked();
   void on_pushButton_downlink_color_clicked();
   void range_slider_value_changed(int value);
@@ -98,6 +96,21 @@ protected:
   void wheelEvent(QWheelEvent *event) override;
   void dropEvent(QDropEvent *event) override;
   void dragEnterEvent(QDragEnterEvent *e) override;
+
+private slots:
+  void on_actionAdvanced_toggled(bool checked);
+
+private slots:
+  void on_actionInstitute_toggled(bool checked);
+
+private slots:
+  void on_actionBanner_toggled(bool checked);
+
+private slots:
+  void on_actionFunding_toggled(bool checked);
+
+private slots:
+  void on_actionAffiliation_toggled(bool checked);
 
 private:
 
@@ -112,6 +125,7 @@ private:
 
   void update_cell_config_fields();
   bool get_args_from_file(const QString filename);
+  void enable_advanced_options(bool enabled);
 
   //  [SUBWINDOW]_start(bool)
 

@@ -1,6 +1,16 @@
 FALCON Changelog
 ================
 
+# v1.2.0
+
+## General
+- GUI improvements/cleaning
+- Minor bugfixes
+
+## Miscellaneous
+- Code cleaning
+- CI improvements
+
 # v1.1.0
 
 ## General

@@ -1,3 +1,5 @@
+#include <limits>
+
 #include "mainwindow.h"
 
 #define TA_DIGITS_PER_DISPLAY 80
@@ -92,6 +94,10 @@ PerformancePlot::PerformancePlot(Settings* p_glob_settings, SpectrumAdapter* p_s
 
 void PerformancePlot::activate(){
 
+  // Reset metrics
+  metrics_dl = CellMetrics();
+  metrics_ul = CellMetrics();
+
   // Initially clear graphs
   plot_mcs_idx->graph(UPLINK)->setData(QVector<double>(), QVector<double>());
   plot_mcs_idx->graph(DOWNLINK)->setData(QVector<double>(), QVector<double>());
@@ -183,96 +189,95 @@ void PerformancePlot::calc_performance_data(const ScanLineLegacy *line){
      *  the calculation is then operated based on the pointer set.
      */
 
-  if(line->type == SCAN_LINE_PERF_PLOT_A){
-    mcs_tbs = &mcs_tbs_sum_uplink;
-    l_prb = &l_prb_sum_uplink;
-    mcs_idx = &mcs_idx_uplink;
-    nof_allocations = &nof_allocations_uplink;
-    nof_received_sf = &nof_received_sf_uplink;
-    last_timestamp = &last_timestamp_uplink;
-    sf_idx_old = &sf_idx_old_uplink;
+  CellMetrics* metrics = nullptr;
+  if(line->type == SCAN_LINE_PERF_PLOT_A) {
+    metrics = &metrics_ul;
     graph_mcs_idx = plot_mcs_idx->graph(UPLINK);
-    graph_throughput   =  plot_throughput->graph(UPLINK);
-    graph_prb =  plot_prb->graph(UPLINK);
-  }else
-  {
-    mcs_tbs = &mcs_tbs_sum_downlink;
-    l_prb = &l_prb_sum_downlink;
-    mcs_idx = &mcs_idx_sum_downlink;
-    nof_allocations = &nof_allocations_downlink;
-    nof_received_sf = &nof_received_sf_downlink;
-    last_timestamp = &last_timestamp_downlink;
-    sf_idx_old = &sf_idx_old_downlink;
+    graph_throughput = plot_throughput->graph(UPLINK);
+    graph_prb = plot_prb->graph(UPLINK);
+  }
+  else if(line->type == SCAN_LINE_PERF_PLOT_B) {
+    metrics = &metrics_dl;
     graph_mcs_idx = plot_mcs_idx->graph(DOWNLINK);
-    graph_throughput   =  plot_throughput->graph(DOWNLINK);
-    graph_prb =  plot_prb->graph(DOWNLINK);
+    graph_throughput = plot_throughput->graph(DOWNLINK);
+    graph_prb = plot_prb->graph(DOWNLINK);
   }
 
-  // Sum everything up
-  (*mcs_tbs) += line->mcs_tbs;
-  (*l_prb)   += line->l_prb;
-  (*mcs_idx) += line->mcs_idx;
-  (*nof_allocations)++;
+  if(metrics != nullptr) {
+    // Sum everything up
+    metrics->mcs_tbs += line->mcs_tbs;
+    metrics->l_prb   += line->l_prb;
+    metrics->mcs_idx += line->mcs_idx;
+    metrics->nof_dci++;
 
-  // Update sf_idx if new subframe has started
-  if(line->sf_idx != *sf_idx_old){
-    (*nof_received_sf)++;
-    *sf_idx_old = line->sf_idx;
+    // Check if new TTI has started
+    uint32_t tti_now = line->sfn * 10 + line->sf_idx;
+    if(metrics->tti_current != tti_now) {   // prefer != instead of < due to wrap-around
+      metrics->tti_current = tti_now;
+      metrics->nof_tti_with_dci++;
+    }
+    // On first run, set tti_start
+    if(metrics->fresh) {
+      metrics->fresh = false;
+      metrics->tti_start = tti_now;
+    }
   }
+
   perf_mutex.unlock();
   delete line;
 }
 
-void PerformancePlot::draw_plot_downlink(){
+void PerformancePlot::draw_plot(LINKTYPE direction, CellMetrics& metrics) {
   double timestamp = QTime::currentTime().msecsSinceStartOfDay()*0.001; // day time in milliseconds
   perf_mutex.lock();
 
-  mcs_tbs = &mcs_tbs_sum_downlink;
-  l_prb = &l_prb_sum_downlink;
-  mcs_idx = &mcs_idx_sum_downlink;
-  nof_allocations = &nof_allocations_downlink;
-  nof_received_sf = &nof_received_sf_downlink;
-  graph_mcs_idx = plot_mcs_idx->graph(DOWNLINK);
-  graph_throughput   =  plot_throughput->graph(DOWNLINK);
-  graph_prb =  plot_prb->graph(DOWNLINK);
+  graph_mcs_idx = plot_mcs_idx->graph(direction);
+  graph_throughput = plot_throughput->graph(direction);
+  graph_prb = plot_prb->graph(direction);
 
-  if(*nof_received_sf != 0){    // Only plot if at least one subframe was received
-
-    /*  CALCULATION:
-     *  mcs_tbs_sum_sum_a/elapsed/1024/1024*1000 [bit/ms] --> /1024^2 --> [Mbit/ms] --> /1000 --> [Mbit/s]
-     */
-    double throughput_val = *mcs_tbs / *nof_received_sf *1000/1024/1024;
-    if (throughput_val > throughput_upper*OVERSCAN){
-      throughput_upper = throughput_val;
-      plot_throughput->yAxis->setRangeUpper(throughput_upper*OVERSCAN);
+  if(metrics.nof_tti_with_dci > 0) {    // Only plot if at least one subframe was received
+    int delta_ms = 0;
+    if (metrics.tti_current > metrics.tti_start) {
+      delta_ms = metrics.tti_current - metrics.tti_start;
+    }
+    else { // integer overflow
+      delta_ms = (std::numeric_limits<typeof(metrics.tti_current)>::max() - metrics.tti_start) + metrics.tti_current;
+    }
+    double throughput_mbps = metrics.mcs_tbs / delta_ms / 1000; // tbs unit: [bit/ms] = [bit/s * 10^-3]; output unit [Mbit/s] = [bit/s * 10^-6];
+    if (throughput_mbps > throughput_max*OVERSCAN){
+      throughput_max = throughput_mbps;
+      plot_throughput->yAxis->setRangeUpper(throughput_max*OVERSCAN);
       #ifdef THRESHOLD_DECAY
       throughput_rescale_timer.start(10000);
       #endif
     }
-
-    graph_mcs_idx ->addData(timestamp,*mcs_idx / *nof_allocations);
-    graph_throughput     ->addData(timestamp,throughput_val);
-    graph_prb   ->addData(timestamp,*l_prb  / *nof_received_sf);
+    graph_mcs_idx->addData(timestamp, metrics.mcs_idx / metrics.nof_dci);
+    graph_throughput->addData(timestamp, throughput_mbps);
+    graph_prb->addData(timestamp, metrics.l_prb  / delta_ms);
   }
-  else{
-
-    graph_mcs_idx ->addData(timestamp, 0);
-    graph_throughput     ->addData(timestamp, 0);
-    graph_prb   ->addData(timestamp, 0);
+  else {
+    graph_mcs_idx->addData(timestamp, 0);
+    graph_throughput->addData(timestamp, 0);
+    graph_prb->addData(timestamp, 0);
   }
 
-  *mcs_idx = 0;
-  *mcs_tbs = 0;
-  *l_prb   = 0;
-  *nof_allocations = 0;
-  *nof_received_sf = 0;
+  metrics.mcs_idx = 0;
+  metrics.mcs_tbs = 0;
+  metrics.l_prb   = 0;
+  metrics.nof_dci = 0;
+  metrics.nof_tti_with_dci = 0;
+  metrics.tti_start = metrics.tti_current;
 
   // make timestamp axis range scroll with the data (at a constant range size of 10 sec):
-  plot_mcs_idx->xAxis->setRange(timestamp, 10, Qt::AlignRight);
-  plot_prb    ->xAxis->setRange(timestamp, 10, Qt::AlignRight);
+  plot_mcs_idx   ->xAxis->setRange(timestamp, 10, Qt::AlignRight);
+  plot_prb       ->xAxis->setRange(timestamp, 10, Qt::AlignRight);
   plot_throughput->xAxis->setRange(timestamp, 10, Qt::AlignRight);
- 
+
   perf_mutex.unlock();
+}
+
+void PerformancePlot::draw_plot_downlink(){
+  draw_plot(DOWNLINK, metrics_dl);
 }
 
 void PerformancePlot::throughput_upper_limit_decay(){
@@ -286,55 +291,7 @@ void PerformancePlot::throughput_upper_limit_decay(){
 }
 
 void PerformancePlot::draw_plot_uplink(){
-  double timestamp = QTime::currentTime().msecsSinceStartOfDay()*0.001; // day time in milliseconds
-  perf_mutex.lock();
-
-  mcs_tbs = &mcs_tbs_sum_uplink;
-  l_prb = &l_prb_sum_uplink;
-  mcs_idx = &mcs_idx_uplink;
-  nof_allocations = &nof_allocations_uplink;
-  nof_received_sf = &nof_received_sf_uplink;
-  graph_mcs_idx = plot_mcs_idx->graph(UPLINK);
-  graph_throughput   =  plot_throughput->graph(UPLINK);
-  graph_prb =  plot_prb->graph(UPLINK);
-
-  if(*nof_received_sf != 0){    // Only plot if at least one subframe was received
-
-    /*  CALCULATION:
-     *  mcs_tbs_sum_sum_a/elapsed/1024/1024*1000 [bit/ms] --> /1024^2 --> [Mbit/ms] --> /1000 --> [Mbit/s]
-     */
-    double throughput_val = *mcs_tbs / *nof_received_sf *1000/1024/1024;
-    if (throughput_val > throughput_upper*OVERSCAN){
-      throughput_upper = throughput_val;
-      plot_throughput->yAxis->setRangeUpper(throughput_upper*OVERSCAN);
-      #ifdef THRESHOLD_DECAY
-      throughput_rescale_timer.start(10000);
-      #endif
-    }
-
-    graph_mcs_idx ->addData(timestamp,*mcs_idx / *nof_allocations);
-    graph_throughput     ->addData(timestamp, throughput_val);
-    graph_prb   ->addData(timestamp,*l_prb  / *nof_received_sf);
-  }
-  else{
-
-    graph_mcs_idx ->addData(timestamp, 0);
-    graph_throughput     ->addData(timestamp, 0);
-    graph_prb   ->addData(timestamp, 0);
-  }
-
-  *mcs_idx = 0;
-  *mcs_tbs = 0;
-  *l_prb   = 0;
-  *nof_allocations = 0;
-  *nof_received_sf = 0;
-
-  // make timestamp axis range scroll with the data (at a constant range size of 10 sec):
-  plot_mcs_idx->xAxis->setRange(timestamp, 10, Qt::AlignRight);
-  plot_prb    ->xAxis->setRange(timestamp, 10, Qt::AlignRight);
-  plot_throughput->xAxis->setRange(timestamp, 10, Qt::AlignRight);
-
-  perf_mutex.unlock();
+  draw_plot(UPLINK, metrics_ul);
 }
 
 void PerformancePlot::draw_rnti_hist(const ScanLineLegacy *line){
@@ -352,7 +309,6 @@ void PerformancePlot::update_plot_color(){
 
   plot_prb->graph(UPLINK)->setPen(QPen(glob_settings->glob_args.gui_args.uplink_plot_color));
   plot_prb->graph(DOWNLINK)->setPen(QPen(glob_settings->glob_args.gui_args.downlink_plot_color));
-
 }
 
 void PerformancePlot::setupPlot(PlotsType_t plottype, QCustomPlot *plot){
@@ -396,12 +352,11 @@ void PerformancePlot::setupPlot(PlotsType_t plottype, QCustomPlot *plot){
     timeTicker->setTimeFormat(TIMEFORMAT);
     timeTicker->setTickStepStrategy(QCPAxisTicker::TickStepStrategy::tssReadability);
     plot->xAxis->setTicker(timeTicker);
-    plot->xAxis2->setLabel("Cell Throughput (TBS) [Mbit/s]");
+    plot->xAxis2->setLabel("Total Throughput [Mbit/s]");
     plot->yAxis->setRange(0,1);
     plot->axisRect()->setupFullAxesBox();
     plot->legend->setVisible(true);
     plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
-
   }
 
   if(plottype == MCS_IDX_PLOT){
@@ -431,11 +386,9 @@ void PerformancePlot::setupPlot(PlotsType_t plottype, QCustomPlot *plot){
     plot->graph(UPLINK)->setPen(QPen(glob_settings->glob_args.gui_args.uplink_plot_color));
     plot->graph(UPLINK)->setName("Uplink");
 
-
     plot->addGraph(); //blue line
     plot->graph(DOWNLINK)->setPen(QPen(glob_settings->glob_args.gui_args.downlink_plot_color));
     plot->graph(DOWNLINK)->setName("Downlink");
-
 
     QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
     timeTicker->setTimeFormat(TIMEFORMAT);
@@ -447,7 +400,6 @@ void PerformancePlot::setupPlot(PlotsType_t plottype, QCustomPlot *plot){
     plot->legend->setVisible(true);
     plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
   }
-
 }
 
 void PerformancePlot::addData(PlotsType_t plottype, QCustomPlot *plot, const ScanLineLegacy *data){
@@ -466,22 +418,6 @@ void PerformancePlot::addData(PlotsType_t plottype, QCustomPlot *plot, const Sca
     }
 
   }
-#ifdef LEGACYCODE
-  if(plottype == RB_OCCUPATION || plottype == CELL_THROUGHPUT){
-    // calculate two new data points:
-    double key = QTime::currentTime().msecsSinceStartOfDay()*0.001; // time elapsed since start of demo, in seconds
-    int rnti_counter = 0;
-    for(int i = 0; i < 65000; i++)if(data->rnti_hist[i] > 10) rnti_counter++;
-
-    plot->graph(UPLINK)->addData(key,rnti_counter);
-
-    key++;
-
-    // make key axis range scroll with the data (at a constant range size of 8):
-    plot->xAxis->setRange(key, 8, Qt::AlignRight);
-    plot->replot();
-  }
-#endif // LEGACYCODE
 }
 
 QMdiSubWindow* PerformancePlot::getSubwindow(){

@@ -109,7 +109,7 @@ void RNTITable::refreshTable(){
 }
 
 void RNTITable::handle_data(const ScanLineLegacy *data){
-  uint16_t sfn = data->sfn;
+  uint32_t sfn = data->sfn;
   uint32_t sf_idx = data->sf_idx;
   uint32_t mcs_idx = data->mcs_idx;
   int mcs_tbs = data->mcs_tbs;

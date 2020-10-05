@@ -8,6 +8,29 @@
 #include "adapters_qt/SpectrumAdapter.h"
 #include "plots.h"
 
+struct CellMetrics {
+
+  // TTI
+  bool fresh = true;
+  uint32_t tti_start = 0;
+  uint32_t tti_current = 0;
+
+  // Number of received subframes
+  double nof_tti_with_dci = 0;
+
+  // Modulation and coding scheme index
+  double mcs_idx = 0;
+
+  // Number of allocations
+  uint32_t nof_dci = 0;
+
+  // Transportblocksize
+  double mcs_tbs = 0;
+
+  // Number of PRBs
+  double l_prb = 0;
+};
+
 
 class PerformancePlot : public QObject{
   Q_OBJECT
@@ -64,46 +87,17 @@ private:
   // Mutex
   std::mutex perf_mutex;
 
-  // Timestamps
-  double* last_timestamp = nullptr;
-  double last_timestamp_uplink = 0;
-  double last_timestamp_downlink = 0;
-
-  // Subframe index
-  uint32_t* sf_idx_old = nullptr;
-  uint32_t sf_idx_old_uplink        = 0;
-  uint32_t sf_idx_old_downlink      = 0;
-
-  // Number of received subframes
-  double* nof_received_sf = nullptr;
-  double nof_received_sf_uplink    = 0;
-  double nof_received_sf_downlink    = 0;
-
-  // Modulation and coding scheme index
-  double* mcs_idx = nullptr;
-  double mcs_idx_uplink    = 0;
-  double mcs_idx_sum_downlink    = 0;
-
-  // Number of allocations
-  int* nof_allocations = nullptr;
-  int nof_allocations_uplink = 0;
-  int nof_allocations_downlink = 0;
-
-  // Transportblocksize
-  double* mcs_tbs = nullptr;
-  double throughput_upper = 0;
-  double mcs_tbs_sum_uplink      = 0;
-  double mcs_tbs_sum_downlink    = 0;
+  double throughput_max = 0;
   QTimer throughput_rescale_timer;
 
-  // Length of resource blocks
-  double* l_prb = nullptr;
-  double l_prb_sum_uplink        = 0;
-  double l_prb_sum_downlink      = 0;
+  CellMetrics metrics_ul;
+  CellMetrics metrics_dl;
 
   void performance_plots_start(bool start);
   void setupPlot(PlotsType_t plottype, QCustomPlot *plot);
   void addData(PlotsType_t plottype, QCustomPlot *plot, const ScanLineLegacy *data);
+
+  void draw_plot(LINKTYPE direction, CellMetrics& metrics);
 
 private slots:
   void replot_perf();

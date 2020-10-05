@@ -64,7 +64,7 @@ void plot_scanLines(EyeThread *inst, const std::vector<uint16_t> *data_ul, const
 
 }
 
-void update_perfPlot(EyeThread* inst, uint16_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb, ScanLineType_t sl_type, uint32_t total_prb){
+void update_perfPlot(EyeThread* inst, uint32_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb, ScanLineType_t sl_type, uint32_t total_prb){
 
   if (dynamic_cast<EyeThread*>(inst) == nullptr){
     ERROR("Handed wrong object type to function >>\tupdate_perfPlot\t<<!");
@@ -104,7 +104,7 @@ void plot_rnti(EyeThread *inst, uint32_t *rnti_hist){
   }
 }
 
-void update_tableEntry(EyeThread *inst, uint16_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb, uint16_t rnti){
+void update_tableEntry(EyeThread *inst, uint32_t sfn, uint32_t sf_idx,uint32_t mcs_idx,int mcs_tbs,uint32_t l_prb, uint16_t rnti){
   if (dynamic_cast<EyeThread*>(inst) == nullptr){
     ERROR("Handed wrong object type to function >>\tupdate_tableEntry\t<<!");
   }
@@ -232,6 +232,9 @@ void DCIGUIConsumer::consumeDCICollection(const SubframeInfo& subframeInfo) {
   // Downlink
   const std::vector<DCI_DL>& dci_dl = collection.getDCI_DL();
   for(std::vector<DCI_DL>::const_iterator dci_dl_it = dci_dl.begin(); dci_dl_it != dci_dl.end(); ++dci_dl_it) {
+    int tb_count = 0;
+    int tbs_sum = 0;
+    uint32_t idx_avg = 0;
     switch(dci_dl_it->format) {
       case SRSLTE_DCI_FORMAT0:
         ERROR("Error: no reason to be here\n");
@@ -241,14 +244,50 @@ void DCIGUIConsumer::consumeDCICollection(const SubframeInfo& subframeInfo) {
       case SRSLTE_DCI_FORMAT1C:
       case SRSLTE_DCI_FORMAT1B:
       case SRSLTE_DCI_FORMAT1D:
-        update_perfPlot  (m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_dl_it->dl_grant->mcs[0].idx, dci_dl_it->dl_grant->mcs[0].tbs, dci_dl_it->dl_grant->nof_prb, SCAN_LINE_PERF_PLOT_B, nof_prb);
-        update_tableEntry(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_dl_it->dl_grant->mcs[0].idx, dci_dl_it->dl_grant->mcs[0].tbs, dci_dl_it->dl_grant->nof_prb, dci_dl_it->rnti);
+        update_perfPlot  (m_Thread,
+                          collection.get_sfn(),
+                          collection.get_sf_idx(),
+                          dci_dl_it->dl_grant->mcs[0].idx,
+                          dci_dl_it->dl_grant->mcs[0].tbs,
+                          dci_dl_it->dl_grant->nof_prb,
+                          SCAN_LINE_PERF_PLOT_B,
+                          nof_prb);
+        update_tableEntry(m_Thread,
+                          collection.get_sfn(),
+                          collection.get_sf_idx(),
+                          dci_dl_it->dl_grant->mcs[0].idx,
+                          dci_dl_it->dl_grant->mcs[0].tbs,
+                          dci_dl_it->dl_grant->nof_prb,
+                          dci_dl_it->rnti);
         break;
       case SRSLTE_DCI_FORMAT2:
       case SRSLTE_DCI_FORMAT2A:
       case SRSLTE_DCI_FORMAT2B:
-        update_perfPlot  (m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_dl_it->dl_grant->mcs[0].idx, dci_dl_it->dl_grant->mcs[0].tbs, dci_dl_it->dl_grant->nof_prb, SCAN_LINE_PERF_PLOT_B, nof_prb);
-        update_tableEntry(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_dl_it->dl_grant->mcs[0].idx, dci_dl_it->dl_grant->mcs[0].tbs, dci_dl_it->dl_grant->nof_prb, dci_dl_it->rnti);
+#define DCI_FORMAT2X_NOF_TB 2
+        for(int tb = 0; tb < DCI_FORMAT2X_NOF_TB; tb++) {
+          if(dci_dl_it->dl_grant->tb_en[tb]) {
+            tb_count++;
+            tbs_sum += dci_dl_it->dl_grant->mcs[tb].tbs;
+            idx_avg += dci_dl_it->dl_grant->mcs[tb].idx;
+          }
+        }
+        if(tb_count > 0) {
+          idx_avg /= tb_count;
+        }
+        update_perfPlot  (m_Thread,
+                          collection.get_sfn(),
+                          collection.get_sf_idx(),
+                          idx_avg,
+                          tbs_sum,
+                          dci_dl_it->dl_grant->nof_prb,
+                          SCAN_LINE_PERF_PLOT_B, nof_prb);
+        update_tableEntry(m_Thread,
+                          collection.get_sfn(),
+                          collection.get_sf_idx(),
+                          idx_avg,
+                          tbs_sum,
+                          dci_dl_it->dl_grant->nof_prb,
+                          dci_dl_it->rnti);
         break;
         //case SRSLTE_DCI_FORMAT3:
         //case SRSLTE_DCI_FORMAT3A:
@@ -260,14 +299,39 @@ void DCIGUIConsumer::consumeDCICollection(const SubframeInfo& subframeInfo) {
   // Uplink
   const std::vector<DCI_UL>& dci_ul = collection.getDCI_UL();
   for(std::vector<DCI_UL>::const_iterator dci_ul_it = dci_ul.begin(); dci_ul_it != dci_ul.end(); ++dci_ul_it) {
-    // TODO: Ask for explantion here
-    if (dci_ul_it->ul_dci_unpacked->mcs_idx < 29) {
-      update_perfPlot  (m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_ul_it->ul_grant->mcs.idx, dci_ul_it->ul_grant->mcs.tbs, dci_ul_it->ul_grant->L_prb, SCAN_LINE_PERF_PLOT_A, nof_prb);
-      update_tableEntry(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_ul_it->ul_grant->mcs.idx, dci_ul_it->ul_grant->mcs.tbs, dci_ul_it->ul_grant->L_prb, dci_ul_it->rnti);
+    if (dci_ul_it->ul_dci_unpacked->mcs_idx < 29) { // Regular MCS
+      update_perfPlot  (m_Thread,
+                        collection.get_sfn(),
+                        collection.get_sf_idx(),
+                        dci_ul_it->ul_grant->mcs.idx,
+                        dci_ul_it->ul_grant->mcs.tbs,
+                        dci_ul_it->ul_grant->L_prb,
+                        SCAN_LINE_PERF_PLOT_A,
+                        nof_prb);
+      update_tableEntry(m_Thread,
+                        collection.get_sfn(),
+                        collection.get_sf_idx(),
+                        dci_ul_it->ul_grant->mcs.idx,
+                        dci_ul_it->ul_grant->mcs.tbs,
+                        dci_ul_it->ul_grant->L_prb,
+                        dci_ul_it->rnti);
     }
-    else {
-      update_perfPlot  (m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_ul_it->ul_grant->mcs.idx, 0, dci_ul_it->ul_grant->L_prb, SCAN_LINE_PERF_PLOT_A, nof_prb);
-      update_tableEntry(m_Thread, collection.get_sfn(), collection.get_sf_idx(), dci_ul_it->ul_grant->mcs.idx, 0, dci_ul_it->ul_grant->L_prb, dci_ul_it->rnti);
+    else {  // MCS >= 29 are reserved for special cases, such as retransmissions
+      update_perfPlot  (m_Thread,
+                        collection.get_sfn(),
+                        collection.get_sf_idx(),
+                        dci_ul_it->ul_grant->mcs.idx,
+                        0,
+                        dci_ul_it->ul_grant->L_prb,
+                        SCAN_LINE_PERF_PLOT_A,
+                        nof_prb);
+      update_tableEntry(m_Thread,
+                        collection.get_sfn(),
+                        collection.get_sf_idx(),
+                        dci_ul_it->ul_grant->mcs.idx,
+                        0,
+                        dci_ul_it->ul_grant->L_prb,
+                        dci_ul_it->rnti);
     }
   }
 }

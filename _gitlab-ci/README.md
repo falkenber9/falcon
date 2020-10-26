@@ -6,17 +6,23 @@ This file contains some useful hints with respect to Continuous Integration (CI)
 ## Overview
 This directory contains Docker files (in directory ``docker`` ) to build FALCON and its dependencies from scratch and in different variants (e.g. w/wo radio).
 
-In addition, this folder holds additional scripts for full tests, to ensure that a template iq sample file is decoded as expected. The template files are included into a git submodule in directory ``testscripts``
+In addition, this folder holds additional scripts for full tests, to ensure that a template iq sample file is decoded as expected. The template files are expected in the subdirectory ``testdata``, e.g. by checking out the following repository
+```sh
+git clone git@gitlab.kn.e-technik.tu-dortmund.de:falkenberg/falcon-testdata.git testdata
+```
 
-Building containers, launching them, and starting the tests is managed by Gitlab as scripted by the file ``../.gitlab-ci.yml``
+Building the containers, launching them, and starting the tests is managed by Gitlab as scripted by the file ``../.gitlab-ci.yml``
 
 ## Running tests locally
-Launch the script ``run-local.sh`` to run a subset of testcases covered by ``../.gitlab-ci.yml``.
+Launch the script ``run-local-<system>.sh`` to run a subset of testcases covered by ``../.gitlab-ci.yml``.
 
 This includes:
 
-- Build docker container for ``base_ubuntu_srsgui``
-- Build docker container for ``variant_cmnalib_uhd`` (with cmnalib and with UHD)
+- Build docker image for Ubuntu and Archlinux in different variants
+    - w/wo srsLTE
+    - w/wo UHD
+    - w/wo C-MNALIB
+- Start an image
 - Build FALCON from source in **current working tree**.
 - Run testscript ``testscripts/run-all.sh``
 - Stay in bash inside the container for further investigation

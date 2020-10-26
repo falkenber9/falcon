@@ -1,154 +1,128 @@
 stages:
-  - environment_base
-  - environment_variants
-  - build_variants
-  - unit_test
-#  - integration_test
-  - system_test
+  - Prepare
+  - Environment
+  - Build_and_Test
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - _gitlab-ci/testdata
 
 before_script:
   - docker info
 
-base_ubuntu:
-  stage: environment_base
+P_Testdata:
+  stage: Prepare
   only:
     - schedules
   script:
-    #- pwd
-    #- export
-    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/base-ubuntu
-    - docker rmi base_ubuntu:latest
-    - docker build --no-cache -t base_ubuntu:latest --target base_ubuntu .
-    
-base_ubuntu_srsgui:
-  stage: environment_base
-  only:
-    - schedules
-  script:
-    #- docker build -t $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHA}_base_ubuntu .
-    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/base-ubuntu
-    - docker rmi base_ubuntu_srsgui:latest
-    - docker build --no-cache -t base_ubuntu_srsgui:latest --target base_ubuntu_srsgui .
+    - rm -rf _gitlab-ci/testdata
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.kn.e-technik.tu-dortmund.de/falkenberg/falcon-testdata.git _gitlab-ci/testdata
 
-variant_minimal:
-  stage: environment_variants
+E_Arch:
+  stage: Environment
   only:
     - schedules
   script:
-    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker rmi variant_minimal:latest
-    - docker build --no-cache -t variant_minimal:latest .
-    
-variant_minimal_srslte_subproj:
-  stage: environment_variants
-  only:
-    - schedules
-  script:
-    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker rmi variant_minimal_srslte_subproj:latest
-    - docker build --no-cache -t variant_minimal_srslte_subproj:latest --build-arg INCLUDE_SRSLTE=false .
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/Archlinux
+    - docker rmi ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/archlinux_base:latest || true
+    - docker build --no-cache -t ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/archlinux_base:latest --target archlinux_base --build-arg OS_VERSION=latest .
 
-variant_cmnalib:
-  stage: environment_variants
+E_Ubnt20_full:
+  stage: Environment
   only:
     - schedules
   script:
-    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker rmi variant_cmnalib:latest
-    - docker build --no-cache -t variant_cmnalib:latest --build-arg INCLUDE_CMNALIB=true .
-    
-variant_cmnalib_uhd:
-  stage: environment_variants
-  only:
-    - schedules
-  script:
-    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker rmi variant_cmnalib_uhd:latest
-    - docker build --no-cache -t variant_cmnalib_uhd:latest --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true .
-    
-variant_uhd:
-  stage: environment_variants
-  only:
-    - schedules
-  script:
-    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker rmi variant_uhd:latest
-    - docker build --no-cache -t variant_uhd:latest --build-arg INCLUDE_UHD=true .
-    
-variant_full:
-  stage: environment_variants
-  only:
-    - schedules
-  script:
-    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/variants
-    - docker rmi variant_full:latest
-    - docker build --no-cache -t variant_full:latest --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true --build-arg INCLUDE_LIMESDR=true .
-    
-#variant_noradio:
-  #stage: environment_variants
-  #script:
-    #- cd $CI_PROJECT_DIR/_gitlab-ci/docker/variant-noradio
-    #- docker build -t variant_noradio .
-    
-#variant_uhd:
-  #stage: environment_variants
-  #script:
-    #- cd $CI_PROJECT_DIR/_gitlab-ci/docker/variant-uhd
-    #- docker build -t variant_uhd .
-    
-#variant_allradio:
-  #stage: environment_variants
-  #script:
-    #- cd $CI_PROJECT_DIR/_gitlab-ci/docker/variant-allradio
-    #- docker build -t variant_allradio .
-  
-#build_environment_image:
-  #stage: setup
-  #script:
-     #- cd _gitlab-ci
-     #- docker build -t falcon-test .
-    #- docker run -v `pwd`/.:/test -i falcon-test /test/testscripts/./test_all.sh /falcon/build /tmp
-   #- echo "Tapa Tapa"
-   #- docker run hello-world
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/Ubuntu
+    - docker rmi ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt20_full:latest || true
+    - docker build --no-cache -t ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt20_full:latest --build-arg OS_VERSION=focal --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true --build-arg INCLUDE_LIMESDR=true .
 
-sys_minimal:
-  stage: system_test
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
+E_Ubnt18_minimal:
+  stage: Environment
+  only:
+    - schedules
   script:
-    - docker run --rm -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i variant_minimal:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
-    
-sys_minimal_srslte_subproj:
-  stage: system_test
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  script:
-    - docker run --rm -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i variant_minimal_srslte_subproj:latest /falcon/_gitlab-ci/testscripts/./test_build.sh ~/falcon-build /tmp
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/Ubuntu
+    - docker rmi ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_minimal:latest || true
+    - docker build --no-cache -t ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_minimal:latest --build-arg OS_VERSION=bionic .
 
-sys_cmnalib:
-  stage: system_test
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
+E_Ubnt18_minimal_embed_srslte:
+  stage: Environment
+  only:
+    - schedules
   script:
-    - docker run --rm -v `pwd`/.:/falcon -i variant_cmnalib:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
-    
-sys_cmnalib_uhd:
-  stage: system_test
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  script:
-    - docker run --rm -v `pwd`/.:/falcon -i variant_cmnalib_uhd:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/Ubuntu
+    - docker rmi ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_minimal_embed_srslte:latest || true
+    - docker build --no-cache -t ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_minimal_embed_srslte:latest --build-arg OS_VERSION=bionic --build-arg INCLUDE_SRSLTE=false .
 
-sys_uhd:
-  stage: system_test
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
+E_Ubnt18_cmnalib:
+  stage: Environment
+  only:
+    - schedules
   script:
-    - docker run --rm -v `pwd`/.:/falcon -i variant_uhd:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
-    
-sys_full:
-  stage: system_test
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/Ubuntu
+    - docker rmi ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_cmnalib:latest || true
+    - docker build --no-cache -t ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_cmnalib:latest --build-arg OS_VERSION=bionic --build-arg INCLUDE_CMNALIB=true .
+
+E_Ubnt18_cmnalib_uhd:
+  stage: Environment
+  only:
+    - schedules
   script:
-    - docker run --rm -v `pwd`/.:/falcon -i variant_full:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/Ubuntu
+    - docker rmi ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_cmnalib_uhd:latest || true
+    - docker build --no-cache -t ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_cmnalib_uhd:latest --build-arg OS_VERSION=bionic --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true .
+
+E_Ubnt18_uhd:
+  stage: Environment
+  only:
+    - schedules
+  script:
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/Ubuntu
+    - docker rmi ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_uhd:latest || true
+    - docker build --no-cache -t ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_uhd:latest --build-arg OS_VERSION=bionic --build-arg INCLUDE_UHD=true .
+
+E_Ubnt18_full:
+  stage: Environment
+  only:
+    - schedules
+  script:
+    - cd $CI_PROJECT_DIR/_gitlab-ci/docker/Ubuntu
+    - docker rmi ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_full:latest || true
+    - docker build --no-cache -t ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_full:latest --build-arg OS_VERSION=bionic --build-arg INCLUDE_CMNALIB=true --build-arg INCLUDE_UHD=true --build-arg INCLUDE_LIMESDR=true .
+
+B_Arch:
+  stage: Build_and_Test
+  script:
+    - docker run --rm -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/archlinux_base:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+
+B_Ubnt20_full:
+  stage: Build_and_Test
+  script:
+    - docker run --rm -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt20_full:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+
+B_Ubnt18_minimal:
+  stage: Build_and_Test
+  script:
+    - docker run --rm -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_minimal:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+
+B_Ubnt18_minimal_embed_srslte:
+  stage: Build_and_Test
+  script:
+    - docker run --rm -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_minimal_embed_srslte:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+
+B_Ubnt18_cmnalib:
+  stage: Build_and_Test
+  script:
+    - docker run --rm -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_cmnalib:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+
+B_Ubnt18_cmnalib_uhd:
+  stage: Build_and_Test
+  script:
+    - docker run --rm -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_cmnalib_uhd:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+
+B_Ubnt18_full:
+  stage: Build_and_Test
+  script:
+    - docker run --rm -v `pwd`/.:/falcon -v /tmp:/tmp/tmp-host -i ${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/ubnt18_full:latest /falcon/_gitlab-ci/testscripts/./test_all.sh ~/falcon-build /tmp
+

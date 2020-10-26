@@ -1,3 +1,0 @@
-[submodule "_gitlab-ci/testdata"]
-	path = _gitlab-ci/testdata
-	url = ../falcon-testdata.git

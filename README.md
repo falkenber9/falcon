@@ -9,7 +9,7 @@ It decodes the Physical Downlink Control Channel (PDCCH) of a base station and r
 
 FALCON enables an exact determination of the current network load and the identification of bottlenecks. This information can be used to predict the achievable data rate of an additional subscriber by purely observing the current activity. Based on this criterion, congestion situations can be detected and avoidance strategies can be applied, e.g. switching to another network or postponing delay-tolerant transmissions.
 
-Based on [srsLTE library][srslte] v18.12, the software can be run on a plain x86 general-purpose PCs with any compatible SDR.
+Based on [srsLTE library][srslte], the software can be run on a plain x86 general-purpose PCs with any compatible SDR.
 
 
 
@@ -56,51 +56,50 @@ FALCON installation automatically downloads a proper version of srsLTE and c-mna
 
 For srsLTE:
 ```sh
-$ sudo apt-get install build-essential git subversion cmake libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-dev libqt4-dev libfftw3-dev libsctp-dev libconfig-dev libconfig++-dev libmbedtls-dev
+sudo apt-get install build-essential git subversion cmake libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-dev libqt4-dev libfftw3-dev libsctp-dev libconfig-dev libconfig++-dev libmbedtls-dev
 ```
 For srsGUI (required only for building port of IMDEA OWL):
 ```sh
-$ sudo apt-get install libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-qt5-dev qtbase5-dev
-$ git clone https://github.com/srsLTE/srsGUI.git
-$ cd srsgui
-$ mkdir build
-$ cd build
-$ cmake ../
-$ make 
-$ sudo make install
+sudo apt-get install libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-qt5-dev qtbase5-dev
+git clone https://github.com/srsLTE/srsGUI.git
+cd srsgui
+mkdir build
+cd build
+cmake ../
+make
+sudo make install
 ```
 For USRP support:
 ```sh
-$ sudo add-apt-repository ppa:ettusresearch/uhd
-$ sudo apt-get update
-$ sudo apt-get install libuhd-dev libuhd003 uhd-host
+sudo add-apt-repository ppa:ettusresearch/uhd
+sudo apt-get update
+sudo apt-get install libuhd-dev libuhd003 uhd-host
 ```
 
 For LimeSDR support:
 ```sh
-$ sudo add-apt-repository -y ppa:myriadrf/drivers
-$ sudo apt-get update
-$ sudo apt-get install limesuite limesuite-udev limesuite-images
-$ sudo apt-get install soapysdr soapysdr-module-lms7
+sudo add-apt-repository -y ppa:myriadrf/drivers
+sudo apt-get update
+sudo apt-get install limesuite limesuite-udev limesuite-images
+sudo apt-get install soapysdr soapysdr-module-lms7
 ```
 
 For FALCON:
 ```sh
-$ sudo apt-get install libglib2.0-dev libudev-dev libcurl4-gnutls-dev libboost-all-dev qtdeclarative5-dev libqt5charts5-dev
+sudo apt-get install libglib2.0-dev libudev-dev libcurl4-gnutls-dev libboost-all-dev qtdeclarative5-dev libqt5charts5-dev
 ```
 
 ### 2) FALCON:
 ```sh
-$ git clone https://github.com/falkenber9/falcon.git
-$ cd falcon
-$ mkdir build
-$ cd build
-$ cmake ../
-$ make
+git clone https://github.com/falkenber9/falcon.git
+cd falcon
+mkdir build
+cd build
+cmake ../
+make
 ```
 
-**Note:** FALCON requires a patched version of srsLTE 18.12 that is automatically downloaded and included as subproject during the build process. However if you need srsLTE to be installed on your system in a different version 
-, please run: ``cmake -DFORCE_SUBPROJECT_SRSLTE=ON ../``
+**Note:** FALCON requires a [patched version][srslte-falcon-patch] of srsLTE 18.09 that is automatically downloaded and included as subproject during the build process. However if you need srsLTE to be installed on your system in a different version, please run: ``cmake -DFORCE_SUBPROJECT_SRSLTE=ON ../``
 
 ## SDR Hardware
 FALCON has been tested with the following Software Defined Radios (SDRs):
@@ -167,8 +166,8 @@ The GUI will display waterfall plots of the spectrum and resource allocations (u
 ### FALCON Eye
 A command-line version of FALCON Decoder. For real-time monitoring of a cell, e.g. at 1829.4 MHz, run the following command:
 ```sh
-$ cd build/src
-$ ./FalconEye -f 1829.4e6 -D /tmp/dci.csv
+cd build/src
+./FalconEye -f 1829.4e6 -D /tmp/dci.csv
 ```
 This will print an ASCII visualization of the discovered resource allocations to the terminal and a detailed log of all captured DCI into the trace file ``/tmp/dci.csv``.
 Press [CTRL]+C to exit the application and print some statistics of the run.
@@ -216,8 +215,8 @@ The capturing process stops if the allocated buffer size is exceeded.
 In order to capture raw data from an LTE cell and store it on the hard disk for later (offline) analysis, launch FALCON Capture Probe as follows:
 
 ```sh
-$ cd build/src
-$ ./FalconCaptureProbe -f <carrier_frequency_Hz> -n <nof_subframes> -o example 
+cd build/src
+./FalconCaptureProbe -f <carrier_frequency_Hz> -n <nof_subframes> -o example
 ```
 * carrier_frequency_Hz: Center frequency in Hz of the LTE cell to capture. Exponential values are also accepted, e.g. ``1845e6``.
 * nof_subframe: Number of subframes (= milliseconds) to capture. A value of ``5000`` may be a good start.
@@ -316,5 +315,6 @@ To acknowledge us in your publication(s) please refer to the following publicati
 [imdea-owl]: https://git.networks.imdea.org/nicola_bui/imdeaowl
 [examples]: https://github.com/falkenber9/falcon-examples
 [srslte]: https://github.com/srsLTE/srsLTE
+[srslte-falcon-patch]: https://github.com/falkenber9/srsLTE
 [video-presentation]: https://www.youtube.com/watch?v=Va_aZYxRu3U
 

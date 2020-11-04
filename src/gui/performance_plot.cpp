@@ -16,7 +16,7 @@ PerformancePlot::PerformancePlot(Settings* p_glob_settings, SpectrumAdapter* p_s
 
   rnti_x_axis = std::vector<double>(65536);
   int x = 0;
-  std::generate(rnti_x_axis.begin(), rnti_x_axis.end(), [&]{ return x++; });
+  std::generate(rnti_x_axis.begin(), rnti_x_axis.end(), [&]{ return static_cast<double>(x++); });
 
   //Generate Window PLOT_A_WINDOW:
   plot_a_window = new QWidget();

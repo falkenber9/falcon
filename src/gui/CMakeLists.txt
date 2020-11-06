@@ -16,14 +16,12 @@ set(CMAKE_AUTOUIC ON)
 include_directories("${PROJECT_BINARY_DIR}")
 
 add_subdirectory(model)
-#add_subdirectory(model_dummy)
 add_subdirectory(adapters_qt)
 
 qt5_add_resources(IMAGES ${PROJECT_SOURCE_DIR}/gfx/images.qrc)  #Dir for ResourceFile with Images
 set_source_files_properties(${IMAGES} PROPERTIES GENERATED ON)  #Use generated Images for App (Compiled)
 
-# lte_gui
-set(gui
+set(FalconGUI_SRC
     mainwindow.ui
     mainwindow.cpp
     main.cpp
@@ -41,10 +39,10 @@ set(gui
 
 include_directories("gui")
 
-add_executable(gui ${gui})
-target_compile_options(gui PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
+add_executable(FalconGUI ${FalconGUI_SRC})
+target_compile_options(FalconGUI PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
 
-target_link_libraries(gui  
+target_link_libraries(FalconGUI
   Qt5::Core
   Qt5::Gui
   Qt5::Widgets
@@ -52,7 +50,6 @@ target_link_libraries(gui
   ${OPENGL_LIBRARIES}
   ${Boost_LIBRARIES}
   model
-#  model_dummy
   adapters_qt
   falcon_common
   falcon_meas
@@ -62,5 +59,5 @@ target_link_libraries(gui
   ${FFT_LIBRARIES}  
   )
 
-  INSTALL(  TARGETS gui
-            DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+install(TARGETS FalconGUI
+    DESTINATION ${CMAKE_INSTALL_BINDIR})

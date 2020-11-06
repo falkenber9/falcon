@@ -382,7 +382,7 @@ find_package(Qt5Widgets CONFIG REQUIRED)
 find_package (OpenGL REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts)
 
+add_subdirectory(benchmark)
 add_subdirectory(lib)
-add_subdirectory(imdeaowl)
 add_subdirectory(src)
 add_subdirectory(import)

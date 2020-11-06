@@ -14,6 +14,8 @@ else(SRSGUI_FOUND)
   set(SRSGUI_LIBRARIES "")
 endif(SRSGUI_FOUND)
 
+set(INSTALL_BUNDLE)
+
 if(RF_FOUND)
   add_executable(imdea_capture_sync imdea_capture_sync.c)
   target_link_libraries(imdea_capture_sync
@@ -22,12 +24,13 @@ if(RF_FOUND)
     falcon_phy
     falcon_util
   )
+  list(APPEND INSTALL_BUNDLE imdea_capture_sync)
 else(RF_FOUND)
   add_definitions(-DDISABLE_RF)
   #unset(SRSGUI_LIBRARIES)
 endif(RF_FOUND)
 
-message("### STATUS GUI:")
+message("STATUS GUI:")
 message(SRSGUI_FOUND)
 
 if(SRSGUI_FOUND)
@@ -40,6 +43,7 @@ if(SRSGUI_FOUND)
       ${SRSGUI_LIBRARIES}
       ${FFT_LIBRARIES}
     )
+    list(APPEND INSTALL_BUNDLE imdea_cc_decoder)
 
     add_executable(cni_cc_decoder cni_cc_decoder.c)
     target_link_libraries(cni_cc_decoder
@@ -51,6 +55,7 @@ if(SRSGUI_FOUND)
       ${SRSGUI_LIBRARIES}
       ${FFT_LIBRARIES}
     )
+    list(APPEND INSTALL_BUNDLE cni_cc_decoder)
 else(SRSGUI_FOUND)
     message(WARNING "imdea_cc_decoder and cni_cc_decoder won't be built sind SRSGUI was not found.")
 endif(SRSGUI_FOUND)
@@ -67,3 +72,9 @@ if(SRSGUI_FOUND)
     target_compile_options(cni_cc_decoder PUBLIC "-std=gnu99")
 endif(SRSGUI_FOUND)
 
+install(
+    TARGETS ${INSTALL_BUNDLE}
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR}
+)

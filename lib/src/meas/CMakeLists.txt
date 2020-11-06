@@ -7,7 +7,10 @@ target_link_libraries(falcon_meas
   falcon_common
   falcon_prof
   pthread
-#  srslte_phy
   ${CMNALIB_LIBRARIES}
-  ${SRSLTE_LIBRARIES}
-)
+  ${SRSLTE_LIBRARIES})
+install(
+  TARGETS falcon_meas
+  ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})

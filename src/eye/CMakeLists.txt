@@ -18,4 +18,8 @@ target_link_libraries(falcon_eye
   ${FFT_LIBRARIES}
 )
 target_compile_options(falcon_eye PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
-
+install(
+    TARGETS falcon_eye
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})

@@ -16,4 +16,8 @@ target_link_libraries(falcon_capture_probe
   ${FFT_LIBRARIES}
 )
 target_compile_options(falcon_capture_probe PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
-
+install(
+    TARGETS falcon_capture_probe
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})

@@ -19,3 +19,8 @@ file(GLOB SOURCES "*.cc" "*.c")
 add_library(falcon_common STATIC ${SOURCES} "${CMAKE_CURRENT_BINARY_DIR}/CurrentVersion.cc")
 add_dependencies(falcon_common check_git)
 target_compile_options(falcon_common PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
+install(
+    TARGETS falcon_common
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})

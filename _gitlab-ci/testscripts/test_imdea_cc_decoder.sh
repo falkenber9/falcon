@@ -6,7 +6,7 @@ templatedir="../testdata"
 builddir=$1
 workdir=$2
 
-uut="imdeaowl/imdea_cc_decoder"
+uut="benchmark/imdeaowl/imdea_cc_decoder"
 
 subtest="normal-10-MHz"
 source "$templatedir/$subtest/args.sh"

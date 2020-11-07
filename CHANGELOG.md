@@ -1,6 +1,27 @@
 FALCON Changelog
 ================
 
+# v1.3.0
+
+## General
+- Add install targets
+- Update instructions for build and install
+- Support Archlinux (package ``tudo-falcon`` in AUR)
+- Support Ubuntu 20.04.x LTS (Focal Fossa)
+
+## GUI
+- Plots: bugfixing and code cleaning
+
+## CI
+- Refactor CI pipeline
+- Build and test in Docker containers:
+    - Archlinux
+    - Ubuntu 20.04.x LTS (Focal Fossa)
+    - Ubuntu 18.04.x LTS (Bionic Beaver)
+
+## Miscellaneous
+- Bugfix: spurious detection of AVX512 for -O3 builds
+
 # v1.2.0
 
 ## General

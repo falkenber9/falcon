@@ -9,7 +9,7 @@ It decodes the Physical Downlink Control Channel (PDCCH) of a base station and r
 
 FALCON enables an exact determination of the current network load and the identification of bottlenecks. This information can be used to predict the achievable data rate of an additional subscriber by purely observing the current activity. Based on this criterion, congestion situations can be detected and avoidance strategies can be applied, e.g. switching to another network or postponing delay-tolerant transmissions.
 
-Based on [srsLTE library][srslte], the software can be run on a plain x86 general-purpose PCs with any compatible SDR.
+Based on [srsLTE][srslte] library, the software can be run on a plain x86 general-purpose PCs with any compatible SDR.
 
 
 
@@ -51,14 +51,22 @@ Check the [changelog](CHANGELOG.md) for recently introduced updates.
 
 ## Installation
 
-### 1) Required Dependencies
-FALCON installation automatically downloads a proper version of srsLTE and c-mnalib as subproject during the build process. Please install the following dependencies which are required by FALCON or its included components:
+Installation has been verified on the following operating systems:
+
+* Ubuntu 18.04.x LTS (Bionic Beaver)
+* Ubuntu 20.04.x LTS (Focal Fossa)
+* Archlinux
+
+### Installation on Ubuntu
+
+#### 1) Required Dependencies
+FALCON installation automatically downloads a patched version of srsLTE and c-mnalib as subproject during the build process. Please install the following dependencies which are required by FALCON or its included components:
 
 For srsLTE:
 ```sh
-sudo apt-get install build-essential git subversion cmake libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-dev libqt4-dev libfftw3-dev libsctp-dev libconfig-dev libconfig++-dev libmbedtls-dev
+sudo apt-get install build-essential git cmake libfftw3-dev libmbedtls-dev libboost-program-options-dev libconfig++-dev libsctp-dev
 ```
-For srsGUI (required only for building port of IMDEA OWL):
+For srsGUI (only required to build the ported version of IMDEA OWL):
 ```sh
 sudo apt-get install libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-qt5-dev qtbase5-dev
 git clone https://github.com/srsLTE/srsGUI.git
@@ -73,7 +81,7 @@ For USRP support:
 ```sh
 sudo add-apt-repository ppa:ettusresearch/uhd
 sudo apt-get update
-sudo apt-get install libuhd-dev libuhd003 uhd-host
+sudo apt-get install libuhd-dev uhd-host
 ```
 
 For LimeSDR support:
@@ -89,7 +97,7 @@ For FALCON:
 sudo apt-get install libglib2.0-dev libudev-dev libcurl4-gnutls-dev libboost-all-dev qtdeclarative5-dev libqt5charts5-dev
 ```
 
-### 2) FALCON:
+#### 2) FALCON:
 ```sh
 git clone https://github.com/falkenber9/falcon.git
 cd falcon
@@ -97,9 +105,53 @@ mkdir build
 cd build
 cmake ../
 make
+
+# Install (optional)
+sudo make install
 ```
 
-**Note:** FALCON requires a [patched version][srslte-falcon-patch] of srsLTE 18.09 that is automatically downloaded and included as subproject during the build process. However if you need srsLTE to be installed on your system in a different version, please run: ``cmake -DFORCE_SUBPROJECT_SRSLTE=ON ../``
+**Note:** FALCON requires a [patched version][srslte-falcon-patch] of srsLTE 18.09 that is automatically downloaded and included as subproject during the build process. However if you need srsLTE to be installed on your system in a different version, please run: ``cmake -DFORCE_SUBPROJECT_SRSLTE=ON ../`` instead of ``cmake ../``.
+
+### Installation on Archlinux
+On Archlinux build and install the package ``tudo-falcon`` from the [Arch User Repository (AUR)](https://aur.archlinux.org).
+The most convenient way is the use of an [AUR Helper](https://wiki.archlinux.org/index.php/AUR_helpers), e.g. [yay](https://aur.archlinux.org/packages/yay) or [pacaur](https://aur.archlinux.org/packages/pacaur). The following example shows the installation with ``yay``.
+
+```sh
+# Install
+yay -Sy tudo-falcon
+
+# Uninstall
+sudo pacman -Rs tudo-falcon
+```
+
+#### Installation without AUR Helper
+
+Without an AUR Helper, the package(s) can be built in a local directory with ``makepkg`` and installed via ``pacman``:
+```sh
+# Prerequisites
+pacman -S --needed base-devel
+
+# Build directory
+mkdir falcon-packages
+cd falcon-packages
+
+# Dependency c-mnalib
+git clone https://aur.archlinux.org/c-mnalib.git
+cd c-mnalib
+makepkg -si
+cd ..
+
+# Dependency srsLTE (patched)
+git clone https://aur.archlinux.org/srslte-falcon-patch-git.git
+cd srslte-falcon-patch-git
+makepkg -si
+cd ..
+
+# FALCON
+git clone https://aur.archlinux.org/tudo-falcon.git
+cd tudo-falcon
+makepkg -si
+```
 
 ## SDR Hardware
 FALCON has been tested with the following Software Defined Radios (SDRs):
@@ -143,7 +195,7 @@ All systems were tested with a USRP B210 SDR, attached via USB 3.0 and simple di
 ## Usage Instructions
 This section provides brief usage instructions for FALCON. The software collection comprises the following components:
 
-* Falcon Decoder GUI: A visualization for online/offline PDCCH decoding
+* FalconGUI: A visualization for online/offline PDCCH decoding
 * FalconEye: A command-line version of the PDCCH decoder for automated/batch processing
 * FalconCaptureProbe: Signal recorder with optional network probing
 * FalconCaptureWarden: A command-line controller for synchronized recordings by multiple instances of FalconCaptureProbe
@@ -151,7 +203,7 @@ This section provides brief usage instructions for FALCON. The software collecti
 * imdea_capture_sync: Port of IMDEA OWL's signal recorder
 
 ### FALCON GUI
-The GUI version of FALCON's decoder is located in ``build/src/gui/gui``. Simply launch the executable from a terminal or from your preferred graphical file manager.
+To start the GUI version of FALCON's decoder, simply launch ``FalconGUI`` from a terminal or from your preferred window manager. Without installation, ``FalconGUI`` is located in ``<build-dir>/src/gui/FalconGUI``.
 Enter the center frequency of the target LTE cell or select a recording from a file using the file chooser or drag & drop. Example files are provided in a [separate repository][examples].
 
 Press 'Start' and the decoder immediately starts to synchronize to the cell and decodes the PDCCH.
@@ -166,8 +218,7 @@ The GUI will display waterfall plots of the spectrum and resource allocations (u
 ### FALCON Eye
 A command-line version of FALCON Decoder. For real-time monitoring of a cell, e.g. at 1829.4 MHz, run the following command:
 ```sh
-cd build/src
-./FalconEye -f 1829.4e6 -D /tmp/dci.csv
+FalconEye -f 1829.4e6 -D /tmp/dci.csv
 ```
 This will print an ASCII visualization of the discovered resource allocations to the terminal and a detailed log of all captured DCI into the trace file ``/tmp/dci.csv``.
 Press [CTRL]+C to exit the application and print some statistics of the run.
@@ -204,19 +255,18 @@ COLUMNS_FALCON_DCI = [
 ```
 
 ### FALCON Capture Probe and Capture Warden
-Command-line tools for capturing LTE signals and optional cell probing by an auxiliary modem.
-For synchronized recordings by multiple instances of the recorder, Capture Warden provides a test-based command prompt.
+Two command-line tools provide recording of LTE signals and optional cell probing by an auxiliary modem (supported by c-mnalib).
+For synchronized recordings by multiple (distributed) instances of ``FalconCaptureProbe``, the ``FalconCaptureWarden`` provides a text-based command prompt for synchronous remote control.
 
-Note: In order to reduce the IO-load of the capturing system, FalconCaptureProbe will store the captured samples in RAM and write them to file after the capturing has ended.
+Note: In order to reduce the IO-load of the capturing system, ``FalconCaptureProbe`` will store the captured samples in RAM and write them to file after the capturing has ended.
 For this purpose, the application allocates all available RAM (minus 500MB as a reserve) for the internal sample buffer.
 The capturing process stops if the allocated buffer size is exceeded.
 
-#### Minimum example: Capture raw data from a cell
-In order to capture raw data from an LTE cell and store it on the hard disk for later (offline) analysis, launch FALCON Capture Probe as follows:
+#### Minimum example: capture raw data from a cell
+In order to capture raw data from an LTE cell and store it on the hard disk for later (offline) analysis, launch ``FalconCaptureProbe`` as follows:
 
 ```sh
-cd build/src
-./FalconCaptureProbe -f <carrier_frequency_Hz> -n <nof_subframes> -o example
+FalconCaptureProbe -f <carrier_frequency_Hz> -n <nof_subframes> -o example
 ```
 * carrier_frequency_Hz: Center frequency in Hz of the LTE cell to capture. Exponential values are also accepted, e.g. ``1845e6``.
 * nof_subframe: Number of subframes (= milliseconds) to capture. A value of ``5000`` may be a good start.
@@ -226,9 +276,6 @@ If it succeeds, the current working directory will contain the following files:
 * ``example-unknownOperator-cell.csv``: General cell information in CSV format
 * ``example-unknownOperator-iq.bin``: Raw IQ samples of the cell for later analysis
 
-
-(Further instructions and Examples will follow soon.)
-
 ## Application Notes
 This section contains general application notes that might be helpful for reliable and accurate control channel analysis.
 
@@ -237,16 +284,16 @@ FALCON has a multi-stage validation chain that reduces error detection to a mini
 However, in order to obtain a complete view of cell activity, a location with good signal conditions should be chosen. This is because resource allocations for users with a good signal can be sent with less redundancy (lower aggregation level), but cannot be decoded correctly under poor channel conditions.
 
 ### Uncommon occupancy of PDCCH
-In most cases, the base station only transmits a signal on actually occupied CCEs of the PDCCH, while free CCEs are left empty.
+In most cases, the eNodeB only emits a signal on actually occupied CCEs of the PDCCH, while free CCEs are left empty.
 FALCON uses this circumstance for performance and skips empty CCEs.
 
-Some open-source eNodeBs (e.g. Open Air Interface) still send a significant signal on empty CCEs. In typical applications, this does not lead to any disadvantages, only to increased interference on the control channel when several cells are used.
-However such CCEs (depending on the actual content) can lead to false detections by FALCON's *short-cut* detector. To counteract this, the *short-cut* detector can be deactivated (option ``-L`` in FALCON Eye). The detection of the participants then takes place exclusively via random access or with the help of histograms based on the frequency of occurrence of individual RNTIs. In the latter case, however, RNTIs are only accepted and activated with a time delay after a threshold value has been reached.
-The threshold value can be configured by the option ``-H <threshold>`` in FALCON Eye.
+However, some open-source eNodeBs (e.g. Open Air Interface) nevertheless send a significant signal on empty CCEs. In typical applications with normal UEs, this does not lead to any disadvantages, only to increased interference on the control channel when several cells are used.
+But depending on the actual content, such CCEs can lead to false detections by FALCON's *short-cut* detector. To counteract this, the *short-cut* detector can be deactivated (option ``-L`` in ``FalconEye``). The detection of the participants then takes place exclusively via random access and with the help of histograms based on the frequency of occurrence of individual RNTIs. In the latter case, previously unseen RNTIs are only accepted and activated with a time delay after a threshold value has been reached, e.g. at least 5 resource assignments in the last 200ms.
+The threshold value can be configured by the option ``-H <threshold>`` in ``FalconEye``.
 
 
-## Alternative to IMDEA OWL
-FALCON is an alternative to [IMDEA OWL][imdea-owl] which provides comparable functionalities for long-term monitoring of LTE cells. Other than OWL, FALCON additionally targets use cases that require short-term monitoring, mobility or non-ideal radio conditions.
+## Comparison with IMDEA OWL
+FALCON is an alternative to [IMDEA OWL][imdea-owl] which provides comparable functionalities for long-term monitoring of LTE cells. Other than OWL, FALCON additionally targets use cases that require short-term monitoring, mobility or increased robustness against non-ideal radio conditions.
 
 The interface of FALCON's recorder and decoder is mostly compatible with [IMDEA OWL][imdea-owl].
 FALCON inherits OWL's approach of tracking C-RNTI assignments from PRACH for any UE that joins the cell during the observation time.
@@ -256,12 +303,12 @@ In contrast to OWL's re-encoding approach, this method is significantly less sen
 
 A direct comparison of FALCON and OWL in a controlled environment is discussed in this [video presentation][video-presentation].
 
-### Included port of IMDEA OWL
-The original version of IMDEA OWL is hardcoded into a fork of SRSLTE v1.3.
-In order to provide a fair comparison of FALCON and OWL and their underlying methods, we extracted and ported OWL with its extensions of the SRSLTE library into the FALCON project as separated modules and applications.
-By this, both applications benefit from future advancements of SRSLTE library.
+### Included port of IMDEA OWL for Benchmarking
+The original version of IMDEA OWL was hardcoded into a fork of srsLTE v1.3 from Sep. 2016 and was updated to srsLTE v2.0 in Jul. 2017.
+In order to provide a fair comparison of FALCON and OWL and their underlying methods, we extracted and ported OWL with its custom extensions on the srsLTE library into the FALCON project as separated modules and applications.
+By this, both applications benefit from future advancements of srsLTE library.
 
-### Validation of the port
+### Validation of the port against the original version
 
 Every port requires at least slight adaptations of the code, especially if the underlying libraries evolve.
 However, this may lead to unintended side effects such as deviant functionality or different handling of exceptions.
@@ -270,14 +317,14 @@ We validated the functionality of the IMDEA OWL port against its original implem
 
 This required the following precautions:
 
-- **Switch Viterbi decoder to 8 bit**: SRSLTE uses a 16-bit Viterbi decoder if AVX2 is available, whereas the version underlying IMDEA OWL uses 8-bit Viterbi decoder. This circumvents direct comparison since spurious (false) DCI are decoded to different sequences of bits. Therefore, ``#undef VITERBI_16`` in file ``dci.c`` of SRSLTE library even if ``LV_HAVE_AVX2`` is defined to achieve the same behavior.
+- **Switch Viterbi decoder to 8 bit**: srsLTE uses a 16-bit Viterbi decoder if AVX2 is available, whereas the version underlying IMDEA OWL uses 8-bit Viterbi decoder. This circumvents direct comparison since spurious (false) DCI are decoded to different sequences of bits. Therefore, ``#undef VITERBI_16`` in file ``dci.c`` of srsLTE library even if ``LV_HAVE_AVX2`` is defined to achieve the same behavior.
 
 With these precautions, both versions decoded and processed exactly the same set of DCI candidates (whether true or spurious). All candidates were classified identically.
 However, we noticed the following (minor) differences:
 
-- **DCI scrambled with RA/P/SI-RNTI**: MCS is provided by the updated version. In such cases the old version always reports MCS=0.
+- **DCI scrambled with RA/P/SI-RNTI**: MCS is correctly provided by the ported version. In such cases the original version always reports MCS=0.
 - **Swapping**: In case the *Transport Block to Codeword Swap Flag* is set, the related values appear in swapped order.
-- **Invalid RB allocation**: If the library detects an illegal RB allocation (i.e. spurious DCI carrying an illegal resource block group assignment), a nulled line is printed. The old version prints arbitrary values.
+- **Invalid RB allocation**: If the library detects an illegal RB allocation (i.e. spurious DCI carrying an illegal resource block group assignment), a nulled line is printed. The original version prints arbitrary values.
 
 
 

@@ -3,6 +3,13 @@
 FALCON - Fast Analysis of LTE Control channels
 ==============================================
 
+[![Release](https://img.shields.io/github/release/falkenber9/falcon)](https://github.com/falkenber9/falcon/releases)
+[![AUR](https://img.shields.io/aur/version/tudo-falcon)](https://aur.archlinux.org/packages/tudo-falcon)
+[![DOI](https://img.shields.io/badge/DOI-10.1109/GLOBECOM38437.2019.9014096-fcb426.svg)](https://dx.doi.org/10.1109/GLOBECOM38437.2019.9014096)
+[![arXiv](https://img.shields.io/badge/arXiv-1907.10110-b31b1b.svg)](https://arxiv.org/abs/1907.10110)
+[![License](https://img.shields.io/github/license/falkenber9/falcon)](LICENSE)
+[![Video](https://img.shields.io/youtube/views/Va_aZYxRu3U)](http://www.youtube.com/watch?v=Va_aZYxRu3U)
+
 **FALCON** is an open-source software collection for real-time analysis of radio resources in private or commercial LTE/LTE-A networks.
 
 It decodes the Physical Downlink Control Channel (PDCCH) of a base station and reveals the number of currently active devices including their Radio Network Temporary Identifiers (RNTIs) and their individual resource allocations.
@@ -55,7 +62,7 @@ Installation has been verified on the following operating systems:
 
 * Ubuntu 18.04.x LTS (Bionic Beaver)
 * Ubuntu 20.04.x LTS (Focal Fossa)
-* Archlinux
+* Archlinux [![](https://img.shields.io/aur/version/tudo-falcon)](https://aur.archlinux.org/packages/tudo-falcon) [![](https://img.shields.io/aur/maintainer/tudo-falcon)](https://aur.archlinux.org/packages/tudo-falcon)
 
 ### Installation on Ubuntu
 
@@ -122,7 +129,7 @@ cmake -DFORCE_SUBPROJECT_SRSLTE=ON -DCMAKE_INSTALL_PREFIX=/usr ../
 
 
 ### Installation on Archlinux
-On Archlinux build and install the package ``tudo-falcon`` from the [Arch User Repository (AUR)](https://aur.archlinux.org).
+On Archlinux build and install the package ``tudo-falcon`` [![](https://img.shields.io/aur/version/tudo-falcon)](https://aur.archlinux.org/packages/tudo-falcon) from the [Arch User Repository (AUR)](https://aur.archlinux.org).
 The most convenient way is the use of an [AUR Helper](https://wiki.archlinux.org/index.php/AUR_helpers), e.g. [yay](https://aur.archlinux.org/packages/yay) or [pacaur](https://aur.archlinux.org/packages/pacaur). The following example shows the installation with ``yay``.
 
 ```sh

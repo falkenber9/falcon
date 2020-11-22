@@ -103,14 +103,23 @@ git clone https://github.com/falkenber9/falcon.git
 cd falcon
 mkdir build
 cd build
-cmake ../
+cmake -DCMAKE_INSTALL_PREFIX=/usr ../
 make
 
 # Install (optional)
 sudo make install
+
+# Uninstall (use carefully!)
+sudo xargs rm < install_manifest.txt
 ```
 
-**Note:** FALCON requires a [patched version][srslte-falcon-patch] of srsLTE 18.09 that is automatically downloaded and included as subproject during the build process. However if you need srsLTE to be installed on your system in a different version, please run: ``cmake -DFORCE_SUBPROJECT_SRSLTE=ON ../`` instead of ``cmake ../``.
+**Note:** FALCON requires a [patched version][srslte-falcon-patch] of srsLTE 18.09 that is automatically downloaded and included as subproject during the build process. However if a diffferent version of srsLTE is already installed on the computer, the build system will link against that version. In case of conflicts, force the use of srsLTE as a subproject by adding ``-DFORCE_SUBPROJECT_SRSLTE=ON`` to the ``cmake`` options. In this case, take care with ``make install``, since this may overwrite your existing version of srsLTE. Example:
+```
+...
+cmake -DFORCE_SUBPROJECT_SRSLTE=ON -DCMAKE_INSTALL_PREFIX=/usr ../
+...
+```
+
 
 ### Installation on Archlinux
 On Archlinux build and install the package ``tudo-falcon`` from the [Arch User Repository (AUR)](https://aur.archlinux.org).

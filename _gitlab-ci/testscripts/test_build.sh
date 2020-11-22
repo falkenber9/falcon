@@ -7,13 +7,17 @@ workdir=$2
 #exit immediately if any command fails
 set -e
 
-echo "Testing download and build"
+echo "Testing download, build and install"
 
 srcdir="/falcon"
 
 mkdir -p $builddir
 cd $builddir
-cmake $srcdir
+cmake -DCMAKE_INSTALL_PREFIX=/usr $srcdir
 make -j
 
-echo "Build successfull"
+echo "Build successful"
+
+make install
+
+echo "Installation successful"

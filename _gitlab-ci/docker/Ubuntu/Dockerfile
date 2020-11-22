@@ -63,7 +63,7 @@ WORKDIR /
 RUN if [ "$INCLUDE_CMNALIB" = true ]; then \
   apt-get update \
   && apt-get install -y libglib2.0-dev libudev-dev libcurl4-gnutls-dev \
-  && git clone --branch falcon_v0.1 https://github.com/falkenber9/c-mnalib.git \
+  && git clone https://github.com/falkenber9/c-mnalib.git \
   && mkdir /c-mnalib/build \
   && cd /c-mnalib/build \
   && cmake ../ \
@@ -74,7 +74,7 @@ RUN if [ "$INCLUDE_CMNALIB" = true ]; then \
 ARG INCLUDE_SRSLTE
 WORKDIR /
 RUN if [ "$INCLUDE_SRSLTE" = true ]; then \
-  git clone --branch falcon_v0.1 https://github.com/falkenber9/srsLTE.git \
+  git clone --branch falcon-dev https://github.com/falkenber9/srsLTE.git \
   && mkdir srsLTE/build \
   && cd srsLTE/build \
   && cmake -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_FMA=OFF -DENABLE_AVX512=OFF  ../ \

@@ -8,9 +8,7 @@ ExternalProject_Add(srsLTE
 #    GIT_REPOSITORY https://github.com/srsLTE/srsLTE.git
     GIT_REPOSITORY https://github.com/falkenber9/srsLTE.git
     GIT_TAG falcon-dev
-#    GIT_TAG 5873c474fff4e7645aef0d5f7e2a7b2066521cd0
 #    GIT_TAG falcon_v0.1
-#    GIT_TAG develop
     SOURCE_DIR "${CMAKE_BINARY_DIR}/srsLTE-src"
     BINARY_DIR "${CMAKE_BINARY_DIR}/srsLTE-build"
     CONFIGURE_COMMAND ""

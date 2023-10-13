@@ -20,11 +20,12 @@
  */
 #pragma once
 
+#include "cmnalib/at_sierra_wireless_em7565.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "cmnalib/at_sierra_wireless_em7565.h"
 
 //#define DEFAULT_URL "mptcp1.pi21.de:5002"
 #define DEFAULT_URL "www.kn.e-technik.tu-dortmund.de"
